@@ -117,7 +117,9 @@ class _HomeViewState extends State<HomeView>
               ),
               const SizedBox(width: 16.0),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/profile');
+                },
                 padding: EdgeInsets.zero,
                 icon: const CircleAvatar(child: Icon(Icons.person)),
               ),
