@@ -1,0 +1,222 @@
+import 'package:atomikpos/data/repositories/product_repository.dart';
+import 'package:atomikpos/features/home/bloc/home_bloc.dart';
+import 'package:atomikpos/features/home/bloc/home_event.dart';
+import 'package:atomikpos/features/home/bloc/home_state.dart';
+import 'package:atomikpos/features/home/view/widgets/products_view.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) =>
+          HomeBloc(productRepository: context.read<ProductRepository>())
+            ..add(HomeStarted()),
+      child: const HomeView(),
+    );
+  }
+}
+
+class HomeView extends StatefulWidget {
+  const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabController;
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<HomeBloc, HomeState>(
+      listenWhen: (previous, current) =>
+          previous.categories != current.categories,
+      listener: (context, state) {
+        if (state.categories.isNotEmpty) {
+          _tabController?.dispose();
+          _tabController = TabController(
+            length: state.categories.length,
+            vsync: this,
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state.status == HomeStatus.loading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state.status == HomeStatus.failure) {
+          return const Scaffold(
+            body: Center(child: Text('Failed to load products')),
+          );
+        }
+
+        if (state.categories.isEmpty) {
+          return const Scaffold(body: Center(child: Text('No products found')));
+        }
+
+        final tabController = _tabController;
+        if (tabController == null) {
+          return const Scaffold(body: SizedBox.shrink());
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            toolbarHeight: kToolbarHeight + 16.0,
+            title: SvgPicture.asset('assets/svg/brand_icon.svg', height: 30),
+            actions: [
+              IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.lock_outline),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.mail_outline),
+              ),
+              const SizedBox(width: 16.0),
+              IconButton(
+                onPressed: () {},
+                padding: EdgeInsets.zero,
+                icon: const CircleAvatar(child: Icon(Icons.person)),
+              ),
+              const SizedBox(width: 14.0),
+            ],
+            bottom: TabBar(
+              controller: tabController,
+              tabs: state.categories.map((c) => Tab(text: c)).toList(),
+              isScrollable: state.categories.length >= 5,
+              tabAlignment: TabAlignment.start,
+            ),
+          ),
+          body: Stack(
+            children: [
+              TabBarView(
+                controller: tabController,
+                children: state.categories.map((category) {
+                  return ProductsView(
+                    items: state.itemsByCategory[category] ?? [],
+                    cartItems: state.cartItems,
+                    onTap: (product) {
+                      context.read<HomeBloc>().add(HomeProductAdded(product));
+                    },
+                    onLongPress: (product) {
+                      context.read<HomeBloc>().add(HomeProductRemoved(product));
+                    },
+                  );
+                }).toList(),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeInOut,
+                bottom: state.cartItems.isEmpty ? -kToolbarHeight - 16.0 : 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: kToolbarHeight + 16.0,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () async {
+                            final bloc = context.read<HomeBloc>();
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Clear Order?'),
+                                content: const Text(
+                                  'Are you sure you want to remove all items from the order list?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: const Text(
+                                      'Clear Order',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirmed == true) {
+                              bloc.add(HomeCartCleared());
+                            }
+                          },
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                          ),
+                          icon: SizedBox(
+                            width: kToolbarHeight + 16.0,
+                            height: double.infinity,
+                            child: Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        VerticalDivider(width: 1),
+                        Expanded(
+                          child: SizedBox(
+                            height: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0),
+                                ),
+                              ),
+                              child: const Text(
+                                'Confirm Order',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

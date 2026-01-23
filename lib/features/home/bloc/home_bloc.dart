@@ -1,0 +1,71 @@
+import 'package:atomikpos/data/models/cart_item.dart';
+import 'package:atomikpos/data/models/product.dart';
+import 'package:atomikpos/data/repositories/product_repository.dart';
+import 'package:atomikpos/features/home/bloc/home_event.dart';
+import 'package:atomikpos/features/home/bloc/home_state.dart';
+import 'package:bloc/bloc.dart';
+
+class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  HomeBloc({required ProductRepository productRepository})
+    : _productRepository = productRepository,
+      super(const HomeState()) {
+    on<HomeStarted>(_onStarted);
+    on<HomeProductAdded>(_onProductAdded);
+    on<HomeProductRemoved>(_onProductRemoved);
+    on<HomeCartCleared>(_onCartCleared);
+  }
+
+  final ProductRepository _productRepository;
+
+  Future<void> _onStarted(HomeStarted event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(status: HomeStatus.loading));
+    try {
+      final categories = ['Promo', 'Makanan', 'Minuman', 'Paket', 'Lainnya'];
+      final itemsByCategory = <String, List<Product>>{};
+
+      for (final category in categories) {
+        final products = await _productRepository.getProductsByCategory(
+          category,
+        );
+        itemsByCategory[category] = products;
+      }
+
+      emit(
+        state.copyWith(
+          status: HomeStatus.success,
+          categories: categories,
+          itemsByCategory: itemsByCategory,
+        ),
+      );
+    } catch (_) {
+      emit(state.copyWith(status: HomeStatus.failure));
+    }
+  }
+
+  void _onProductAdded(HomeProductAdded event, Emitter<HomeState> emit) {
+    final cartItems = List<CartItem>.from(state.cartItems);
+    final index = cartItems.indexWhere(
+      (item) => item.product.id == event.product.id,
+    );
+
+    if (index >= 0) {
+      cartItems[index] = cartItems[index].copyWith(
+        quantity: cartItems[index].quantity + 1,
+      );
+    } else {
+      cartItems.add(CartItem(product: event.product, quantity: 1));
+    }
+
+    emit(state.copyWith(cartItems: cartItems));
+  }
+
+  void _onProductRemoved(HomeProductRemoved event, Emitter<HomeState> emit) {
+    final cartItems = List<CartItem>.from(state.cartItems);
+    cartItems.removeWhere((item) => item.product.id == event.product.id);
+    emit(state.copyWith(cartItems: cartItems));
+  }
+
+  void _onCartCleared(HomeCartCleared event, Emitter<HomeState> emit) {
+    emit(state.copyWith(cartItems: []));
+  }
+}

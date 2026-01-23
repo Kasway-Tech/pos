@@ -7,6 +7,7 @@ void main() {
     await tester.pumpWidget(const App());
 
     // Verify that the app starts.
+    await tester.pumpAndSettle();
     expect(find.byType(App), findsOneWidget);
   });
 }
