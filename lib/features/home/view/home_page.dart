@@ -133,7 +133,7 @@ class _HomeViewState extends State<HomeView>
                     color: Theme.of(context).colorScheme.surfaceContainer,
                     border: Border(
                       top: BorderSide(
-                        color: Theme.of(context).colorScheme.outline,
+                        color: Theme.of(context).colorScheme.outlineVariant,
                       ),
                     ),
                   ),
