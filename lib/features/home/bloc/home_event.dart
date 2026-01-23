@@ -26,4 +26,13 @@ class HomeProductRemoved extends HomeEvent {
   List<Object?> get props => [product];
 }
 
+class HomeCartQuantityUpdated extends HomeEvent {
+  const HomeCartQuantityUpdated(this.product, this.quantity);
+  final Product product;
+  final double quantity;
+
+  @override
+  List<Object?> get props => [product, quantity];
+}
+
 class HomeCartCleared extends HomeEvent {}

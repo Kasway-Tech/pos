@@ -13,6 +13,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeProductAdded>(_onProductAdded);
     on<HomeProductRemoved>(_onProductRemoved);
     on<HomeCartCleared>(_onCartCleared);
+    on<HomeCartQuantityUpdated>(_onCartQuantityUpdated);
   }
 
   final ProductRepository _productRepository;
@@ -63,6 +64,25 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final cartItems = List<CartItem>.from(state.cartItems);
     cartItems.removeWhere((item) => item.product.id == event.product.id);
     emit(state.copyWith(cartItems: cartItems));
+  }
+
+  void _onCartQuantityUpdated(
+    HomeCartQuantityUpdated event,
+    Emitter<HomeState> emit,
+  ) {
+    final cartItems = List<CartItem>.from(state.cartItems);
+    final index = cartItems.indexWhere(
+      (item) => item.product.id == event.product.id,
+    );
+
+    if (index >= 0) {
+      if (event.quantity <= 0) {
+        cartItems.removeAt(index);
+      } else {
+        cartItems[index] = cartItems[index].copyWith(quantity: event.quantity);
+      }
+      emit(state.copyWith(cartItems: cartItems));
+    }
   }
 
   void _onCartCleared(HomeCartCleared event, Emitter<HomeState> emit) {

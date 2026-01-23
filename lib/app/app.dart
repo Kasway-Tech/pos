@@ -4,6 +4,8 @@ import 'package:atomikpos/data/repositories/product_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../features/home/bloc/home_bloc.dart';
+import '../features/home/bloc/home_event.dart';
 import 'app_router.dart';
 import 'theme.dart';
 import 'util.dart';
@@ -23,13 +25,18 @@ class App extends StatelessWidget {
 
     MaterialTheme theme = MaterialTheme(textTheme);
 
-    return RepositoryProvider(
-      create: (context) => ProductRepository(),
-      child: MaterialApp.router(
-        scrollBehavior: AppScrollBehavior(),
-        title: 'Atomik POS',
-        theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-        routerConfig: AppRouter.router,
+    return MultiRepositoryProvider(
+      providers: [RepositoryProvider(create: (context) => ProductRepository())],
+      child: BlocProvider(
+        create: (context) =>
+            HomeBloc(productRepository: context.read<ProductRepository>())
+              ..add(HomeStarted()),
+        child: MaterialApp.router(
+          scrollBehavior: AppScrollBehavior(),
+          title: 'Atomik POS',
+          theme: brightness == Brightness.light ? theme.light() : theme.dark(),
+          routerConfig: AppRouter.router,
+        ),
       ),
     );
   }

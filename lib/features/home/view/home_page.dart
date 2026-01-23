@@ -1,4 +1,3 @@
-import 'package:atomikpos/data/repositories/product_repository.dart';
 import 'package:atomikpos/features/home/bloc/home_bloc.dart';
 import 'package:atomikpos/features/home/bloc/home_event.dart';
 import 'package:atomikpos/features/home/bloc/home_state.dart';
@@ -6,18 +5,14 @@ import 'package:atomikpos/features/home/view/widgets/products_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          HomeBloc(productRepository: context.read<ProductRepository>())
-            ..add(HomeStarted()),
-      child: const HomeView(),
-    );
+    return const HomeView();
   }
 }
 
@@ -130,10 +125,12 @@ class _HomeViewState extends State<HomeView>
                 right: 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    color: Theme.of(context).colorScheme.surface,
                     border: Border(
                       top: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHigh,
                       ),
                     ),
                   ),
@@ -187,12 +184,17 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ),
                         ),
-                        VerticalDivider(width: 1),
+                        VerticalDivider(
+                          width: 1,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
+                        ),
                         Expanded(
                           child: SizedBox(
                             height: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              // INTENDED CHANGES, DO NOT FUCKING REMOVE
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 backgroundColor: Colors.transparent,
@@ -201,10 +203,20 @@ class _HomeViewState extends State<HomeView>
                                   borderRadius: BorderRadius.circular(0),
                                 ),
                               ),
-                              child: const Text(
-                                'Confirm Order',
-                                style: TextStyle(fontSize: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Confirm Selection',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(Icons.arrow_forward),
+                                ],
                               ),
+                              onPressed: () {
+                                context.push('/order-confirmation');
+                              },
                             ),
                           ),
                         ),
