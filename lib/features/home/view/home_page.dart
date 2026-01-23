@@ -26,10 +26,13 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
+  bool _isSearching = false;
+  final _searchController = TextEditingController();
 
   @override
   void dispose() {
     _tabController?.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -72,9 +75,36 @@ class _HomeViewState extends State<HomeView>
         return Scaffold(
           appBar: AppBar(
             toolbarHeight: kToolbarHeight + 16.0,
-            title: SvgPicture.asset('assets/svg/brand_icon.svg', height: 30),
+            title: _isSearching
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Search products...',
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (value) {
+                      context.read<HomeBloc>().add(
+                        HomeSearchTermChanged(value),
+                      );
+                    },
+                  )
+                : SvgPicture.asset('assets/svg/brand_icon.svg', height: 30),
             actions: [
-              IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isSearching = !_isSearching;
+                    if (!_isSearching) {
+                      _searchController.clear();
+                      context.read<HomeBloc>().add(
+                        const HomeSearchTermChanged(''),
+                      );
+                    }
+                  });
+                },
+                icon: Icon(_isSearching ? Icons.close : Icons.search),
+              ),
               const SizedBox(width: 4),
               IconButton(
                 onPressed: () {},
@@ -93,30 +123,48 @@ class _HomeViewState extends State<HomeView>
               ),
               const SizedBox(width: 14.0),
             ],
-            bottom: TabBar(
-              controller: tabController,
-              tabs: state.categories.map((c) => Tab(text: c)).toList(),
-              isScrollable: state.categories.length >= 5,
-              tabAlignment: TabAlignment.start,
-            ),
+            bottom: _isSearching || state.searchTerm.isNotEmpty
+                ? null
+                : TabBar(
+                    controller: tabController,
+                    tabs: state.categories.map((c) => Tab(text: c)).toList(),
+                    isScrollable: state.categories.length >= 5,
+                    tabAlignment: TabAlignment.start,
+                  ),
           ),
           body: Stack(
             children: [
-              TabBarView(
-                controller: tabController,
-                children: state.categories.map((category) {
-                  return ProductsView(
-                    items: state.itemsByCategory[category] ?? [],
-                    cartItems: state.cartItems,
-                    onTap: (product) {
-                      context.read<HomeBloc>().add(HomeProductAdded(product));
-                    },
-                    onLongPress: (product) {
-                      context.read<HomeBloc>().add(HomeProductRemoved(product));
-                    },
-                  );
-                }).toList(),
-              ),
+              if (_isSearching || state.searchTerm.isNotEmpty)
+                ProductsView(
+                  items: state.itemsByCategory.values
+                      .expand((items) => items)
+                      .toList(),
+                  cartItems: state.cartItems,
+                  onTap: (product) {
+                    context.read<HomeBloc>().add(HomeProductAdded(product));
+                  },
+                  onLongPress: (product) {
+                    context.read<HomeBloc>().add(HomeProductRemoved(product));
+                  },
+                )
+              else
+                TabBarView(
+                  controller: tabController,
+                  children: state.categories.map((category) {
+                    return ProductsView(
+                      items: state.itemsByCategory[category] ?? [],
+                      cartItems: state.cartItems,
+                      onTap: (product) {
+                        context.read<HomeBloc>().add(HomeProductAdded(product));
+                      },
+                      onLongPress: (product) {
+                        context.read<HomeBloc>().add(
+                          HomeProductRemoved(product),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 150),
                 curve: Curves.easeInOut,

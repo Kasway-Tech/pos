@@ -56,5 +56,60 @@ void main() {
       act: (bloc) => bloc.add(HomeCartCleared()),
       expect: () => [const HomeState(cartItems: [])],
     );
+
+    blocTest<HomeBloc, HomeState>(
+      'filters products when HomeSearchTermChanged is added',
+      build: buildBloc,
+      seed: () => HomeState(
+        categories: ['Makanan'],
+        initialItemsByCategory: {
+          'Makanan': [
+            Product(id: '1', name: 'Nasi Goreng', price: 1000),
+            Product(id: '2', name: 'Mie Ayam', price: 1000),
+          ],
+        },
+        itemsByCategory: {
+          'Makanan': [
+            Product(id: '1', name: 'Nasi Goreng', price: 1000),
+            Product(id: '2', name: 'Mie Ayam', price: 1000),
+          ],
+        },
+      ),
+      act: (bloc) => bloc.add(const HomeSearchTermChanged('nasi')),
+      expect: () => [
+        isA<HomeState>()
+            .having(
+              (s) => s.itemsByCategory['Makanan'],
+              'itemsByCategory',
+              contains(predicate((p) => (p as Product).name == 'Nasi Goreng')),
+            )
+            .having(
+              (s) => s.itemsByCategory['Makanan']?.length,
+              'itemsByCategory length',
+              1,
+            ),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'shows all products when search term is empty',
+      build: buildBloc,
+      seed: () => HomeState(
+        searchTerm: 'nasi',
+        categories: ['Makanan'],
+        initialItemsByCategory: {
+          'Makanan': [Product(id: '1', name: 'Nasi Goreng', price: 1000)],
+        },
+        itemsByCategory: {'Makanan': []},
+      ),
+      act: (bloc) => bloc.add(const HomeSearchTermChanged('')),
+      expect: () => [
+        isA<HomeState>().having(
+          (s) => s.itemsByCategory['Makanan']?.length,
+          'itemsByCategory length',
+          1,
+        ),
+      ],
+    );
   });
 }

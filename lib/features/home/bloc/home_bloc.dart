@@ -14,6 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeProductRemoved>(_onProductRemoved);
     on<HomeCartCleared>(_onCartCleared);
     on<HomeCartQuantityUpdated>(_onCartQuantityUpdated);
+    on<HomeSearchTermChanged>(_onSearchTermChanged);
   }
 
   final ProductRepository _productRepository;
@@ -36,6 +37,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           status: HomeStatus.success,
           categories: categories,
           itemsByCategory: itemsByCategory,
+          initialItemsByCategory: itemsByCategory,
         ),
       );
     } catch (_) {
@@ -92,5 +94,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _onCartCleared(HomeCartCleared event, Emitter<HomeState> emit) {
     emit(state.copyWith(cartItems: []));
+  }
+
+  void _onSearchTermChanged(
+    HomeSearchTermChanged event,
+    Emitter<HomeState> emit,
+  ) {
+    final searchTerm = event.searchTerm.toLowerCase();
+    final itemsByCategory = <String, List<Product>>{};
+
+    for (final category in state.categories) {
+      final initialItems = state.initialItemsByCategory[category] ?? [];
+      if (searchTerm.isEmpty) {
+        itemsByCategory[category] = initialItems;
+      } else {
+        itemsByCategory[category] = initialItems
+            .where((p) => p.name.toLowerCase().contains(searchTerm))
+            .toList();
+      }
+    }
+
+    emit(
+      state.copyWith(
+        searchTerm: event.searchTerm,
+        itemsByCategory: itemsByCategory,
+      ),
+    );
   }
 }

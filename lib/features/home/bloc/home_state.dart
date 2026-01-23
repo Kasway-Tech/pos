@@ -12,6 +12,8 @@ abstract class HomeState with _$HomeState {
     @Default(HomeStatus.initial) HomeStatus status,
     @Default([]) List<String> categories,
     @Default({}) Map<String, List<Product>> itemsByCategory,
+    @Default({}) Map<String, List<Product>> initialItemsByCategory,
+    @Default('') String searchTerm,
     @Default([]) List<CartItem> cartItems,
   }) = _HomeState;
 }

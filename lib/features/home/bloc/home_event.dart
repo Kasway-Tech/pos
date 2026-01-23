@@ -36,3 +36,11 @@ class HomeCartQuantityUpdated extends HomeEvent {
 }
 
 class HomeCartCleared extends HomeEvent {}
+
+class HomeSearchTermChanged extends HomeEvent {
+  const HomeSearchTermChanged(this.searchTerm);
+  final String searchTerm;
+
+  @override
+  List<Object?> get props => [searchTerm];
+}
