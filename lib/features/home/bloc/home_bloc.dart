@@ -50,9 +50,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
 
     if (index >= 0) {
-      cartItems[index] = cartItems[index].copyWith(
-        quantity: cartItems[index].quantity + 1,
-      );
+      final newQuantity = cartItems[index].quantity + 1;
+      if (newQuantity <= 99) {
+        cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
+      } else {
+        return; // Don't emit if already at max
+      }
     } else {
       cartItems.add(CartItem(product: event.product, quantity: 1));
     }
@@ -79,7 +82,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (event.quantity <= 0) {
         cartItems.removeAt(index);
       } else {
-        cartItems[index] = cartItems[index].copyWith(quantity: event.quantity);
+        cartItems[index] = cartItems[index].copyWith(
+          quantity: event.quantity.clamp(1, 99),
+        );
       }
       emit(state.copyWith(cartItems: cartItems));
     }

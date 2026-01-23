@@ -90,7 +90,15 @@ class _NumericInputGroupState extends State<NumericInputGroup> {
               onChanged: (text) {
                 final newValue = int.tryParse(text);
                 if (newValue != null) {
-                  _updateValue(newValue);
+                  if (newValue > widget.max) {
+                    _controller.text = widget.max.toString();
+                    _controller.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _controller.text.length),
+                    );
+                    _updateValue(widget.max);
+                  } else {
+                    _updateValue(newValue);
+                  }
                 }
               },
             ),
