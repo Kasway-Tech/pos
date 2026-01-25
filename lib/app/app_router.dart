@@ -11,6 +11,7 @@ import '../features/profile/view/order_history_page.dart';
 import '../features/profile/view/payment_methods_page.dart';
 import '../features/profile/view/profile_page.dart';
 import '../features/profile/view/settings_page.dart';
+import '../features/profile/view/theme_settings_page.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -54,6 +55,10 @@ class AppRouter {
           GoRoute(
             path: 'help',
             builder: (context, state) => const HelpSupportPage(),
+          ),
+          GoRoute(
+            path: 'theme',
+            builder: (context, state) => const ThemeSettingsPage(),
           ),
         ],
       ),

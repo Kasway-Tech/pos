@@ -27,6 +27,11 @@ class ProfilePage extends StatelessWidget {
             onTap: () => context.push('/profile/payments'),
           ),
           _ProfileMenuItem(
+            icon: Icons.palette_outlined,
+            title: 'Theme Settings',
+            onTap: () => context.push('/profile/theme'),
+          ),
+          _ProfileMenuItem(
             icon: Icons.settings_outlined,
             title: 'Settings',
             onTap: () => context.push('/profile/settings'),

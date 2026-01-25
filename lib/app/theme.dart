@@ -56,8 +56,14 @@ class MaterialTheme {
     );
   }
 
-  ThemeData light() {
-    return theme(lightScheme());
+  ThemeData light([Color? seedColor]) {
+    final colorScheme = seedColor != null
+        ? ColorScheme.fromSeed(
+            seedColor: seedColor,
+            brightness: Brightness.light,
+          )
+        : lightScheme();
+    return theme(colorScheme);
   }
 
   static ColorScheme lightMediumContrastScheme() {
@@ -221,8 +227,14 @@ class MaterialTheme {
     );
   }
 
-  ThemeData dark() {
-    return theme(darkScheme());
+  ThemeData dark([Color? seedColor]) {
+    final colorScheme = seedColor != null
+        ? ColorScheme.fromSeed(
+            seedColor: seedColor,
+            brightness: Brightness.dark,
+          )
+        : darkScheme();
+    return theme(colorScheme);
   }
 
   static ColorScheme darkMediumContrastScheme() {
