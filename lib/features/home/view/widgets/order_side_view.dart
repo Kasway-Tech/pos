@@ -21,7 +21,7 @@ class OrderSideView extends StatelessWidget {
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: 'Rp. ',
+      symbol: 'IDR ',
       decimalDigits: 0,
     );
 

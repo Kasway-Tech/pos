@@ -95,7 +95,7 @@ class _PaymentSelectionView extends StatelessWidget {
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: 'Rp. ',
+      symbol: 'IDR ',
       decimalDigits: 0,
     );
 
@@ -308,7 +308,7 @@ class _CashConfirmationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: 'Rp. ',
+      symbol: 'IDR ',
       decimalDigits: 0,
     );
 
@@ -419,7 +419,7 @@ class _CashFinalConfirmationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
-      symbol: 'Rp. ',
+      symbol: 'IDR ',
       decimalDigits: 0,
     );
 

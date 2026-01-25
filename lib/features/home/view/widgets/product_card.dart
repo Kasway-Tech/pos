@@ -1,6 +1,7 @@
 import 'package:atomikpos/data/models/product.dart';
 import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ProductCard extends StatefulWidget {
   const ProductCard({
@@ -22,6 +23,12 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   bool _longPressHandled = false;
+
+  static final _currencyFormat = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'IDR ',
+    decimalDigits: 0,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +91,7 @@ class _ProductCardState extends State<ProductCard> {
                         ),
                       ),
                       Text(
-                        'IDR ${widget.product.price.toStringAsFixed(0)}',
+                        _currencyFormat.format(widget.product.price),
                         textAlign: TextAlign.right,
                         style: TextStyle(
                           color: active
