@@ -257,28 +257,30 @@ class _OrderSideViewState extends State<OrderSideView> {
                   height: kToolbarHeight + 16.0,
                   child: Row(
                     children: [
-                      IconButton(
-                        onPressed: () => _confirmClearOrder(context),
-                        style: IconButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
+                      if (!widget.showAppBar)
+                        IconButton(
+                          onPressed: () => _confirmClearOrder(context),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                          ),
+                          icon: SizedBox(
+                            width: kToolbarHeight + 16.0,
+                            height: double.infinity,
+                            child: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.red,
+                            ),
                           ),
                         ),
-                        icon: SizedBox(
-                          width: kToolbarHeight + 16.0,
-                          height: double.infinity,
-                          child: const Icon(
-                            Icons.delete_outline_rounded,
-                            color: Colors.red,
-                          ),
+                      if (!widget.showAppBar)
+                        VerticalDivider(
+                          width: 1,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
                         ),
-                      ),
-                      VerticalDivider(
-                        width: 1,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHigh,
-                      ),
                       Expanded(
                         child: SizedBox(
                           height: double.infinity,
