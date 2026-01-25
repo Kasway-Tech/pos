@@ -232,7 +232,7 @@ class _HomeViewState extends State<HomeView>
                 context.read<HomeBloc>().add(HomeSearchTermChanged(value));
               },
             )
-          : SvgPicture.asset('assets/svg/brand_icon.svg', height: 30),
+          : SvgPicture.asset('assets/svg/brand_icon.svg', height: 28),
       actions: [
         IconButton(
           onPressed: () {

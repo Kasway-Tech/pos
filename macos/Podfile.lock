@@ -1371,17 +1371,26 @@ PODS:
   - gRPC-Core/Privacy (1.69.0)
   - GTMSessionFetcher/Core (5.0.0)
   - leveldb-library (1.22.6)
+  - macos_window_utils (1.0.0):
+    - FlutterMacOS
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - screen_retriever_macos (0.0.1):
+    - FlutterMacOS
+  - window_manager (0.5.0):
+    - FlutterMacOS
 
 DEPENDENCIES:
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
   - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
+  - macos_window_utils (from `Flutter/ephemeral/.symlinks/plugins/macos_window_utils/macos`)
+  - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
+  - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
 SPEC REPOS:
   trunk:
@@ -1413,6 +1422,12 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_core/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
+  macos_window_utils:
+    :path: Flutter/ephemeral/.symlinks/plugins/macos_window_utils/macos
+  screen_retriever_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
+  window_manager:
+    :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
@@ -1436,7 +1451,10 @@ SPEC CHECKSUMS:
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
   GTMSessionFetcher: 02d6e866e90bc236f48a703a041dfe43e6221a29
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
+  macos_window_utils: 23f54331a0fd51eea9e0ed347253bf48fd379d1d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
+  window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
 PODFILE CHECKSUM: 7bdb5ff65d25823236d0a745ee20a66a2b947da3
 

@@ -47,6 +47,9 @@ dependencies:
   flutter_svg: ^2.2.3
   google_fonts: ^8.0.0
   intl: ^0.20.2
+  macos_window_utils: ^1.5.1
+  screen_retriever: ^0.2.0
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:
