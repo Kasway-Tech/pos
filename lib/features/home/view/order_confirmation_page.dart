@@ -26,7 +26,6 @@ class OrderConfirmationPage extends StatelessWidget {
         );
 
         return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           appBar: AppBar(
             toolbarHeight: kToolbarHeight + 16.0,
             scrolledUnderElevation: 0,
