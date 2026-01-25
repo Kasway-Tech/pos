@@ -19,27 +19,40 @@ class ProductsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 8.0,
-        crossAxisSpacing: 8.0,
-        childAspectRatio: 0.8,
-      ),
-      padding: const EdgeInsets.all(16.0),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final product = items[index];
-        final cartItem = cartItems.firstWhere(
-          (item) => item.product.id == product.id,
-          orElse: () => CartItem(product: product, quantity: 0),
-        );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = 2;
+        if (constraints.maxWidth >= 1200) {
+          crossAxisCount = 6;
+        } else if (constraints.maxWidth >= 900) {
+          crossAxisCount = 4;
+        } else if (constraints.maxWidth >= 600) {
+          crossAxisCount = 3;
+        }
 
-        return ProductCard(
-          quantity: cartItem.quantity,
-          product: product,
-          onTap: () => onTap(product),
-          onLongPress: () => onLongPress(product),
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 8.0,
+            crossAxisSpacing: 8.0,
+            childAspectRatio: 0.85,
+          ),
+          padding: const EdgeInsets.all(16.0),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final product = items[index];
+            final cartItem = cartItems.firstWhere(
+              (item) => item.product.id == product.id,
+              orElse: () => CartItem(product: product, quantity: 0),
+            );
+
+            return ProductCard(
+              quantity: cartItem.quantity,
+              product: product,
+              onTap: () => onTap(product),
+              onLongPress: () => onLongPress(product),
+            );
+          },
         );
       },
     );
