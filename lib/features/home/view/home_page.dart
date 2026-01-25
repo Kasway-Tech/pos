@@ -30,6 +30,18 @@ class _HomeViewState extends State<HomeView>
   final _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final state = context.read<HomeBloc>().state;
+    if (state.categories.isNotEmpty) {
+      _tabController = TabController(
+        length: state.categories.length,
+        vsync: this,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _tabController?.dispose();
     _searchController.dispose();
