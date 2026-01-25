@@ -142,9 +142,7 @@ class OrderConfirmationPage extends StatelessWidget {
           ),
           bottomNavigationBar: _BottomActionButtons(
             onClear: () => _confirmClearOrder(context),
-            onConfirm: () {
-              // TODO: Finish order
-            },
+            onConfirm: () => context.push('/select-payment-method'),
           ),
         );
       },
