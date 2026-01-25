@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../app/widgets/macos_title_bar.dart';
 import '../features/home/view/home_page.dart';
 import '../features/home/view/order_confirmation_page.dart';
 import '../features/home/view/payment_successful_page.dart';
@@ -20,10 +19,7 @@ class AppRouter {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const MacOSTitleBar(child: HomePage()),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const HomePage()),
       GoRoute(
         path: '/order-confirmation',
         builder: (context, state) => const OrderConfirmationPage(),

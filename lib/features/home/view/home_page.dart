@@ -1,3 +1,4 @@
+import 'package:atomikpos/app/widgets/macos_title_bar.dart';
 import 'package:atomikpos/features/home/bloc/home_bloc.dart';
 import 'package:atomikpos/features/home/bloc/home_event.dart';
 import 'package:atomikpos/features/home/bloc/home_state.dart';
@@ -14,7 +15,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const HomeView();
+    return const MacOSTitleBar(child: HomeView());
   }
 }
 
