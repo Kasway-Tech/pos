@@ -63,6 +63,7 @@ class _OrderSideViewState extends State<OrderSideView> {
           children: [
             if (widget.showAppBar)
               AppBar(
+                toolbarHeight: kToolbarHeight + 16.0,
                 title: const Text('Order List'),
                 centerTitle: false,
                 scrolledUnderElevation: 0,
