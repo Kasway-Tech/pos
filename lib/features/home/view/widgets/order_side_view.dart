@@ -179,6 +179,46 @@ class OrderSideView extends StatelessWidget {
                     ),
                   ),
                 ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Grand Total',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      currencyFormat.format(
+                        state.cartItems.fold<double>(
+                          0,
+                          (sum, item) =>
+                              sum + (item.product.price * item.quantity),
+                        ),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (state.cartItems.isNotEmpty)
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                  ),
+                ),
                 child: SizedBox(
                   height: kToolbarHeight + 16.0,
                   child: Row(
