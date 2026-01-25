@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-class OrderSideView extends StatelessWidget {
+class OrderSideView extends StatefulWidget {
   const OrderSideView({
     super.key,
     this.onProceedToPayment,
@@ -16,6 +16,30 @@ class OrderSideView extends StatelessWidget {
 
   final VoidCallback? onProceedToPayment;
   final bool showAppBar;
+
+  @override
+  State<OrderSideView> createState() => _OrderSideViewState();
+}
+
+class _OrderSideViewState extends State<OrderSideView> {
+  final ScrollController _scrollController = ScrollController();
+  int _previousItemCount = 0;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +51,17 @@ class OrderSideView extends StatelessWidget {
 
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
+        // Auto-scroll when items are added
+        if (state.cartItems.length > _previousItemCount) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottom();
+          });
+        }
+        _previousItemCount = state.cartItems.length;
+
         final content = Column(
           children: [
-            if (showAppBar)
+            if (widget.showAppBar)
               AppBar(
                 title: const Text('Order List'),
                 centerTitle: false,
@@ -83,6 +115,7 @@ class OrderSideView extends StatelessWidget {
                         ),
                       )
                     : ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.all(16),
                         itemCount: state.cartItems.length,
                         itemBuilder: (context, index) {
@@ -250,7 +283,7 @@ class OrderSideView extends StatelessWidget {
                           height: double.infinity,
                           child: ElevatedButton(
                             onPressed:
-                                onProceedToPayment ??
+                                widget.onProceedToPayment ??
                                 () => context.push('/select-payment-method'),
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
