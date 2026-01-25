@@ -264,92 +264,77 @@ class _HomeViewState extends State<HomeView>
           ? null
           : PreferredSize(
               preferredSize: const Size.fromHeight(kTextTabBarHeight),
-              child: Container(
-                decoration: isLargeScreen
-                    ? BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (isLargeScreen &&
+                      notification.metrics.axis == Axis.horizontal) {
+                    setState(() {
+                      _showLeftGradient = notification.metrics.pixels > 0;
+                      _showRightGradient =
+                          notification.metrics.pixels <
+                          notification.metrics.maxScrollExtent;
+                    });
+                  }
+                  return false;
+                },
+                child: Stack(
+                  children: [
+                    TabBar(
+                      controller: tabController,
+                      tabs: state.categories.map((c) => Tab(text: c)).toList(),
+                      isScrollable: state.categories.length >= 5,
+                      tabAlignment: TabAlignment.start,
+                      dividerColor: isLargeScreen
+                          ? Theme.of(context).colorScheme.surfaceContainerHigh
+                          : null,
+                    ),
+                    if (isLargeScreen && _showLeftGradient)
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: IgnorePointer(
+                          child: Container(
+                            width: 40,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  Theme.of(context).colorScheme.surface,
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surface.withOpacity(0),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      )
-                    : null,
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (notification) {
-                    if (isLargeScreen &&
-                        notification.metrics.axis == Axis.horizontal) {
-                      setState(() {
-                        _showLeftGradient = notification.metrics.pixels > 0;
-                        _showRightGradient =
-                            notification.metrics.pixels <
-                            notification.metrics.maxScrollExtent;
-                      });
-                    }
-                    return false;
-                  },
-                  child: Stack(
-                    children: [
-                      TabBar(
-                        controller: tabController,
-                        tabs: state.categories
-                            .map((c) => Tab(text: c))
-                            .toList(),
-                        isScrollable: state.categories.length >= 5,
-                        tabAlignment: TabAlignment.start,
-                        dividerColor: isLargeScreen
-                            ? Theme.of(context).colorScheme.surfaceContainerHigh
-                            : null,
                       ),
-                      if (isLargeScreen && _showLeftGradient)
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: IgnorePointer(
-                            child: Container(
-                              width: 40,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Theme.of(context).colorScheme.surface,
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.surface.withOpacity(0),
-                                  ],
-                                ),
+                    if (isLargeScreen && _showRightGradient)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: IgnorePointer(
+                          child: Container(
+                            width: 40,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.centerRight,
+                                end: Alignment.centerLeft,
+                                colors: [
+                                  Theme.of(context).colorScheme.surface,
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surface.withOpacity(0),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      if (isLargeScreen && _showRightGradient)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: IgnorePointer(
-                            child: Container(
-                              width: 40,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerRight,
-                                  end: Alignment.centerLeft,
-                                  colors: [
-                                    Theme.of(context).colorScheme.surface,
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.surface.withOpacity(0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
             ),
