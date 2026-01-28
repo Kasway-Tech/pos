@@ -1,4 +1,4 @@
-import 'package:atomikpos/app/app.dart';
+import 'package:kasway/app/app.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

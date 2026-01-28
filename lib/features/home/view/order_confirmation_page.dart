@@ -1,4 +1,4 @@
-import 'package:atomikpos/features/home/view/widgets/order_side_view.dart';
+import 'package:kasway/features/home/view/widgets/order_side_view.dart';
 import 'package:flutter/material.dart';
 
 class OrderConfirmationPage extends StatelessWidget {

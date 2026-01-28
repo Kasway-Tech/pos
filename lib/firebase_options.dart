@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '698998434802',
     projectId: 'atomik-pos-e4504',
     storageBucket: 'atomik-pos-e4504.firebasestorage.app',
-    iosBundleId: 'com.example.atomikpos',
+    iosBundleId: 'org.atomiklabs.kasway',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '698998434802',
     projectId: 'atomik-pos-e4504',
     storageBucket: 'atomik-pos-e4504.firebasestorage.app',
-    iosBundleId: 'com.example.atomikpos',
+    iosBundleId: 'org.atomiklabs.kasway',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

@@ -69,7 +69,7 @@ class HelpSupportPage extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.email_outlined),
                   title: const Text('Email Support'),
-                  subtitle: const Text('support@atomikpos.com'),
+                  subtitle: const Text('support@kasway.com'),
                   onTap: () {},
                 ),
                 ListTile(

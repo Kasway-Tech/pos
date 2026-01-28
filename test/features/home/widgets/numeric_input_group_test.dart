@@ -1,4 +1,4 @@
-import 'package:atomikpos/features/home/view/widgets/numeric_input_group.dart';
+import 'package:kasway/features/home/view/widgets/numeric_input_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

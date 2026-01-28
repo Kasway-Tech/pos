@@ -1,10 +1,10 @@
 import 'dart:ui';
 
-import 'package:atomikpos/app/theme/theme_cubit.dart';
-import 'package:atomikpos/app/theme/theme_state.dart';
-import 'package:atomikpos/data/repositories/product_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/theme/theme_cubit.dart';
+import 'package:kasway/app/theme/theme_state.dart';
+import 'package:kasway/data/repositories/product_repository.dart';
 
 import '../features/home/bloc/home_bloc.dart';
 import '../features/home/bloc/home_event.dart';
@@ -37,7 +37,7 @@ class App extends StatelessWidget {
                     ..add(HomeStarted()),
               child: MaterialApp.router(
                 scrollBehavior: AppScrollBehavior(),
-                title: 'Atomik POS',
+                title: 'Kasway',
                 theme: theme.light(themeState.seedColor, isTablet),
                 darkTheme: theme.dark(themeState.seedColor, isTablet),
                 themeMode: themeState.themeMode,

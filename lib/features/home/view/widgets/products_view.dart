@@ -1,5 +1,5 @@
-import 'package:atomikpos/data/models/product.dart';
-import 'package:atomikpos/features/home/view/widgets/product_card.dart';
+import 'package:kasway/data/models/product.dart';
+import 'package:kasway/features/home/view/widgets/product_card.dart';
 import 'package:flutter/material.dart';
 
 class ProductsView extends StatelessWidget {

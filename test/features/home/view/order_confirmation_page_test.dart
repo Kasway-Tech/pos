@@ -1,9 +1,9 @@
-import 'package:atomikpos/data/models/cart_item.dart';
-import 'package:atomikpos/data/models/product.dart';
-import 'package:atomikpos/features/home/bloc/home_bloc.dart';
-import 'package:atomikpos/features/home/bloc/home_event.dart';
-import 'package:atomikpos/features/home/bloc/home_state.dart';
-import 'package:atomikpos/features/home/view/order_confirmation_page.dart';
+import 'package:kasway/data/models/cart_item.dart';
+import 'package:kasway/data/models/product.dart';
+import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/bloc/home_event.dart';
+import 'package:kasway/features/home/bloc/home_state.dart';
+import 'package:kasway/features/home/view/order_confirmation_page.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

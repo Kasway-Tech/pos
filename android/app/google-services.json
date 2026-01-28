@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:698998434802:android:f10755230dd77ef637596b",
         "android_client_info": {
-          "package_name": "com.example.atomikpos"
+          "package_name": "org.atomiklabs.kasway"
         }
       },
       "oauth_client": [],

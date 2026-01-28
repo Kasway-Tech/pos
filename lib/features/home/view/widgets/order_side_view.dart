@@ -1,7 +1,7 @@
-import 'package:atomikpos/features/home/bloc/home_bloc.dart';
-import 'package:atomikpos/features/home/bloc/home_event.dart';
-import 'package:atomikpos/features/home/bloc/home_state.dart';
-import 'package:atomikpos/features/home/view/widgets/order_cart_item_tile.dart';
+import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/bloc/home_event.dart';
+import 'package:kasway/features/home/bloc/home_state.dart';
+import 'package:kasway/features/home/view/widgets/order_cart_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

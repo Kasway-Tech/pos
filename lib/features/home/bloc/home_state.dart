@@ -1,5 +1,5 @@
-import 'package:atomikpos/data/models/cart_item.dart';
-import 'package:atomikpos/data/models/product.dart';
+import 'package:kasway/data/models/cart_item.dart';
+import 'package:kasway/data/models/product.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'home_state.freezed.dart';

@@ -1,6 +1,6 @@
-import 'package:atomikpos/data/models/product.dart';
-import 'package:atomikpos/features/home/bloc/home_bloc.dart';
-import 'package:atomikpos/features/home/bloc/home_state.dart';
+import 'package:kasway/data/models/product.dart';
+import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

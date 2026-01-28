@@ -1,10 +1,10 @@
-import 'package:atomikpos/data/models/addition.dart';
-import 'package:atomikpos/data/models/cart_item.dart';
-import 'package:atomikpos/data/models/product.dart';
-import 'package:atomikpos/data/repositories/product_repository.dart';
-import 'package:atomikpos/features/home/bloc/home_bloc.dart';
-import 'package:atomikpos/features/home/bloc/home_event.dart';
-import 'package:atomikpos/features/home/bloc/home_state.dart';
+import 'package:kasway/data/models/addition.dart';
+import 'package:kasway/data/models/cart_item.dart';
+import 'package:kasway/data/models/product.dart';
+import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/bloc/home_event.dart';
+import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';

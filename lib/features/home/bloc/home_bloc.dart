@@ -1,8 +1,8 @@
-import 'package:atomikpos/data/models/cart_item.dart';
-import 'package:atomikpos/data/models/product.dart';
-import 'package:atomikpos/data/repositories/product_repository.dart';
-import 'package:atomikpos/features/home/bloc/home_event.dart';
-import 'package:atomikpos/features/home/bloc/home_state.dart';
+import 'package:kasway/data/models/cart_item.dart';
+import 'package:kasway/data/models/product.dart';
+import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/features/home/bloc/home_event.dart';
+import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bloc/bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {

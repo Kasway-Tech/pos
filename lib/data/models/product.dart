@@ -1,4 +1,4 @@
-import 'package:atomikpos/data/models/addition.dart';
+import 'package:kasway/data/models/addition.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'product.freezed.dart';

@@ -1,5 +1,5 @@
-import 'package:atomikpos/data/models/addition.dart';
-import 'package:atomikpos/data/models/product.dart';
+import 'package:kasway/data/models/addition.dart';
+import 'package:kasway/data/models/product.dart';
 
 class ProductRepository {
   Future<List<Product>> getProductsByCategory(String category) async {
