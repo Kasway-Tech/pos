@@ -78,9 +78,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 actions: [
                   TextButton.icon(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.red.withOpacity(0.1),
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
                     onPressed: () => _confirmClearOrder(context),
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     label: const Text(
@@ -100,44 +98,19 @@ class _OrderSideViewState extends State<OrderSideView> {
                     ),
                   ),
                 ),
-                child: state.cartItems.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.shopping_basket_outlined,
-                              size: 64,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outlineVariant,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Orders will appear here',
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outline,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        key: const PageStorageKey('order_list'),
-                        controller: _scrollController,
-                        padding: EdgeInsets.all(isTablet ? 12.0 : 16.0),
-                        itemCount: state.cartItems.length,
-                        itemBuilder: (context, index) {
-                          final item = state.cartItems[index];
-                          return OrderCartItemTile(cartItem: item);
-                        },
-                      ),
+                child: ListView.builder(
+                  key: const PageStorageKey('order_list'),
+                  controller: _scrollController,
+                  padding: EdgeInsets.all(isTablet ? 12.0 : 16.0),
+                  itemCount: state.cartItems.length,
+                  itemBuilder: (context, index) {
+                    final item = state.cartItems[index];
+                    return OrderCartItemTile(cartItem: item);
+                  },
+                ),
               ),
             ),
-            if (state.cartItems.isNotEmpty)
+            if (state.cartItems.isNotEmpty || screenWidth >= 800)
               Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
@@ -154,12 +127,16 @@ class _OrderSideViewState extends State<OrderSideView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Grand Total',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        'Grand Total',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     BlocSelector<HomeBloc, HomeState, double>(
                       selector: (state) =>
                           state.cartItems.fold<double>(0, (sum, item) {
@@ -183,7 +160,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                   ],
                 ),
               ),
-            if (state.cartItems.isNotEmpty)
+            if (state.cartItems.isNotEmpty || screenWidth >= 800)
               Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
@@ -229,9 +206,12 @@ class _OrderSideViewState extends State<OrderSideView> {
                         child: SizedBox(
                           height: double.infinity,
                           child: ElevatedButton(
-                            onPressed:
-                                widget.onProceedToPayment ??
-                                () => context.push('/select-payment-method'),
+                            onPressed: state.cartItems.isEmpty
+                                ? null
+                                : widget.onProceedToPayment ??
+                                      () => context.push(
+                                        '/select-payment-method',
+                                      ),
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
                               backgroundColor: Colors.transparent,
@@ -243,15 +223,18 @@ class _OrderSideViewState extends State<OrderSideView> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  'Proceed to Payment',
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                Flexible(
+                                  child: Text(
+                                    'Proceed to Payment',
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Icon(

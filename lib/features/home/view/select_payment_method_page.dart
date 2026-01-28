@@ -537,10 +537,7 @@ class _PaymentSuccessView extends StatelessWidget {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: const BoxDecoration(shape: BoxShape.circle),
                   child: const Icon(
                     Icons.check_circle_rounded,
                     color: Colors.green,
