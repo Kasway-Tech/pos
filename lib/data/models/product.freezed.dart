@@ -211,8 +211,8 @@ return $default(_that.id,_that.name,_that.price,_that.description,_that.imageUrl
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _Product implements Product {
   const _Product({required this.id, required this.name, required this.price, this.description = '', this.imageUrl = '', final  List<Addition> additions = const []}): _additions = additions;
   factory _Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);

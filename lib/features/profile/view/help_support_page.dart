@@ -11,6 +11,7 @@ class HelpSupportPage extends StatelessWidget {
         appBar: AppBar(title: const Text('Help & Support')),
         body: Center(
           child: ConstrainedBox(
+            key: const Key('content_constraint'),
             constraints: const BoxConstraints(maxWidth: 600),
             child: ListView(
               children: [

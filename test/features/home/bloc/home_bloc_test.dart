@@ -45,6 +45,55 @@ void main() {
       return HomeBloc(productRepository: productRepository);
     }
 
+    group('HomeStarted', () {
+      test('initial state is correct', () {
+        expect(buildBloc().state, const HomeState());
+      });
+
+      blocTest<HomeBloc, HomeState>(
+        'emits [loading, success] with categories and items when subscription succeeds',
+        setUp: () {
+          when(
+            () => productRepository.getProductsByCategory(any()),
+          ).thenAnswer((_) async => [product]);
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(HomeStarted()),
+        expect: () => [
+          const HomeState(status: HomeStatus.loading),
+          isA<HomeState>()
+              .having((s) => s.status, 'status', HomeStatus.success)
+              .having((s) => s.categories, 'categories', [
+                'Promo',
+                'Makanan',
+                'Minuman',
+                'Paket',
+                'Lainnya',
+              ])
+              .having(
+                (s) => s.itemsByCategory['Makanan'],
+                'items in Makanan',
+                contains(product),
+              ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'emits [loading, failure] when subscription fails',
+        setUp: () {
+          when(
+            () => productRepository.getProductsByCategory(any()),
+          ).thenThrow(Exception('failure'));
+        },
+        build: buildBloc,
+        act: (bloc) => bloc.add(HomeStarted()),
+        expect: () => [
+          const HomeState(status: HomeStatus.loading),
+          const HomeState(status: HomeStatus.failure),
+        ],
+      );
+    });
+
     group('HomeProductAdded', () {
       blocTest<HomeBloc, HomeState>(
         'adds new product to cart',

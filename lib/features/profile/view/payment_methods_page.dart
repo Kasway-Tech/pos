@@ -11,6 +11,7 @@ class PaymentMethodsPage extends StatelessWidget {
         appBar: AppBar(title: const Text('Payment Methods')),
         body: Center(
           child: ConstrainedBox(
+            key: const Key('content_constraint'),
             constraints: const BoxConstraints(maxWidth: 600),
             child: Column(
               children: [
