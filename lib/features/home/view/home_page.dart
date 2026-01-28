@@ -315,6 +315,10 @@ class _HomeViewState extends State<HomeView>
             'assets/svg/brand_icon.svg',
             height: 24,
             fit: BoxFit.contain,
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).colorScheme.primary,
+              BlendMode.srcIn,
+            ),
           ),
         ),
       ),
