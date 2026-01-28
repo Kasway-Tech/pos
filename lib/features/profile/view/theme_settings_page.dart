@@ -1,7 +1,6 @@
-import 'package:macos_window_utils/macos_window_utils.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:macos_window_utils/macos_window_utils.dart';
 
 import '../../../app/theme/theme_cubit.dart';
 import '../../../app/theme/theme_state.dart';
@@ -40,6 +39,45 @@ class ThemeSettingsPage extends StatelessWidget {
             return LayoutBuilder(
               builder: (context, constraints) {
                 final isLargeScreen = constraints.maxWidth >= 900;
+
+                final themeModePicker = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Theme Mode',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: SegmentedButton<ThemeMode>(
+                        segments: const [
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.system,
+                            icon: Icon(Icons.settings_suggest),
+                            label: Text('System'),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.light,
+                            icon: Icon(Icons.light_mode),
+                            label: Text('Light'),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.dark,
+                            icon: Icon(Icons.dark_mode),
+                            label: Text('Dark'),
+                          ),
+                        ],
+                        selected: {state.themeMode},
+                        onSelectionChanged: (Set<ThemeMode> newSelection) {
+                          context.read<ThemeCubit>().setThemeMode(
+                            newSelection.first,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
 
                 final colorPicker = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,7 +216,14 @@ class ThemeSettingsPage extends StatelessWidget {
                         flex: 7,
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.all(24),
-                          child: colorPicker,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              themeModePicker,
+                              const SizedBox(height: 32),
+                              colorPicker,
+                            ],
+                          ),
                         ),
                       ),
                       Expanded(
@@ -205,7 +250,13 @@ class ThemeSettingsPage extends StatelessWidget {
 
                 return ListView(
                   padding: const EdgeInsets.all(24),
-                  children: [colorPicker, const SizedBox(height: 32), preview],
+                  children: [
+                    themeModePicker,
+                    const SizedBox(height: 32),
+                    colorPicker,
+                    const SizedBox(height: 32),
+                    preview,
+                  ],
                 );
               },
             );

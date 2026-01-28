@@ -21,13 +21,8 @@ class App extends StatelessWidget {
       create: (context) => ThemeCubit(),
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {
-          final brightness = View.of(
-            context,
-          ).platformDispatcher.platformBrightness;
-
-          TextTheme textTheme = createTextTheme(context, "Inter", "Inter");
-
-          MaterialTheme theme = MaterialTheme(textTheme);
+          final textTheme = createTextTheme(context, "Inter", "Inter");
+          final theme = MaterialTheme(textTheme);
 
           final screenWidth = MediaQuery.sizeOf(context).width;
           final isTablet = screenWidth >= 600 && screenWidth < 1200;
@@ -43,9 +38,9 @@ class App extends StatelessWidget {
               child: MaterialApp.router(
                 scrollBehavior: AppScrollBehavior(),
                 title: 'Atomik POS',
-                theme: brightness == Brightness.light
-                    ? theme.light(themeState.seedColor, isTablet)
-                    : theme.dark(themeState.seedColor, isTablet),
+                theme: theme.light(themeState.seedColor, isTablet),
+                darkTheme: theme.dark(themeState.seedColor, isTablet),
+                themeMode: themeState.themeMode,
                 routerConfig: AppRouter.router,
               ),
             ),
