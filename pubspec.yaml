@@ -65,6 +65,7 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   build_runner: ^2.10.5
+  flutter_launcher_icons: ^0.14.4
   freezed: ^3.2.3
   json_serializable: ^6.11.2
 
@@ -83,6 +84,16 @@ flutter:
   assets:
     - assets/svg/
     - assets/svg/payment_methods/
+    - assets/app_icon.png
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  macos:
+    generate: true
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default:21
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
