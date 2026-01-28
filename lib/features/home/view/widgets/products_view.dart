@@ -28,6 +28,7 @@ class ProductsView extends StatelessWidget {
         }
 
         return GridView.builder(
+          physics: const ClampingScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 8.0,

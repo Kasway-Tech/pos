@@ -5,6 +5,7 @@ import 'package:atomikpos/features/home/bloc/home_state.dart';
 import 'package:atomikpos/features/home/view/select_payment_method_page.dart';
 import 'package:atomikpos/features/home/view/widgets/order_side_view.dart';
 import 'package:atomikpos/features/home/view/widgets/products_view.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -360,6 +361,7 @@ class _HomeViewState extends State<HomeView>
       );
     } else {
       return TabBarView(
+        dragStartBehavior: DragStartBehavior.down,
         controller: tabController,
         children: state.categories.map((category) {
           return ProductsView(
