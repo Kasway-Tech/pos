@@ -99,7 +99,7 @@ class _HomeViewState extends State<HomeView>
               return Row(
                 children: [
                   Expanded(
-                    flex: 7,
+                    flex: 6,
                     child: Scaffold(
                       appBar: _buildAppBar(state, tabController, isLargeScreen),
                       body: _buildProductsBody(state, tabController),
@@ -110,7 +110,7 @@ class _HomeViewState extends State<HomeView>
                     color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   ),
                   Expanded(
-                    flex: 3,
+                    flex: 4,
                     child: OrderSideView(
                       showAppBar: true,
                       onProceedToPayment: () => _showPaymentDialog(context),
