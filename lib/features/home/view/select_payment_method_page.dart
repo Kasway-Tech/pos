@@ -194,9 +194,12 @@ class _PaymentSelectionView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Amount to Pay',
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Text(
                         formattedTotal,
@@ -385,6 +388,7 @@ class _CashConfirmationView extends StatelessWidget {
                   child: Text(
                     'Yes, Received',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -488,6 +492,7 @@ class _CashFinalConfirmationView extends StatelessWidget {
                   child: Text(
                     'Confirm and Complete',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

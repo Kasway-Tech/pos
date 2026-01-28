@@ -11,11 +11,13 @@ class HelpSupportPage extends StatelessWidget {
         appBar: AppBar(title: const Text('Help & Support')),
         body: ListView(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Frequently Asked Questions',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const ExpansionTile(
@@ -50,11 +52,13 @@ class HelpSupportPage extends StatelessWidget {
               ],
             ),
             const Divider(height: 32),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Contact Us',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(

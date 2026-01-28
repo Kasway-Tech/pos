@@ -243,12 +243,21 @@ class _OrderSideViewState extends State<OrderSideView> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
+                                Text(
                                   'Proceed to Payment',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
                               ],
                             ),
                           ),

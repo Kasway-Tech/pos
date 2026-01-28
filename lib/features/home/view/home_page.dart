@@ -252,9 +252,15 @@ class _HomeViewState extends State<HomeView>
                                     children: [
                                       Text(
                                         'Confirm Selection',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       const SizedBox(width: 8),
                                       Icon(Icons.arrow_forward),
