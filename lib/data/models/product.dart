@@ -1,3 +1,4 @@
+import 'package:atomikpos/data/models/addition.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'product.freezed.dart';
@@ -11,6 +12,7 @@ abstract class Product with _$Product {
     required double price,
     @Default('') String description,
     @Default('') String imageUrl,
+    @Default([]) List<Addition> additions,
   }) = _Product;
 
   factory Product.fromJson(Map<String, dynamic> json) =>

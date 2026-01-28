@@ -124,12 +124,13 @@ class _OrderSideViewState extends State<OrderSideView> {
                         ),
                       )
                     : ListView.builder(
+                        key: const PageStorageKey('order_list'),
                         controller: _scrollController,
                         padding: EdgeInsets.all(isTablet ? 12.0 : 16.0),
                         itemCount: state.cartItems.length,
                         itemBuilder: (context, index) {
                           final item = state.cartItems[index];
-                          return OrderCartItemTile(product: item.product);
+                          return OrderCartItemTile(cartItem: item);
                         },
                       ),
               ),
@@ -158,11 +159,17 @@ class _OrderSideViewState extends State<OrderSideView> {
                       ),
                     ),
                     BlocSelector<HomeBloc, HomeState, double>(
-                      selector: (state) => state.cartItems.fold<double>(
-                        0,
-                        (sum, item) =>
-                            sum + (item.product.price * item.quantity),
-                      ),
+                      selector: (state) =>
+                          state.cartItems.fold<double>(0, (sum, item) {
+                            final additionsTotal = item.selectedAdditions
+                                .fold<double>(
+                                  0,
+                                  (addSum, addition) => addSum + addition.price,
+                                );
+                            return sum +
+                                ((item.product.price + additionsTotal) *
+                                    item.quantity);
+                          }),
                       builder: (context, grandTotal) {
                         return Text(
                           currencyFormat.format(grandTotal),

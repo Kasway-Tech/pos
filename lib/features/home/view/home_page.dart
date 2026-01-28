@@ -1,8 +1,11 @@
 import 'package:atomikpos/app/widgets/macos_title_bar.dart';
+import 'package:atomikpos/data/models/product.dart';
 import 'package:atomikpos/features/home/bloc/home_bloc.dart';
 import 'package:atomikpos/features/home/bloc/home_event.dart';
 import 'package:atomikpos/features/home/bloc/home_state.dart';
+import 'package:atomikpos/features/home/view/additions_page.dart';
 import 'package:atomikpos/features/home/view/select_payment_method_page.dart';
+import 'package:atomikpos/features/home/view/widgets/additions_side_view.dart';
 import 'package:atomikpos/features/home/view/widgets/order_side_view.dart';
 import 'package:atomikpos/features/home/view/widgets/products_view.dart';
 import 'package:flutter/gestures.dart';
@@ -34,6 +37,7 @@ class _HomeViewState extends State<HomeView>
   final _searchController = TextEditingController();
   bool _showLeftGradient = false;
   bool _showRightGradient = false;
+  Product? _selectedProductForAdditions;
 
   @override
   void initState() {
@@ -65,7 +69,8 @@ class _HomeViewState extends State<HomeView>
           previous.status != current.status ||
           previous.categories != current.categories ||
           previous.searchTerm != current.searchTerm ||
-          previous.itemsByCategory != current.itemsByCategory,
+          previous.itemsByCategory != current.itemsByCategory ||
+          previous.cartItems.isEmpty != current.cartItems.isEmpty,
       listener: (context, state) {
         if (state.categories.isNotEmpty) {
           _tabController?.dispose();
@@ -117,9 +122,62 @@ class _HomeViewState extends State<HomeView>
                   ),
                   Expanded(
                     flex: 4,
-                    child: OrderSideView(
-                      showAppBar: true,
-                      onProceedToPayment: () => _showPaymentDialog(context),
+                    child: ClipRect(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        reverseDuration: const Duration(milliseconds: 250),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, animation) {
+                          final isAdditionsPanel =
+                              child.key == const ValueKey('additions');
+                          final slideOffset = isAdditionsPanel
+                              ? Tween<Offset>(
+                                  begin: const Offset(1, 0),
+                                  end: Offset.zero,
+                                )
+                              : Tween<Offset>(
+                                  begin: const Offset(-1, 0),
+                                  end: Offset.zero,
+                                );
+                          return SlideTransition(
+                            position: slideOffset.animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.fastOutSlowIn,
+                              ),
+                            ),
+                            child: child,
+                          );
+                        },
+                        child: _selectedProductForAdditions != null
+                            ? AdditionsSideView(
+                                key: const ValueKey('additions'),
+                                product: _selectedProductForAdditions!,
+                                onConfirm: (selectedAdditions) {
+                                  context.read<HomeBloc>().add(
+                                    HomeProductWithAdditionsAdded(
+                                      _selectedProductForAdditions!,
+                                      selectedAdditions,
+                                    ),
+                                  );
+                                  setState(() {
+                                    _selectedProductForAdditions = null;
+                                  });
+                                },
+                                onBack: () {
+                                  setState(() {
+                                    _selectedProductForAdditions = null;
+                                  });
+                                },
+                              )
+                            : OrderSideView(
+                                key: const ValueKey('order'),
+                                showAppBar: true,
+                                onProceedToPayment: () =>
+                                    _showPaymentDialog(context),
+                              ),
+                      ),
                     ),
                   ),
                 ],
@@ -352,9 +410,7 @@ class _HomeViewState extends State<HomeView>
     if (_isSearching || state.searchTerm.isNotEmpty) {
       return ProductsView(
         items: state.itemsByCategory.values.expand((items) => items).toList(),
-        onTap: (product) {
-          context.read<HomeBloc>().add(HomeProductAdded(product));
-        },
+        onTap: (product) => _handleProductTap(product),
         onLongPress: (product) {
           context.read<HomeBloc>().add(HomeProductRemoved(product));
         },
@@ -366,9 +422,7 @@ class _HomeViewState extends State<HomeView>
         children: state.categories.map((category) {
           return ProductsView(
             items: state.itemsByCategory[category] ?? [],
-            onTap: (product) {
-              context.read<HomeBloc>().add(HomeProductAdded(product));
-            },
+            onTap: (product) => _handleProductTap(product),
             onLongPress: (product) {
               context.read<HomeBloc>().add(HomeProductRemoved(product));
             },
@@ -376,6 +430,41 @@ class _HomeViewState extends State<HomeView>
         }).toList(),
       );
     }
+  }
+
+  void _handleProductTap(Product product) {
+    if (product.additions.isEmpty) {
+      context.read<HomeBloc>().add(HomeProductAdded(product));
+    } else {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final isLargeScreen = screenWidth >= 800;
+
+      if (isLargeScreen) {
+        // Show in side panel on large screens
+        setState(() {
+          _selectedProductForAdditions = product;
+        });
+      } else {
+        // Navigate to additions page on smaller screens
+        _navigateToAdditionsPage(product);
+      }
+    }
+  }
+
+  void _navigateToAdditionsPage(Product product) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AdditionsPage(
+          product: product,
+          onConfirm: (selectedAdditions) {
+            Navigator.of(context).pop();
+            context.read<HomeBloc>().add(
+              HomeProductWithAdditionsAdded(product, selectedAdditions),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmClearOrder(BuildContext context) async {

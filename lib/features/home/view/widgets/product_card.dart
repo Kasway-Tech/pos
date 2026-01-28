@@ -58,79 +58,104 @@ class _ProductCardState extends State<ProductCard> {
             (item) => item.product.id == widget.product.id && item.quantity > 0,
           ),
           builder: (context, active) {
-            return Card(
-              margin: EdgeInsets.zero,
-              elevation: 0,
-              clipBehavior: Clip.antiAlias,
-              color: active ? Theme.of(context).colorScheme.primary : null,
-              child: Container(
-                padding: EdgeInsets.all(padding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    BlocSelector<HomeBloc, HomeState, double>(
-                      selector: (state) {
-                        try {
-                          return state.cartItems
-                              .firstWhere(
-                                (item) => item.product.id == widget.product.id,
-                              )
-                              .quantity;
-                        } catch (_) {
-                          return 0;
-                        }
-                      },
-                      builder: (context, quantity) {
-                        return Opacity(
-                          opacity: active ? 1 : 0.1,
-                          child: Text(
-                            quantity.toStringAsFixed(0),
-                            style: Theme.of(context).textTheme.displayLarge
-                                ?.copyWith(
+            final hasAdditions = widget.product.additions.isNotEmpty;
+            return Stack(
+              children: [
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  clipBehavior: Clip.antiAlias,
+                  color: active ? Theme.of(context).colorScheme.primary : null,
+                  child: Container(
+                    padding: EdgeInsets.all(padding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        BlocSelector<HomeBloc, HomeState, double>(
+                          selector: (state) {
+                            try {
+                              return state.cartItems
+                                  .firstWhere(
+                                    (item) =>
+                                        item.product.id == widget.product.id,
+                                  )
+                                  .quantity;
+                            } catch (_) {
+                              return 0;
+                            }
+                          },
+                          builder: (context, quantity) {
+                            return Opacity(
+                              opacity: active ? 1 : 0.1,
+                              child: Text(
+                                quantity.toStringAsFixed(0),
+                                style: Theme.of(context).textTheme.displayLarge
+                                    ?.copyWith(
+                                      color: active
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary
+                                          : null,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                widget.product.name,
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: active
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary
+                                          : null,
+                                    ),
+                              ),
+                              Text(
+                                _currencyFormat.format(widget.product.price),
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
                                   color: active
                                       ? Theme.of(context).colorScheme.onPrimary
-                                      : null,
+                                      : Theme.of(context).colorScheme.secondary,
                                 ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            widget.product.name,
-                            textAlign: TextAlign.right,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: active
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : null,
-                                ),
-                          ),
-                          Text(
-                            _currencyFormat.format(widget.product.price),
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              color: active
-                                  ? Theme.of(context).colorScheme.onPrimary
-                                  : Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ],
+                  ),
+                ),
+                if (hasAdditions)
+                  Positioned(
+                    bottom: 4,
+                    left: 4,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(8, 0, 0, 8),
+                      child: Icon(
+                        Icons.tune,
+                        size: 14,
+                        color: active
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             );
           },
         ),

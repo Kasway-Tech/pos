@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CartItem {
 
- Product get product; double get quantity;
+ Product get product; double get quantity; List<Addition> get selectedAdditions;
 /// Create a copy of CartItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $CartItemCopyWith<CartItem> get copyWith => _$CartItemCopyWithImpl<CartItem>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CartItem&&(identical(other.product, product) || other.product == product)&&(identical(other.quantity, quantity) || other.quantity == quantity));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CartItem&&(identical(other.product, product) || other.product == product)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&const DeepCollectionEquality().equals(other.selectedAdditions, selectedAdditions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,product,quantity);
+int get hashCode => Object.hash(runtimeType,product,quantity,const DeepCollectionEquality().hash(selectedAdditions));
 
 @override
 String toString() {
-  return 'CartItem(product: $product, quantity: $quantity)';
+  return 'CartItem(product: $product, quantity: $quantity, selectedAdditions: $selectedAdditions)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $CartItemCopyWith<$Res>  {
   factory $CartItemCopyWith(CartItem value, $Res Function(CartItem) _then) = _$CartItemCopyWithImpl;
 @useResult
 $Res call({
- Product product, double quantity
+ Product product, double quantity, List<Addition> selectedAdditions
 });
 
 
@@ -65,11 +65,12 @@ class _$CartItemCopyWithImpl<$Res>
 
 /// Create a copy of CartItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? product = null,Object? quantity = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? product = null,Object? quantity = null,Object? selectedAdditions = null,}) {
   return _then(_self.copyWith(
 product: null == product ? _self.product : product // ignore: cast_nullable_to_non_nullable
 as Product,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
-as double,
+as double,selectedAdditions: null == selectedAdditions ? _self.selectedAdditions : selectedAdditions // ignore: cast_nullable_to_non_nullable
+as List<Addition>,
   ));
 }
 /// Create a copy of CartItem
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Product product,  double quantity)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Product product,  double quantity,  List<Addition> selectedAdditions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CartItem() when $default != null:
-return $default(_that.product,_that.quantity);case _:
+return $default(_that.product,_that.quantity,_that.selectedAdditions);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.product,_that.quantity);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Product product,  double quantity)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Product product,  double quantity,  List<Addition> selectedAdditions)  $default,) {final _that = this;
 switch (_that) {
 case _CartItem():
-return $default(_that.product,_that.quantity);case _:
+return $default(_that.product,_that.quantity,_that.selectedAdditions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.product,_that.quantity);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Product product,  double quantity)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Product product,  double quantity,  List<Addition> selectedAdditions)?  $default,) {final _that = this;
 switch (_that) {
 case _CartItem() when $default != null:
-return $default(_that.product,_that.quantity);case _:
+return $default(_that.product,_that.quantity,_that.selectedAdditions);case _:
   return null;
 
 }
@@ -219,11 +220,18 @@ return $default(_that.product,_that.quantity);case _:
 @JsonSerializable()
 
 class _CartItem implements CartItem {
-  const _CartItem({required this.product, required this.quantity});
+  const _CartItem({required this.product, required this.quantity, final  List<Addition> selectedAdditions = const []}): _selectedAdditions = selectedAdditions;
   factory _CartItem.fromJson(Map<String, dynamic> json) => _$CartItemFromJson(json);
 
 @override final  Product product;
 @override final  double quantity;
+ final  List<Addition> _selectedAdditions;
+@override@JsonKey() List<Addition> get selectedAdditions {
+  if (_selectedAdditions is EqualUnmodifiableListView) return _selectedAdditions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_selectedAdditions);
+}
+
 
 /// Create a copy of CartItem
 /// with the given fields replaced by the non-null parameter values.
@@ -238,16 +246,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CartItem&&(identical(other.product, product) || other.product == product)&&(identical(other.quantity, quantity) || other.quantity == quantity));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CartItem&&(identical(other.product, product) || other.product == product)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&const DeepCollectionEquality().equals(other._selectedAdditions, _selectedAdditions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,product,quantity);
+int get hashCode => Object.hash(runtimeType,product,quantity,const DeepCollectionEquality().hash(_selectedAdditions));
 
 @override
 String toString() {
-  return 'CartItem(product: $product, quantity: $quantity)';
+  return 'CartItem(product: $product, quantity: $quantity, selectedAdditions: $selectedAdditions)';
 }
 
 
@@ -258,7 +266,7 @@ abstract mixin class _$CartItemCopyWith<$Res> implements $CartItemCopyWith<$Res>
   factory _$CartItemCopyWith(_CartItem value, $Res Function(_CartItem) _then) = __$CartItemCopyWithImpl;
 @override @useResult
 $Res call({
- Product product, double quantity
+ Product product, double quantity, List<Addition> selectedAdditions
 });
 
 
@@ -275,11 +283,12 @@ class __$CartItemCopyWithImpl<$Res>
 
 /// Create a copy of CartItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? product = null,Object? quantity = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? product = null,Object? quantity = null,Object? selectedAdditions = null,}) {
   return _then(_CartItem(
 product: null == product ? _self.product : product // ignore: cast_nullable_to_non_nullable
 as Product,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
-as double,
+as double,selectedAdditions: null == selectedAdditions ? _self._selectedAdditions : selectedAdditions // ignore: cast_nullable_to_non_nullable
+as List<Addition>,
   ));
 }
 

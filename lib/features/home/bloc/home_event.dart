@@ -1,3 +1,4 @@
+import 'package:atomikpos/data/models/addition.dart';
 import 'package:atomikpos/data/models/product.dart';
 import 'package:equatable/equatable.dart';
 
@@ -18,6 +19,15 @@ class HomeProductAdded extends HomeEvent {
   List<Object?> get props => [product];
 }
 
+class HomeProductWithAdditionsAdded extends HomeEvent {
+  const HomeProductWithAdditionsAdded(this.product, this.selectedAdditions);
+  final Product product;
+  final List<Addition> selectedAdditions;
+
+  @override
+  List<Object?> get props => [product, selectedAdditions];
+}
+
 class HomeProductRemoved extends HomeEvent {
   const HomeProductRemoved(this.product);
   final Product product;
@@ -27,12 +37,17 @@ class HomeProductRemoved extends HomeEvent {
 }
 
 class HomeCartQuantityUpdated extends HomeEvent {
-  const HomeCartQuantityUpdated(this.product, this.quantity);
+  const HomeCartQuantityUpdated(
+    this.product,
+    this.quantity, {
+    this.selectedAdditions = const [],
+  });
   final Product product;
   final double quantity;
+  final List<Addition> selectedAdditions;
 
   @override
-  List<Object?> get props => [product, quantity];
+  List<Object?> get props => [product, quantity, selectedAdditions];
 }
 
 class HomeCartCleared extends HomeEvent {}

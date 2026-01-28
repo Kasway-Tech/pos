@@ -1,3 +1,4 @@
+import 'package:atomikpos/data/models/addition.dart';
 import 'package:atomikpos/data/models/product.dart';
 
 class ProductRepository {
@@ -21,6 +22,22 @@ class ProductRepository {
     }
   }
 
+  // Common additions for drinks
+  static const _drinkAdditions = <Addition>[
+    Addition(id: 'add_extra_shot', name: 'Extra Shot', price: 5000),
+    Addition(id: 'add_less_sugar', name: 'Less Sugar', price: 0),
+    Addition(id: 'add_oat_milk', name: 'Oat Milk', price: 8000),
+    Addition(id: 'add_whipped_cream', name: 'Whipped Cream', price: 5000),
+  ];
+
+  // Common additions for food
+  static const _foodAdditions = <Addition>[
+    Addition(id: 'add_extra_cheese', name: 'Extra Cheese', price: 5000),
+    Addition(id: 'add_extra_sauce', name: 'Extra Sauce', price: 3000),
+    Addition(id: 'add_no_onion', name: 'No Onion', price: 0),
+    Addition(id: 'add_extra_spicy', name: 'Extra Spicy', price: 0),
+  ];
+
   static const _promoItems = <Product>[
     Product(id: 'p1', name: 'Promo 1', price: 10000),
     Product(id: 'p2', name: 'Promo 2', price: 20000),
@@ -35,10 +52,30 @@ class ProductRepository {
   ];
 
   static const _foodItems = <Product>[
-    Product(id: 'f1', name: 'Makanan 1', price: 10000),
-    Product(id: 'f2', name: 'Makanan 2', price: 20000),
-    Product(id: 'f3', name: 'Makanan 3', price: 30000),
-    Product(id: 'f4', name: 'Makanan 4', price: 40000),
+    Product(
+      id: 'f1',
+      name: 'Nasi Goreng',
+      price: 25000,
+      additions: _foodAdditions,
+    ),
+    Product(
+      id: 'f2',
+      name: 'Mie Goreng',
+      price: 22000,
+      additions: _foodAdditions,
+    ),
+    Product(
+      id: 'f3',
+      name: 'Burger Deluxe',
+      price: 35000,
+      additions: _foodAdditions,
+    ),
+    Product(
+      id: 'f4',
+      name: 'Pizza Slice',
+      price: 30000,
+      additions: _foodAdditions,
+    ),
     Product(id: 'f5', name: 'Makanan 5', price: 50000),
     Product(id: 'f6', name: 'Makanan 6', price: 60000),
     Product(id: 'f7', name: 'Makanan 7', price: 70000),
@@ -48,11 +85,31 @@ class ProductRepository {
   ];
 
   static const _drinkItems = <Product>[
-    Product(id: 'd1', name: 'Minuman 1', price: 10000),
-    Product(id: 'd2', name: 'Minuman 2', price: 20000),
-    Product(id: 'd3', name: 'Minuman 3', price: 30000),
-    Product(id: 'd4', name: 'Minuman 4', price: 40000),
-    Product(id: 'd5', name: 'Minuman 5', price: 50000),
+    Product(
+      id: 'd1',
+      name: 'Espresso',
+      price: 18000,
+      additions: _drinkAdditions,
+    ),
+    Product(
+      id: 'd2',
+      name: 'Cappuccino',
+      price: 25000,
+      additions: _drinkAdditions,
+    ),
+    Product(id: 'd3', name: 'Latte', price: 28000, additions: _drinkAdditions),
+    Product(
+      id: 'd4',
+      name: 'Americano',
+      price: 22000,
+      additions: _drinkAdditions,
+    ),
+    Product(
+      id: 'd5',
+      name: 'Matcha Latte',
+      price: 30000,
+      additions: _drinkAdditions,
+    ),
     Product(id: 'd6', name: 'Minuman 6', price: 60000),
     Product(id: 'd7', name: 'Minuman 7', price: 70000),
     Product(id: 'd8', name: 'Minuman 8', price: 80000),
@@ -61,8 +118,24 @@ class ProductRepository {
   ];
 
   static const _packageItems = <Product>[
-    Product(id: 'pk1', name: 'Paket 1', price: 10000),
-    Product(id: 'pk2', name: 'Paket 2', price: 20000),
+    Product(
+      id: 'pk1',
+      name: 'Paket Hemat 1',
+      price: 45000,
+      additions: [
+        Addition(id: 'add_upsize_drink', name: 'Upsize Drink', price: 5000),
+        Addition(id: 'add_extra_fries', name: 'Extra Fries', price: 8000),
+      ],
+    ),
+    Product(
+      id: 'pk2',
+      name: 'Paket Hemat 2',
+      price: 55000,
+      additions: [
+        Addition(id: 'add_upsize_drink', name: 'Upsize Drink', price: 5000),
+        Addition(id: 'add_extra_fries', name: 'Extra Fries', price: 8000),
+      ],
+    ),
     Product(id: 'pk3', name: 'Paket 3', price: 30000),
     Product(id: 'pk4', name: 'Paket 4', price: 40000),
     Product(id: 'pk5', name: 'Paket 5', price: 50000),

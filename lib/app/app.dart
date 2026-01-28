@@ -25,11 +25,7 @@ class App extends StatelessWidget {
             context,
           ).platformDispatcher.platformBrightness;
 
-          TextTheme textTheme = createTextTheme(
-            context,
-            "Inter",
-            "Plus Jakarta Sans",
-          );
+          TextTheme textTheme = createTextTheme(context, "Inter", "Inter");
 
           MaterialTheme theme = MaterialTheme(textTheme);
 

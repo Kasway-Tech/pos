@@ -1,3 +1,4 @@
+import 'package:atomikpos/data/models/addition.dart';
 import 'package:atomikpos/data/models/cart_item.dart';
 import 'package:atomikpos/data/models/product.dart';
 import 'package:atomikpos/data/repositories/product_repository.dart';
@@ -13,11 +14,27 @@ class MockProductRepository extends Mock implements ProductRepository {}
 void main() {
   group('HomeBloc', () {
     late ProductRepository productRepository;
+
+    final addition1 = const Addition(
+      id: 'a1',
+      name: 'Extra Cheese',
+      price: 500,
+    );
+    final addition2 = const Addition(id: 'a2', name: 'Spicy', price: 0);
+
     final product = Product(
       id: '1',
       name: 'Test Product',
       price: 1000,
       imageUrl: 'image.png',
+    );
+
+    final productWithAdditions = Product(
+      id: '2',
+      name: 'Product With Additions',
+      price: 2000,
+      imageUrl: 'image.png',
+      additions: [addition1, addition2],
     );
 
     setUp(() {
@@ -28,88 +45,331 @@ void main() {
       return HomeBloc(productRepository: productRepository);
     }
 
-    blocTest<HomeBloc, HomeState>(
-      'emits updated cartItems when HomeCartQuantityUpdated is added',
-      build: buildBloc,
-      seed: () =>
+    group('HomeProductAdded', () {
+      blocTest<HomeBloc, HomeState>(
+        'adds new product to cart',
+        build: buildBloc,
+        act: (bloc) => bloc.add(HomeProductAdded(product)),
+        expect: () => [
           HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
-      act: (bloc) => bloc.add(HomeCartQuantityUpdated(product, 5)),
-      expect: () => [
-        HomeState(cartItems: [CartItem(product: product, quantity: 5)]),
-      ],
-    );
+        ],
+      );
 
-    blocTest<HomeBloc, HomeState>(
-      'removes item from cart when quantity is updated to 0',
-      build: buildBloc,
-      seed: () =>
-          HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
-      act: (bloc) => bloc.add(HomeCartQuantityUpdated(product, 0)),
-      expect: () => [const HomeState(cartItems: [])],
-    );
+      blocTest<HomeBloc, HomeState>(
+        'increments quantity when same product is added again',
+        build: buildBloc,
+        seed: () =>
+            HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
+        act: (bloc) => bloc.add(HomeProductAdded(product)),
+        expect: () => [
+          HomeState(cartItems: [CartItem(product: product, quantity: 2)]),
+        ],
+      );
 
-    blocTest<HomeBloc, HomeState>(
-      'clears cart when HomeCartCleared is added',
-      build: buildBloc,
-      seed: () =>
-          HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
-      act: (bloc) => bloc.add(HomeCartCleared()),
-      expect: () => [const HomeState(cartItems: [])],
-    );
+      blocTest<HomeBloc, HomeState>(
+        'does not exceed max quantity of 99',
+        build: buildBloc,
+        seed: () =>
+            HomeState(cartItems: [CartItem(product: product, quantity: 99)]),
+        act: (bloc) => bloc.add(HomeProductAdded(product)),
+        expect: () => [],
+      );
+    });
 
-    blocTest<HomeBloc, HomeState>(
-      'filters products when HomeSearchTermChanged is added',
-      build: buildBloc,
-      seed: () => HomeState(
-        categories: ['Makanan'],
-        initialItemsByCategory: {
-          'Makanan': [
-            Product(id: '1', name: 'Nasi Goreng', price: 1000),
-            Product(id: '2', name: 'Mie Ayam', price: 1000),
-          ],
-        },
-        itemsByCategory: {
-          'Makanan': [
-            Product(id: '1', name: 'Nasi Goreng', price: 1000),
-            Product(id: '2', name: 'Mie Ayam', price: 1000),
-          ],
-        },
-      ),
-      act: (bloc) => bloc.add(const HomeSearchTermChanged('nasi')),
-      expect: () => [
-        isA<HomeState>()
-            .having(
-              (s) => s.itemsByCategory['Makanan'],
-              'itemsByCategory',
-              contains(predicate((p) => (p as Product).name == 'Nasi Goreng')),
-            )
-            .having(
-              (s) => s.itemsByCategory['Makanan']?.length,
-              'itemsByCategory length',
-              1,
-            ),
-      ],
-    );
-
-    blocTest<HomeBloc, HomeState>(
-      'shows all products when search term is empty',
-      build: buildBloc,
-      seed: () => HomeState(
-        searchTerm: 'nasi',
-        categories: ['Makanan'],
-        initialItemsByCategory: {
-          'Makanan': [Product(id: '1', name: 'Nasi Goreng', price: 1000)],
-        },
-        itemsByCategory: {'Makanan': []},
-      ),
-      act: (bloc) => bloc.add(const HomeSearchTermChanged('')),
-      expect: () => [
-        isA<HomeState>().having(
-          (s) => s.itemsByCategory['Makanan']?.length,
-          'itemsByCategory length',
-          1,
+    group('HomeProductWithAdditionsAdded', () {
+      blocTest<HomeBloc, HomeState>(
+        'adds product with additions to cart',
+        build: buildBloc,
+        act: (bloc) => bloc.add(
+          HomeProductWithAdditionsAdded(productWithAdditions, [addition1]),
         ),
-      ],
-    );
+        expect: () => [
+          HomeState(
+            cartItems: [
+              CartItem(
+                product: productWithAdditions,
+                quantity: 1,
+                selectedAdditions: [addition1],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'increments quantity when same product with same additions is added',
+        build: buildBloc,
+        seed: () => HomeState(
+          cartItems: [
+            CartItem(
+              product: productWithAdditions,
+              quantity: 1,
+              selectedAdditions: [addition1],
+            ),
+          ],
+        ),
+        act: (bloc) => bloc.add(
+          HomeProductWithAdditionsAdded(productWithAdditions, [addition1]),
+        ),
+        expect: () => [
+          HomeState(
+            cartItems: [
+              CartItem(
+                product: productWithAdditions,
+                quantity: 2,
+                selectedAdditions: [addition1],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'creates new cart item when same product with different additions is added',
+        build: buildBloc,
+        seed: () => HomeState(
+          cartItems: [
+            CartItem(
+              product: productWithAdditions,
+              quantity: 1,
+              selectedAdditions: [addition1],
+            ),
+          ],
+        ),
+        act: (bloc) => bloc.add(
+          HomeProductWithAdditionsAdded(productWithAdditions, [addition2]),
+        ),
+        expect: () => [
+          HomeState(
+            cartItems: [
+              CartItem(
+                product: productWithAdditions,
+                quantity: 1,
+                selectedAdditions: [addition1],
+              ),
+              CartItem(
+                product: productWithAdditions,
+                quantity: 1,
+                selectedAdditions: [addition2],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'creates new cart item when same product with no additions is added after one with additions',
+        build: buildBloc,
+        seed: () => HomeState(
+          cartItems: [
+            CartItem(
+              product: productWithAdditions,
+              quantity: 1,
+              selectedAdditions: [addition1],
+            ),
+          ],
+        ),
+        act: (bloc) =>
+            bloc.add(HomeProductWithAdditionsAdded(productWithAdditions, [])),
+        expect: () => [
+          HomeState(
+            cartItems: [
+              CartItem(
+                product: productWithAdditions,
+                quantity: 1,
+                selectedAdditions: [addition1],
+              ),
+              CartItem(
+                product: productWithAdditions,
+                quantity: 1,
+                selectedAdditions: [],
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+
+    group('HomeCartQuantityUpdated', () {
+      blocTest<HomeBloc, HomeState>(
+        'updates quantity for item without additions',
+        build: buildBloc,
+        seed: () =>
+            HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
+        act: (bloc) => bloc.add(HomeCartQuantityUpdated(product, 5)),
+        expect: () => [
+          HomeState(cartItems: [CartItem(product: product, quantity: 5)]),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'removes item from cart when quantity is updated to 0',
+        build: buildBloc,
+        seed: () =>
+            HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
+        act: (bloc) => bloc.add(HomeCartQuantityUpdated(product, 0)),
+        expect: () => [const HomeState(cartItems: [])],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'updates quantity for specific item with matching additions',
+        build: buildBloc,
+        seed: () => HomeState(
+          cartItems: [
+            CartItem(
+              product: productWithAdditions,
+              quantity: 1,
+              selectedAdditions: [addition1],
+            ),
+            CartItem(
+              product: productWithAdditions,
+              quantity: 2,
+              selectedAdditions: [addition2],
+            ),
+          ],
+        ),
+        act: (bloc) => bloc.add(
+          HomeCartQuantityUpdated(
+            productWithAdditions,
+            5,
+            selectedAdditions: [addition2],
+          ),
+        ),
+        expect: () => [
+          HomeState(
+            cartItems: [
+              CartItem(
+                product: productWithAdditions,
+                quantity: 1,
+                selectedAdditions: [addition1],
+              ),
+              CartItem(
+                product: productWithAdditions,
+                quantity: 5,
+                selectedAdditions: [addition2],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'removes specific item when quantity is set to 0 while preserving others',
+        build: buildBloc,
+        seed: () => HomeState(
+          cartItems: [
+            CartItem(
+              product: productWithAdditions,
+              quantity: 1,
+              selectedAdditions: [addition1],
+            ),
+            CartItem(
+              product: productWithAdditions,
+              quantity: 2,
+              selectedAdditions: [addition2],
+            ),
+          ],
+        ),
+        act: (bloc) => bloc.add(
+          HomeCartQuantityUpdated(
+            productWithAdditions,
+            0,
+            selectedAdditions: [addition1],
+          ),
+        ),
+        expect: () => [
+          HomeState(
+            cartItems: [
+              CartItem(
+                product: productWithAdditions,
+                quantity: 2,
+                selectedAdditions: [addition2],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'clamps quantity to max 99',
+        build: buildBloc,
+        seed: () =>
+            HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
+        act: (bloc) => bloc.add(HomeCartQuantityUpdated(product, 150)),
+        expect: () => [
+          HomeState(cartItems: [CartItem(product: product, quantity: 99)]),
+        ],
+      );
+    });
+
+    group('HomeCartCleared', () {
+      blocTest<HomeBloc, HomeState>(
+        'clears cart when HomeCartCleared is added',
+        build: buildBloc,
+        seed: () =>
+            HomeState(cartItems: [CartItem(product: product, quantity: 1)]),
+        act: (bloc) => bloc.add(HomeCartCleared()),
+        expect: () => [const HomeState(cartItems: [])],
+      );
+    });
+
+    group('HomeSearchTermChanged', () {
+      blocTest<HomeBloc, HomeState>(
+        'filters products when HomeSearchTermChanged is added',
+        build: buildBloc,
+        seed: () => HomeState(
+          categories: ['Makanan'],
+          initialItemsByCategory: {
+            'Makanan': [
+              Product(id: '1', name: 'Nasi Goreng', price: 1000),
+              Product(id: '2', name: 'Mie Ayam', price: 1000),
+            ],
+          },
+          itemsByCategory: {
+            'Makanan': [
+              Product(id: '1', name: 'Nasi Goreng', price: 1000),
+              Product(id: '2', name: 'Mie Ayam', price: 1000),
+            ],
+          },
+        ),
+        act: (bloc) => bloc.add(const HomeSearchTermChanged('nasi')),
+        expect: () => [
+          isA<HomeState>()
+              .having(
+                (s) => s.itemsByCategory['Makanan'],
+                'itemsByCategory',
+                contains(
+                  predicate((p) => (p as Product).name == 'Nasi Goreng'),
+                ),
+              )
+              .having(
+                (s) => s.itemsByCategory['Makanan']?.length,
+                'itemsByCategory length',
+                1,
+              ),
+        ],
+      );
+
+      blocTest<HomeBloc, HomeState>(
+        'shows all products when search term is empty',
+        build: buildBloc,
+        seed: () => HomeState(
+          searchTerm: 'nasi',
+          categories: ['Makanan'],
+          initialItemsByCategory: {
+            'Makanan': [Product(id: '1', name: 'Nasi Goreng', price: 1000)],
+          },
+          itemsByCategory: {'Makanan': []},
+        ),
+        act: (bloc) => bloc.add(const HomeSearchTermChanged('')),
+        expect: () => [
+          isA<HomeState>().having(
+            (s) => s.itemsByCategory['Makanan']?.length,
+            'itemsByCategory length',
+            1,
+          ),
+        ],
+      );
+    });
   });
 }
