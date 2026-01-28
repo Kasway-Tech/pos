@@ -1,7 +1,7 @@
 import 'package:atomikpos/features/home/bloc/home_bloc.dart';
 import 'package:atomikpos/features/home/bloc/home_event.dart';
 import 'package:atomikpos/features/home/bloc/home_state.dart';
-import 'package:atomikpos/features/home/view/widgets/numeric_input_group.dart';
+import 'package:atomikpos/features/home/view/widgets/order_cart_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -50,6 +50,9 @@ class _OrderSideViewState extends State<OrderSideView> {
     );
 
     return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.cartItems.length != current.cartItems.length,
       builder: (context, state) {
         // Auto-scroll when items are added
         if (state.cartItems.length > _previousItemCount) {
@@ -121,84 +124,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                         itemCount: state.cartItems.length,
                         itemBuilder: (context, index) {
                           final item = state.cartItems[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Row(
-                              children: [
-                                NumericInputGroup(
-                                  value: item.quantity.toInt(),
-                                  onChanged: (newQty) {
-                                    context.read<HomeBloc>().add(
-                                      HomeCartQuantityUpdated(
-                                        item.product,
-                                        newQty.toDouble(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            item.product.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          Text(
-                                            currencyFormat.format(
-                                              item.product.price *
-                                                  item.quantity,
-                                            ),
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'No additions',
-                                            style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.outline,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          Text(
-                                            currencyFormat.format(0),
-                                            textAlign: TextAlign.right,
-                                            style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.outline,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                          return OrderCartItemTile(product: item.product);
                         },
                       ),
               ),
@@ -227,18 +153,21 @@ class _OrderSideViewState extends State<OrderSideView> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      currencyFormat.format(
-                        state.cartItems.fold<double>(
-                          0,
-                          (sum, item) =>
-                              sum + (item.product.price * item.quantity),
-                        ),
+                    BlocSelector<HomeBloc, HomeState, double>(
+                      selector: (state) => state.cartItems.fold<double>(
+                        0,
+                        (sum, item) =>
+                            sum + (item.product.price * item.quantity),
                       ),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      builder: (context, grandTotal) {
+                        return Text(
+                          currencyFormat.format(grandTotal),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

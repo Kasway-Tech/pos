@@ -60,6 +60,11 @@ class _HomeViewState extends State<HomeView>
     return BlocConsumer<HomeBloc, HomeState>(
       listenWhen: (previous, current) =>
           previous.categories != current.categories,
+      buildWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.categories != current.categories ||
+          previous.searchTerm != current.searchTerm ||
+          previous.itemsByCategory != current.itemsByCategory,
       listener: (context, state) {
         if (state.categories.isNotEmpty) {
           _tabController?.dispose();
@@ -346,7 +351,6 @@ class _HomeViewState extends State<HomeView>
     if (_isSearching || state.searchTerm.isNotEmpty) {
       return ProductsView(
         items: state.itemsByCategory.values.expand((items) => items).toList(),
-        cartItems: state.cartItems,
         onTap: (product) {
           context.read<HomeBloc>().add(HomeProductAdded(product));
         },
@@ -360,7 +364,6 @@ class _HomeViewState extends State<HomeView>
         children: state.categories.map((category) {
           return ProductsView(
             items: state.itemsByCategory[category] ?? [],
-            cartItems: state.cartItems,
             onTap: (product) {
               context.read<HomeBloc>().add(HomeProductAdded(product));
             },
