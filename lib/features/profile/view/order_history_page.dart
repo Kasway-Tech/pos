@@ -9,37 +9,45 @@ class OrderHistoryPage extends StatelessWidget {
     return TitlebarSafeArea(
       child: Scaffold(
         appBar: AppBar(title: const Text('Order History')),
-        body: ListView.builder(
-          itemCount: 10,
-          itemBuilder: (context, index) {
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                title: Text('Order #${1234 + index}'),
-                subtitle: Text(
-                  'Items: Nasi Goreng, Es Teh\n24 Jan 2026, 06:40',
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Rp ${(25000 + (index * 5000))}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: ListView.builder(
+              itemCount: 10,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    title: Text('Order #${1234 + index}'),
+                    subtitle: Text(
+                      'Items: Nasi Goreng, Es Teh\n24 Jan 2026, 06:40',
                     ),
-                    Text(
-                      'Completed',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Rp ${(25000 + (index * 5000))}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Completed',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.green),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                isThreeLine: true,
-                onTap: () {},
-              ),
-            );
-          },
+                    isThreeLine: true,
+                    onTap: () {},
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );

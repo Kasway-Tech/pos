@@ -9,34 +9,44 @@ class PaymentMethodsPage extends StatelessWidget {
     return TitlebarSafeArea(
       child: Scaffold(
         appBar: AppBar(title: const Text('Payment Methods')),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildCardTile(context, 'Visa', '**** **** **** 4242', true),
-                  _buildCardTile(
-                    context,
-                    'Mastercard',
-                    '**** **** **** 5555',
-                    false,
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _buildCardTile(
+                        context,
+                        'Visa',
+                        '**** **** **** 4242',
+                        true,
+                      ),
+                      _buildCardTile(
+                        context,
+                        'Mastercard',
+                        '**** **** **** 5555',
+                        false,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.add),
-                label: const Text('Add New Payment Method'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add New Payment Method'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

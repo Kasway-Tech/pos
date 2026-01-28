@@ -10,73 +10,78 @@ class ProfilePage extends StatelessWidget {
     return TitlebarSafeArea(
       child: Scaffold(
         appBar: AppBar(title: const Text('Profile'), centerTitle: true),
-        body: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 24.0),
-          children: [
-            // User Info Section
-            const _ProfileHeader(
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-            ),
-            const SizedBox(height: 32.0),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              children: [
+                // User Info Section
+                const _ProfileHeader(
+                  name: 'John Doe',
+                  email: 'john.doe@example.com',
+                ),
+                const SizedBox(height: 32.0),
 
-            // Menus Section
-            _ProfileMenuItem(
-              icon: Icons.history,
-              title: 'Order History',
-              onTap: () => context.push('/profile/orders'),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.payment,
-              title: 'Payment Methods',
-              onTap: () => context.push('/profile/payments'),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.palette_outlined,
-              title: 'Theme Settings',
-              onTap: () => context.push('/profile/theme'),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
-              onTap: () => context.push('/profile/settings'),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.help_outline,
-              title: 'Help & Support',
-              onTap: () => context.push('/profile/help'),
-            ),
-            const Divider(height: 32.0),
+                // Menus Section
+                _ProfileMenuItem(
+                  icon: Icons.history,
+                  title: 'Order History',
+                  onTap: () => context.push('/profile/orders'),
+                ),
+                _ProfileMenuItem(
+                  icon: Icons.payment,
+                  title: 'Payment Methods',
+                  onTap: () => context.push('/profile/payments'),
+                ),
+                _ProfileMenuItem(
+                  icon: Icons.palette_outlined,
+                  title: 'Theme Settings',
+                  onTap: () => context.push('/profile/theme'),
+                ),
+                _ProfileMenuItem(
+                  icon: Icons.settings_outlined,
+                  title: 'Settings',
+                  onTap: () => context.push('/profile/settings'),
+                ),
+                _ProfileMenuItem(
+                  icon: Icons.help_outline,
+                  title: 'Help & Support',
+                  onTap: () => context.push('/profile/help'),
+                ),
+                const Divider(height: 32.0),
 
-            // Actions Section
-            _ProfileMenuItem(
-              icon: Icons.logout,
-              title: 'Logout',
-              textColor: Colors.red,
-              iconColor: Colors.red,
-              onTap: () => _showConfirmationDialog(
-                context,
-                title: 'Logout',
-                content: 'Are you sure you want to log out?',
-                confirmLabel: 'Logout',
-                isDestructive: true,
-              ),
+                // Actions Section
+                _ProfileMenuItem(
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  textColor: Colors.red,
+                  iconColor: Colors.red,
+                  onTap: () => _showConfirmationDialog(
+                    context,
+                    title: 'Logout',
+                    content: 'Are you sure you want to log out?',
+                    confirmLabel: 'Logout',
+                    isDestructive: true,
+                  ),
+                ),
+                _ProfileMenuItem(
+                  icon: Icons.delete_forever_outlined,
+                  title: 'Delete Account',
+                  textColor: Colors.red,
+                  iconColor: Colors.red,
+                  onTap: () => _showConfirmationDialog(
+                    context,
+                    title: 'Delete Account',
+                    content:
+                        'This action is permanent and cannot be undone. All your data will be removed.',
+                    confirmLabel: 'Delete',
+                    isDestructive: true,
+                  ),
+                ),
+              ],
             ),
-            _ProfileMenuItem(
-              icon: Icons.delete_forever_outlined,
-              title: 'Delete Account',
-              textColor: Colors.red,
-              iconColor: Colors.red,
-              onTap: () => _showConfirmationDialog(
-                context,
-                title: 'Delete Account',
-                content:
-                    'This action is permanent and cannot be undone. All your data will be removed.',
-                confirmLabel: 'Delete',
-                isDestructive: true,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
