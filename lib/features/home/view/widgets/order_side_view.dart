@@ -130,9 +130,8 @@ class _OrderSideViewState extends State<OrderSideView> {
                     Flexible(
                       child: Text(
                         'Grand Total',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -152,7 +151,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                       builder: (context, grandTotal) {
                         return Text(
                           currencyFormat.format(grandTotal),
-                          style: Theme.of(context).textTheme.headlineSmall
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         );
                       },
@@ -215,6 +214,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
                               backgroundColor: Colors.transparent,
+                              disabledBackgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(0),

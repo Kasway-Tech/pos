@@ -180,6 +180,7 @@ class _AdditionsSideViewState extends State<AdditionsSideView> {
                       style: ElevatedButton.styleFrom(
                         elevation: 0,
                         backgroundColor: Colors.transparent,
+                        disabledBackgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(0),

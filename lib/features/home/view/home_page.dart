@@ -33,8 +33,9 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  bool _isSearching = false;
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+  bool _isSearchFocused = false;
   Product? _selectedProductForAdditions;
 
   @override
@@ -47,12 +48,18 @@ class _HomeViewState extends State<HomeView>
         vsync: this,
       );
     }
+    _searchFocusNode.addListener(() {
+      setState(() {
+        _isSearchFocused = _searchFocusNode.hasFocus;
+      });
+    });
   }
 
   @override
   void dispose() {
     _tabController?.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -98,185 +105,196 @@ class _HomeViewState extends State<HomeView>
           return const Scaffold(body: SizedBox.shrink());
         }
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isLargeScreen = constraints.maxWidth >= 800;
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isLargeScreen = constraints.maxWidth >= 800;
 
-            if (isLargeScreen) {
-              return Row(
-                children: [
-                  Expanded(
-                    flex: 6,
-                    child: Scaffold(
-                      appBar: _buildAppBar(state, tabController, isLargeScreen),
-                      body: _buildProductsBody(state, tabController),
-                    ),
-                  ),
-                  VerticalDivider(
-                    width: 1,
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ),
-                  Expanded(
-                    flex: 4,
-                    child: ClipRect(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        reverseDuration: const Duration(milliseconds: 250),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          final isAdditionsPanel =
-                              child.key == const ValueKey('additions');
-                          final slideOffset = isAdditionsPanel
-                              ? Tween<Offset>(
-                                  begin: const Offset(1, 0),
-                                  end: Offset.zero,
-                                )
-                              : Tween<Offset>(
-                                  begin: const Offset(-1, 0),
-                                  end: Offset.zero,
-                                );
-                          return SlideTransition(
-                            position: slideOffset.animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.fastOutSlowIn,
-                              ),
-                            ),
-                            child: child,
-                          );
-                        },
-                        child: _selectedProductForAdditions != null
-                            ? AdditionsSideView(
-                                key: const ValueKey('additions'),
-                                product: _selectedProductForAdditions!,
-                                onConfirm: (selectedAdditions) {
-                                  context.read<HomeBloc>().add(
-                                    HomeProductWithAdditionsAdded(
-                                      _selectedProductForAdditions!,
-                                      selectedAdditions,
-                                    ),
-                                  );
-                                  setState(() {
-                                    _selectedProductForAdditions = null;
-                                  });
-                                },
-                                onBack: () {
-                                  setState(() {
-                                    _selectedProductForAdditions = null;
-                                  });
-                                },
-                              )
-                            : OrderSideView(
-                                key: const ValueKey('order'),
-                                showAppBar: true,
-                                onProceedToPayment: () =>
-                                    _showPaymentDialog(context),
-                              ),
+              if (isLargeScreen) {
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: Scaffold(
+                        appBar: _buildAppBar(
+                          state,
+                          tabController,
+                          isLargeScreen,
+                        ),
+                        body: _buildProductsBody(state, tabController),
                       ),
                     ),
-                  ),
-                ],
-              );
-            }
-
-            return Scaffold(
-              appBar: _buildAppBar(state, tabController, isLargeScreen),
-              body: Stack(
-                children: [
-                  _buildProductsBody(state, tabController),
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 150),
-                    curve: Curves.easeInOut,
-                    bottom: state.cartItems.isEmpty
-                        ? -kToolbarHeight - 16.0
-                        : 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        border: Border(
-                          top: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
-                          ),
+                    VerticalDivider(
+                      width: 1,
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: ClipRect(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          reverseDuration: const Duration(milliseconds: 250),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, animation) {
+                            final isAdditionsPanel =
+                                child.key == const ValueKey('additions');
+                            final slideOffset = isAdditionsPanel
+                                ? Tween<Offset>(
+                                    begin: const Offset(1, 0),
+                                    end: Offset.zero,
+                                  )
+                                : Tween<Offset>(
+                                    begin: const Offset(-1, 0),
+                                    end: Offset.zero,
+                                  );
+                            return SlideTransition(
+                              position: slideOffset.animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.fastOutSlowIn,
+                                ),
+                              ),
+                              child: child,
+                            );
+                          },
+                          child: _selectedProductForAdditions != null
+                              ? AdditionsSideView(
+                                  key: const ValueKey('additions'),
+                                  product: _selectedProductForAdditions!,
+                                  onConfirm: (selectedAdditions) {
+                                    context.read<HomeBloc>().add(
+                                      HomeProductWithAdditionsAdded(
+                                        _selectedProductForAdditions!,
+                                        selectedAdditions,
+                                      ),
+                                    );
+                                    setState(() {
+                                      _selectedProductForAdditions = null;
+                                    });
+                                  },
+                                  onBack: () {
+                                    setState(() {
+                                      _selectedProductForAdditions = null;
+                                    });
+                                  },
+                                )
+                              : OrderSideView(
+                                  key: const ValueKey('order'),
+                                  showAppBar: true,
+                                  onProceedToPayment: () =>
+                                      _showPaymentDialog(context),
+                                ),
                         ),
                       ),
-                      child: SizedBox(
-                        height: kToolbarHeight + 16.0,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () => _confirmClearOrder(context),
-                              style: IconButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(0),
-                                ),
-                              ),
-                              icon: SizedBox(
-                                width: kToolbarHeight + 16.0,
-                                height: double.infinity,
-                                child: Icon(
-                                  Icons.delete_outline_rounded,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                            VerticalDivider(
-                              width: 1,
+                    ),
+                  ],
+                );
+              }
+
+              return Scaffold(
+                appBar: _buildAppBar(state, tabController, isLargeScreen),
+                body: Stack(
+                  children: [
+                    _buildProductsBody(state, tabController),
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeInOut,
+                      bottom: state.cartItems.isEmpty
+                          ? -kToolbarHeight - 16.0
+                          : 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border(
+                            top: BorderSide(
                               color: Theme.of(
                                 context,
                               ).colorScheme.surfaceContainerHigh,
                             ),
-                            Expanded(
-                              child: SizedBox(
-                                height: double.infinity,
-                                child: ElevatedButton(
-                                  // INTENDED CHANGES, DO NOT FUCKING REMOVE
-                                  style: ElevatedButton.styleFrom(
-                                    elevation: 0,
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(0),
-                                    ),
+                          ),
+                        ),
+                        child: SizedBox(
+                          height: kToolbarHeight + 16.0,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                onPressed: () => _confirmClearOrder(context),
+                                style: IconButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Confirm Selection',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.copyWith(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Icon(Icons.arrow_forward),
-                                    ],
+                                ),
+                                icon: SizedBox(
+                                  width: kToolbarHeight + 16.0,
+                                  height: double.infinity,
+                                  child: Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: Colors.red,
                                   ),
-                                  onPressed: () {
-                                    context.push('/order-confirmation');
-                                  },
                                 ),
                               ),
-                            ),
-                          ],
+                              VerticalDivider(
+                                width: 1,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
+                              ),
+                              Expanded(
+                                child: SizedBox(
+                                  height: double.infinity,
+                                  child: ElevatedButton(
+                                    // INTENDED CHANGES, DO NOT FUCKING REMOVE
+                                    style: ElevatedButton.styleFrom(
+                                      elevation: 0,
+                                      backgroundColor: Colors.transparent,
+                                      disabledBackgroundColor:
+                                          Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(0),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Confirm Selection',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Icon(Icons.arrow_forward),
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      context.push('/order-confirmation');
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );
@@ -289,47 +307,123 @@ class _HomeViewState extends State<HomeView>
   ) {
     return AppBar(
       toolbarHeight: kToolbarHeight + 16.0,
-      title: _isSearching
-          ? TextField(
-              controller: _searchController,
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Search products...',
-                border: InputBorder.none,
+      centerTitle: true,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child: Center(
+          child: SvgPicture.asset(
+            'assets/svg/brand_icon.svg',
+            height: 24,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+      title: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.fastOutSlowIn,
+        constraints: BoxConstraints(maxWidth: _isSearchFocused ? 280 : 140),
+        height: _isSearchFocused ? 36 : 32,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1,
+          ),
+          boxShadow: _isSearchFocused
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: GestureDetector(
+          onTap: () => _searchFocusNode.requestFocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.fastOutSlowIn,
+                alignment: _isSearchFocused
+                    ? Alignment.centerLeft
+                    : Alignment.center,
+                child: Padding(
+                  padding: EdgeInsets.only(left: _isSearchFocused ? 12 : 0),
+                  child: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.outline,
+                    size: 16,
+                  ),
+                ),
               ),
-              onChanged: (value) {
-                context.read<HomeBloc>().add(HomeSearchTermChanged(value));
-              },
-            )
-          : SvgPicture.asset('assets/svg/brand_icon.svg', height: 28),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isSearchFocused ? 1.0 : 0.0,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 36, right: 8),
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    decoration: const InputDecoration(
+                      hintText: '',
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onChanged: (value) {
+                      context.read<HomeBloc>().add(
+                        HomeSearchTermChanged(value),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if (_isSearchFocused && state.searchTerm.isNotEmpty)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        _searchController.clear();
+                        context.read<HomeBloc>().add(
+                          const HomeSearchTermChanged(''),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
       actions: [
         IconButton(
-          onPressed: () {
-            setState(() {
-              _isSearching = !_isSearching;
-              if (!_isSearching) {
-                _searchController.clear();
-                context.read<HomeBloc>().add(const HomeSearchTermChanged(''));
-              }
-            });
-          },
-          icon: Icon(_isSearching ? Icons.close : Icons.search),
-        ),
-        const SizedBox(width: 4),
-        IconButton(onPressed: () {}, icon: const Icon(Icons.lock_outline)),
-        const SizedBox(width: 4),
-        IconButton(onPressed: () {}, icon: const Icon(Icons.mail_outline)),
-        const SizedBox(width: 16.0),
-        IconButton(
-          onPressed: () {
-            context.push('/profile');
-          },
+          onPressed: () => context.push('/profile'),
           padding: EdgeInsets.zero,
-          icon: const CircleAvatar(child: Icon(Icons.person)),
+          icon: const CircleAvatar(
+            radius: 16,
+            child: Icon(Icons.person, size: 20),
+          ),
         ),
         const SizedBox(width: 14.0),
       ],
-      bottom: _isSearching || state.searchTerm.isNotEmpty
+      bottom: state.searchTerm.isNotEmpty
           ? null
           : PreferredSize(
               preferredSize: const Size.fromHeight(kTextTabBarHeight),
@@ -351,7 +445,7 @@ class _HomeViewState extends State<HomeView>
   }
 
   Widget _buildProductsBody(HomeState state, TabController tabController) {
-    if (_isSearching || state.searchTerm.isNotEmpty) {
+    if (state.searchTerm.isNotEmpty) {
       return ProductsView(
         items: state.itemsByCategory.values.expand((items) => items).toList(),
         onTap: (product) => _handleProductTap(product),
