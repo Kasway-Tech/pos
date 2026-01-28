@@ -15,7 +15,7 @@ class HelpSupportPage extends StatelessWidget {
               padding: EdgeInsets.all(16.0),
               child: Text(
                 'Frequently Asked Questions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             const ExpansionTile(
@@ -54,7 +54,7 @@ class HelpSupportPage extends StatelessWidget {
               padding: EdgeInsets.all(16.0),
               child: Text(
                 'Contact Us',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(

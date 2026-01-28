@@ -43,12 +43,9 @@ void main() {
 
     expect(find.text('Order List'), findsOneWidget);
     expect(find.text('Test Product'), findsOneWidget);
-    expect(find.text('Summary'), findsOneWidget);
-    expect(find.text('Confirm Order'), findsOneWidget);
-    expect(
-      find.byType(ListView),
-      findsNWidgets(2),
-    ); // Item list and Summary list
+    expect(find.text('Grand Total'), findsOneWidget);
+    expect(find.text('Proceed to Payment'), findsOneWidget);
+    expect(find.byType(ListView), findsOneWidget);
   });
 
   testWidgets('displays correct total', (tester) async {

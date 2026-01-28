@@ -65,8 +65,7 @@ class PaymentMethodsPage extends StatelessWidget {
                 ),
                 child: Text(
                   'Default',
-                  style: TextStyle(
-                    fontSize: 10,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),

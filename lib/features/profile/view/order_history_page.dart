@@ -27,9 +27,11 @@ class OrderHistoryPage extends StatelessWidget {
                       'Rp ${(25000 + (index * 5000))}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const Text(
+                    Text(
                       'Completed',
-                      style: TextStyle(color: Colors.green, fontSize: 12),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
                     ),
                   ],
                 ),

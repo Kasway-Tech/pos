@@ -57,9 +57,11 @@ class PaymentSuccessfulPage extends StatelessWidget {
                     vertical: 16,
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Back to Home',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               const Spacer(),

@@ -97,10 +97,10 @@ class _AdditionsSideViewState extends State<AdditionsSideView> {
                         const SizedBox(height: 16),
                         Text(
                           'No additions available',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.outline,
-                            fontSize: 16,
-                          ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                       ],
                     ),

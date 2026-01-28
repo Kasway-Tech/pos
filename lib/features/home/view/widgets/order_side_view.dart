@@ -115,10 +115,12 @@ class _OrderSideViewState extends State<OrderSideView> {
                             const SizedBox(height: 16),
                             Text(
                               'Orders will appear here',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.outline,
-                                fontSize: 16,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
+                                  ),
                             ),
                           ],
                         ),

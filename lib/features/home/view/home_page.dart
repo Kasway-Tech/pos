@@ -250,9 +250,11 @@ class _HomeViewState extends State<HomeView>
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Confirm Selection',
-                                        style: TextStyle(fontSize: 16),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
                                       ),
                                       const SizedBox(width: 8),
                                       Icon(Icons.arrow_forward),
