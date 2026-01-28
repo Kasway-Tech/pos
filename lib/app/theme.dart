@@ -56,14 +56,14 @@ class MaterialTheme {
     );
   }
 
-  ThemeData light([Color? seedColor]) {
+  ThemeData light([Color? seedColor, bool isTablet = false]) {
     final colorScheme = seedColor != null
         ? ColorScheme.fromSeed(
             seedColor: seedColor,
             brightness: Brightness.light,
           )
         : lightScheme();
-    return theme(colorScheme);
+    return theme(colorScheme, isTablet);
   }
 
   static ColorScheme lightMediumContrastScheme() {
@@ -227,14 +227,14 @@ class MaterialTheme {
     );
   }
 
-  ThemeData dark([Color? seedColor]) {
+  ThemeData dark([Color? seedColor, bool isTablet = false]) {
     final colorScheme = seedColor != null
         ? ColorScheme.fromSeed(
             seedColor: seedColor,
             brightness: Brightness.dark,
           )
         : darkScheme();
-    return theme(colorScheme);
+    return theme(colorScheme, isTablet);
   }
 
   static ColorScheme darkMediumContrastScheme() {
@@ -347,17 +347,23 @@ class MaterialTheme {
     return theme(darkHighContrastScheme());
   }
 
-  ThemeData theme(ColorScheme colorScheme) => ThemeData(
-    useMaterial3: true,
-    brightness: colorScheme.brightness,
-    colorScheme: colorScheme,
-    textTheme: textTheme.apply(
-      bodyColor: colorScheme.onSurface,
-      displayColor: colorScheme.onSurface,
-    ),
-    scaffoldBackgroundColor: colorScheme.background,
-    canvasColor: colorScheme.surface,
-  );
+  ThemeData theme(ColorScheme colorScheme, [bool isTablet = false]) {
+    final baseTheme = ThemeData(
+      useMaterial3: true,
+      brightness: colorScheme.brightness,
+      colorScheme: colorScheme,
+      textTheme: textTheme.apply(
+        bodyColor: colorScheme.onSurface,
+        displayColor: colorScheme.onSurface,
+        fontSizeFactor: isTablet ? 0.9 : 1.0,
+      ),
+      scaffoldBackgroundColor: colorScheme.surface,
+      canvasColor: colorScheme.surface,
+      visualDensity: isTablet ? VisualDensity.compact : VisualDensity.standard,
+    );
+
+    return baseTheme;
+  }
 
   List<ExtendedColor> get extendedColors => [];
 }

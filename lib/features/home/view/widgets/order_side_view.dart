@@ -49,6 +49,9 @@ class _OrderSideViewState extends State<OrderSideView> {
       decimalDigits: 0,
     );
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600 && screenWidth < 1200;
+
     return BlocBuilder<HomeBloc, HomeState>(
       buildWhen: (previous, current) =>
           previous.status != current.status ||
@@ -66,7 +69,9 @@ class _OrderSideViewState extends State<OrderSideView> {
           children: [
             if (widget.showAppBar)
               AppBar(
-                toolbarHeight: kToolbarHeight + 16.0,
+                toolbarHeight: isTablet
+                    ? kToolbarHeight + 8.0
+                    : kToolbarHeight + 16.0,
                 title: const Text('Order List'),
                 centerTitle: false,
                 scrolledUnderElevation: 0,
@@ -74,7 +79,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                 actions: [
                   TextButton.icon(
                     style: TextButton.styleFrom(
-                      backgroundColor: Colors.red.withValues(alpha: 0.1),
+                      backgroundColor: Colors.red.withOpacity(0.1),
                     ),
                     onPressed: () => _confirmClearOrder(context),
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
@@ -120,7 +125,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                       )
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(isTablet ? 12.0 : 16.0),
                         itemCount: state.cartItems.length,
                         itemBuilder: (context, index) {
                           final item = state.cartItems[index];
@@ -139,17 +144,16 @@ class _OrderSideViewState extends State<OrderSideView> {
                     ),
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 16.0 : 24.0,
+                  vertical: isTablet ? 12.0 : 16.0,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Grand Total',
-                      style: TextStyle(
-                        fontSize: 18,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -162,10 +166,8 @@ class _OrderSideViewState extends State<OrderSideView> {
                       builder: (context, grandTotal) {
                         return Text(
                           currencyFormat.format(grandTotal),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         );
                       },
                     ),
@@ -183,7 +185,9 @@ class _OrderSideViewState extends State<OrderSideView> {
                   ),
                 ),
                 child: SizedBox(
-                  height: kToolbarHeight + 16.0,
+                  height: isTablet
+                      ? kToolbarHeight + 8.0
+                      : kToolbarHeight + 16.0,
                   child: Row(
                     children: [
                       if (!widget.showAppBar)
@@ -195,7 +199,9 @@ class _OrderSideViewState extends State<OrderSideView> {
                             ),
                           ),
                           icon: SizedBox(
-                            width: kToolbarHeight + 16.0,
+                            width: isTablet
+                                ? kToolbarHeight + 8.0
+                                : kToolbarHeight + 16.0,
                             height: double.infinity,
                             child: const Icon(
                               Icons.delete_outline_rounded,
@@ -230,7 +236,7 @@ class _OrderSideViewState extends State<OrderSideView> {
                               children: [
                                 const Text(
                                   'Proceed to Payment',
-                                  style: TextStyle(fontSize: 16),
+                                  style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(width: 8),
                                 const Icon(Icons.arrow_forward),

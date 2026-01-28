@@ -20,8 +20,11 @@ class OrderCartItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600 && screenWidth < 1200;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.symmetric(vertical: isTablet ? 4.0 : 8.0),
       child: Row(
         children: [
           BlocSelector<HomeBloc, HomeState, int>(
@@ -56,9 +59,8 @@ class OrderCartItemTile extends StatelessWidget {
                   children: [
                     Text(
                       product.name,
-                      style: const TextStyle(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        fontSize: 16,
                       ),
                     ),
                     BlocSelector<HomeBloc, HomeState, double>(
@@ -77,10 +79,8 @@ class OrderCartItemTile extends StatelessWidget {
                       builder: (context, itemTotal) {
                         return Text(
                           _currencyFormat.format(itemTotal),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.right,
                         );
                       },
@@ -93,17 +93,15 @@ class OrderCartItemTile extends StatelessWidget {
                   children: [
                     Text(
                       'No additions',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
-                        fontSize: 14,
                       ),
                     ),
                     Text(
                       _currencyFormat.format(0),
                       textAlign: TextAlign.right,
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
-                        fontSize: 14,
                       ),
                     ),
                   ],

@@ -33,6 +33,9 @@ class App extends StatelessWidget {
 
           MaterialTheme theme = MaterialTheme(textTheme);
 
+          final screenWidth = MediaQuery.sizeOf(context).width;
+          final isTablet = screenWidth >= 600 && screenWidth < 1200;
+
           return MultiRepositoryProvider(
             providers: [
               RepositoryProvider(create: (context) => ProductRepository()),
@@ -45,8 +48,8 @@ class App extends StatelessWidget {
                 scrollBehavior: AppScrollBehavior(),
                 title: 'Atomik POS',
                 theme: brightness == Brightness.light
-                    ? theme.light(themeState.seedColor)
-                    : theme.dark(themeState.seedColor),
+                    ? theme.light(themeState.seedColor, isTablet)
+                    : theme.dark(themeState.seedColor, isTablet),
                 routerConfig: AppRouter.router,
               ),
             ),

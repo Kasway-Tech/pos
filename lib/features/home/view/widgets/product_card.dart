@@ -33,6 +33,11 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600 && screenWidth < 1200;
+
+    final padding = isTablet ? 12.0 : 16.0;
+
     return Listener(
       onPointerDown: (_) => _longPressHandled = false,
       child: Bounce(
@@ -59,7 +64,7 @@ class _ProductCardState extends State<ProductCard> {
               clipBehavior: Clip.antiAlias,
               color: active ? Theme.of(context).colorScheme.primary : null,
               child: Container(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(padding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
