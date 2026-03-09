@@ -1,12 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:kasway/app/app.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const App());
+    final key = GlobalKey<ScaffoldMessengerState>();
+    await tester.pumpWidget(App(scaffoldMessengerKey: key));
 
-    // Verify that the app starts.
     await tester.pumpAndSettle();
     expect(find.byType(App), findsOneWidget);
   });

@@ -9,7 +9,14 @@ sealed class HomeEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class HomeStarted extends HomeEvent {}
+class HomeStarted extends HomeEvent {
+  const HomeStarted({required this.branchId, required this.storeId});
+  final String branchId;
+  final String storeId;
+
+  @override
+  List<Object?> get props => [branchId, storeId];
+}
 
 class HomeProductAdded extends HomeEvent {
   const HomeProductAdded(this.product);
@@ -51,6 +58,14 @@ class HomeCartQuantityUpdated extends HomeEvent {
 }
 
 class HomeCartCleared extends HomeEvent {}
+
+class HomeTransactionSubmitted extends HomeEvent {
+  const HomeTransactionSubmitted({required this.paymentMethod});
+  final String paymentMethod;
+
+  @override
+  List<Object?> get props => [paymentMethod];
+}
 
 class HomeSearchTermChanged extends HomeEvent {
   const HomeSearchTermChanged(this.searchTerm);

@@ -54,7 +54,9 @@ class _SelectPaymentMethodPageState extends State<SelectPaymentMethodPage> {
                   isDialog: widget.isDialog,
                   onBack: () => _navigatorKey.currentState!.pop(),
                   onConfirm: () {
-                    context.read<HomeBloc>().add(HomeCartCleared());
+                    context.read<HomeBloc>().add(
+                          const HomeTransactionSubmitted(paymentMethod: 'Cash'),
+                        );
                     _navigatorKey.currentState!.pushNamed('/payment-success');
                   },
                 );
