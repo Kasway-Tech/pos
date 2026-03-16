@@ -6,8 +6,6 @@ part 'home_state.freezed.dart';
 
 enum HomeStatus { initial, loading, success, failure }
 
-enum TransactionStatus { idle, saving, saved, failure }
-
 @freezed
 abstract class HomeState with _$HomeState {
   const factory HomeState({
@@ -17,8 +15,5 @@ abstract class HomeState with _$HomeState {
     @Default({}) Map<String, List<Product>> initialItemsByCategory,
     @Default('') String searchTerm,
     @Default([]) List<CartItem> cartItems,
-    @Default(TransactionStatus.idle) TransactionStatus transactionStatus,
-    String? branchId,
-    String? storeId,
   }) = _HomeState;
 }

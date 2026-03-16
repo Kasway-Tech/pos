@@ -2,7 +2,6 @@ import 'package:kasway/data/models/addition.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
-import 'package:kasway/data/repositories/transaction_repository.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
@@ -12,15 +11,9 @@ import 'package:mocktail/mocktail.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
 
-class MockTransactionRepository extends Mock implements TransactionRepository {}
-
 void main() {
   group('HomeBloc', () {
     late ProductRepository productRepository;
-    late TransactionRepository transactionRepository;
-
-    const testBranchId = 'branch-1';
-    const testStoreId = 'store-1';
 
     final addition1 = const Addition(
       id: 'a1',
@@ -46,14 +39,10 @@ void main() {
 
     setUp(() {
       productRepository = MockProductRepository();
-      transactionRepository = MockTransactionRepository();
     });
 
     HomeBloc buildBloc() {
-      return HomeBloc(
-        productRepository: productRepository,
-        transactionRepository: transactionRepository,
-      );
+      return HomeBloc(productRepository: productRepository);
     }
 
     group('HomeStarted', () {
@@ -62,35 +51,25 @@ void main() {
       });
 
       blocTest<HomeBloc, HomeState>(
-        'emits [loading, success] with categories and items when fetch succeeds',
+        'emits [loading, success] with categories and items when subscription succeeds',
         setUp: () {
           when(
-            () => productRepository.getItemsForBranch(
-              branchId: any(named: 'branchId'),
-              storeId: any(named: 'storeId'),
-            ),
-          ).thenAnswer(
-            (_) async => (
-              categories: ['Makanan'],
-              itemsByCategory: {
-                'Makanan': [product],
-              },
-            ),
-          );
+            () => productRepository.getProductsByCategory(any()),
+          ).thenAnswer((_) async => [product]);
         },
         build: buildBloc,
-        act: (bloc) => bloc.add(
-          const HomeStarted(branchId: testBranchId, storeId: testStoreId),
-        ),
+        act: (bloc) => bloc.add(HomeStarted()),
         expect: () => [
-          const HomeState(
-            status: HomeStatus.loading,
-            branchId: testBranchId,
-            storeId: testStoreId,
-          ),
+          const HomeState(status: HomeStatus.loading),
           isA<HomeState>()
               .having((s) => s.status, 'status', HomeStatus.success)
-              .having((s) => s.categories, 'categories', ['Makanan'])
+              .having((s) => s.categories, 'categories', [
+                'Promo',
+                'Makanan',
+                'Minuman',
+                'Paket',
+                'Lainnya',
+              ])
               .having(
                 (s) => s.itemsByCategory['Makanan'],
                 'items in Makanan',
@@ -100,30 +79,17 @@ void main() {
       );
 
       blocTest<HomeBloc, HomeState>(
-        'emits [loading, failure] when fetch fails',
+        'emits [loading, failure] when subscription fails',
         setUp: () {
           when(
-            () => productRepository.getItemsForBranch(
-              branchId: any(named: 'branchId'),
-              storeId: any(named: 'storeId'),
-            ),
+            () => productRepository.getProductsByCategory(any()),
           ).thenThrow(Exception('failure'));
         },
         build: buildBloc,
-        act: (bloc) => bloc.add(
-          const HomeStarted(branchId: testBranchId, storeId: testStoreId),
-        ),
+        act: (bloc) => bloc.add(HomeStarted()),
         expect: () => [
-          const HomeState(
-            status: HomeStatus.loading,
-            branchId: testBranchId,
-            storeId: testStoreId,
-          ),
-          const HomeState(
-            status: HomeStatus.failure,
-            branchId: testBranchId,
-            storeId: testStoreId,
-          ),
+          const HomeState(status: HomeStatus.loading),
+          const HomeState(status: HomeStatus.failure),
         ],
       );
     });

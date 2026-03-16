@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeState {
 
- HomeStatus get status; List<String> get categories; Map<String, List<Product>> get itemsByCategory; Map<String, List<Product>> get initialItemsByCategory; String get searchTerm; List<CartItem> get cartItems; TransactionStatus get transactionStatus; String? get branchId; String? get storeId;
+ HomeStatus get status; List<String> get categories; Map<String, List<Product>> get itemsByCategory; Map<String, List<Product>> get initialItemsByCategory; String get searchTerm; List<CartItem> get cartItems;
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $HomeStateCopyWith<HomeState> get copyWith => _$HomeStateCopyWithImpl<HomeState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.itemsByCategory, itemsByCategory)&&const DeepCollectionEquality().equals(other.initialItemsByCategory, initialItemsByCategory)&&(identical(other.searchTerm, searchTerm) || other.searchTerm == searchTerm)&&const DeepCollectionEquality().equals(other.cartItems, cartItems)&&(identical(other.transactionStatus, transactionStatus) || other.transactionStatus == transactionStatus)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.storeId, storeId) || other.storeId == storeId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.itemsByCategory, itemsByCategory)&&const DeepCollectionEquality().equals(other.initialItemsByCategory, initialItemsByCategory)&&(identical(other.searchTerm, searchTerm) || other.searchTerm == searchTerm)&&const DeepCollectionEquality().equals(other.cartItems, cartItems));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(itemsByCategory),const DeepCollectionEquality().hash(initialItemsByCategory),searchTerm,const DeepCollectionEquality().hash(cartItems),transactionStatus,branchId,storeId);
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(itemsByCategory),const DeepCollectionEquality().hash(initialItemsByCategory),searchTerm,const DeepCollectionEquality().hash(cartItems));
 
 @override
 String toString() {
-  return 'HomeState(status: $status, categories: $categories, itemsByCategory: $itemsByCategory, initialItemsByCategory: $initialItemsByCategory, searchTerm: $searchTerm, cartItems: $cartItems, transactionStatus: $transactionStatus, branchId: $branchId, storeId: $storeId)';
+  return 'HomeState(status: $status, categories: $categories, itemsByCategory: $itemsByCategory, initialItemsByCategory: $initialItemsByCategory, searchTerm: $searchTerm, cartItems: $cartItems)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $HomeStateCopyWith<$Res>  {
   factory $HomeStateCopyWith(HomeState value, $Res Function(HomeState) _then) = _$HomeStateCopyWithImpl;
 @useResult
 $Res call({
- HomeStatus status, List<String> categories, Map<String, List<Product>> itemsByCategory, Map<String, List<Product>> initialItemsByCategory, String searchTerm, List<CartItem> cartItems, TransactionStatus transactionStatus, String? branchId, String? storeId
+ HomeStatus status, List<String> categories, Map<String, List<Product>> itemsByCategory, Map<String, List<Product>> initialItemsByCategory, String searchTerm, List<CartItem> cartItems
 });
 
 
@@ -62,7 +62,7 @@ class _$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? categories = null,Object? itemsByCategory = null,Object? initialItemsByCategory = null,Object? searchTerm = null,Object? cartItems = null,Object? transactionStatus = null,Object? branchId = freezed,Object? storeId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? categories = null,Object? itemsByCategory = null,Object? initialItemsByCategory = null,Object? searchTerm = null,Object? cartItems = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as HomeStatus,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
@@ -70,10 +70,7 @@ as List<String>,itemsByCategory: null == itemsByCategory ? _self.itemsByCategory
 as Map<String, List<Product>>,initialItemsByCategory: null == initialItemsByCategory ? _self.initialItemsByCategory : initialItemsByCategory // ignore: cast_nullable_to_non_nullable
 as Map<String, List<Product>>,searchTerm: null == searchTerm ? _self.searchTerm : searchTerm // ignore: cast_nullable_to_non_nullable
 as String,cartItems: null == cartItems ? _self.cartItems : cartItems // ignore: cast_nullable_to_non_nullable
-as List<CartItem>,transactionStatus: null == transactionStatus ? _self.transactionStatus : transactionStatus // ignore: cast_nullable_to_non_nullable
-as TransactionStatus,branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
-as String?,storeId: freezed == storeId ? _self.storeId : storeId // ignore: cast_nullable_to_non_nullable
-as String?,
+as List<CartItem>,
   ));
 }
 
@@ -158,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( HomeStatus status,  List<String> categories,  Map<String, List<Product>> itemsByCategory,  Map<String, List<Product>> initialItemsByCategory,  String searchTerm,  List<CartItem> cartItems,  TransactionStatus transactionStatus,  String? branchId,  String? storeId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( HomeStatus status,  List<String> categories,  Map<String, List<Product>> itemsByCategory,  Map<String, List<Product>> initialItemsByCategory,  String searchTerm,  List<CartItem> cartItems)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initialItemsByCategory,_that.searchTerm,_that.cartItems,_that.transactionStatus,_that.branchId,_that.storeId);case _:
+return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initialItemsByCategory,_that.searchTerm,_that.cartItems);case _:
   return orElse();
 
 }
@@ -179,10 +176,10 @@ return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initia
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( HomeStatus status,  List<String> categories,  Map<String, List<Product>> itemsByCategory,  Map<String, List<Product>> initialItemsByCategory,  String searchTerm,  List<CartItem> cartItems,  TransactionStatus transactionStatus,  String? branchId,  String? storeId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( HomeStatus status,  List<String> categories,  Map<String, List<Product>> itemsByCategory,  Map<String, List<Product>> initialItemsByCategory,  String searchTerm,  List<CartItem> cartItems)  $default,) {final _that = this;
 switch (_that) {
 case _HomeState():
-return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initialItemsByCategory,_that.searchTerm,_that.cartItems,_that.transactionStatus,_that.branchId,_that.storeId);case _:
+return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initialItemsByCategory,_that.searchTerm,_that.cartItems);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +196,10 @@ return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initia
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( HomeStatus status,  List<String> categories,  Map<String, List<Product>> itemsByCategory,  Map<String, List<Product>> initialItemsByCategory,  String searchTerm,  List<CartItem> cartItems,  TransactionStatus transactionStatus,  String? branchId,  String? storeId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( HomeStatus status,  List<String> categories,  Map<String, List<Product>> itemsByCategory,  Map<String, List<Product>> initialItemsByCategory,  String searchTerm,  List<CartItem> cartItems)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initialItemsByCategory,_that.searchTerm,_that.cartItems,_that.transactionStatus,_that.branchId,_that.storeId);case _:
+return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initialItemsByCategory,_that.searchTerm,_that.cartItems);case _:
   return null;
 
 }
@@ -214,7 +211,7 @@ return $default(_that.status,_that.categories,_that.itemsByCategory,_that.initia
 
 
 class _HomeState implements HomeState {
-  const _HomeState({this.status = HomeStatus.initial, final  List<String> categories = const [], final  Map<String, List<Product>> itemsByCategory = const {}, final  Map<String, List<Product>> initialItemsByCategory = const {}, this.searchTerm = '', final  List<CartItem> cartItems = const [], this.transactionStatus = TransactionStatus.idle, this.branchId, this.storeId}): _categories = categories,_itemsByCategory = itemsByCategory,_initialItemsByCategory = initialItemsByCategory,_cartItems = cartItems;
+  const _HomeState({this.status = HomeStatus.initial, final  List<String> categories = const [], final  Map<String, List<Product>> itemsByCategory = const {}, final  Map<String, List<Product>> initialItemsByCategory = const {}, this.searchTerm = '', final  List<CartItem> cartItems = const []}): _categories = categories,_itemsByCategory = itemsByCategory,_initialItemsByCategory = initialItemsByCategory,_cartItems = cartItems;
   
 
 @override@JsonKey() final  HomeStatus status;
@@ -247,9 +244,6 @@ class _HomeState implements HomeState {
   return EqualUnmodifiableListView(_cartItems);
 }
 
-@override@JsonKey() final  TransactionStatus transactionStatus;
-@override final  String? branchId;
-@override final  String? storeId;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -261,16 +255,16 @@ _$HomeStateCopyWith<_HomeState> get copyWith => __$HomeStateCopyWithImpl<_HomeSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._itemsByCategory, _itemsByCategory)&&const DeepCollectionEquality().equals(other._initialItemsByCategory, _initialItemsByCategory)&&(identical(other.searchTerm, searchTerm) || other.searchTerm == searchTerm)&&const DeepCollectionEquality().equals(other._cartItems, _cartItems)&&(identical(other.transactionStatus, transactionStatus) || other.transactionStatus == transactionStatus)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.storeId, storeId) || other.storeId == storeId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._itemsByCategory, _itemsByCategory)&&const DeepCollectionEquality().equals(other._initialItemsByCategory, _initialItemsByCategory)&&(identical(other.searchTerm, searchTerm) || other.searchTerm == searchTerm)&&const DeepCollectionEquality().equals(other._cartItems, _cartItems));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_itemsByCategory),const DeepCollectionEquality().hash(_initialItemsByCategory),searchTerm,const DeepCollectionEquality().hash(_cartItems),transactionStatus,branchId,storeId);
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_itemsByCategory),const DeepCollectionEquality().hash(_initialItemsByCategory),searchTerm,const DeepCollectionEquality().hash(_cartItems));
 
 @override
 String toString() {
-  return 'HomeState(status: $status, categories: $categories, itemsByCategory: $itemsByCategory, initialItemsByCategory: $initialItemsByCategory, searchTerm: $searchTerm, cartItems: $cartItems, transactionStatus: $transactionStatus, branchId: $branchId, storeId: $storeId)';
+  return 'HomeState(status: $status, categories: $categories, itemsByCategory: $itemsByCategory, initialItemsByCategory: $initialItemsByCategory, searchTerm: $searchTerm, cartItems: $cartItems)';
 }
 
 
@@ -281,7 +275,7 @@ abstract mixin class _$HomeStateCopyWith<$Res> implements $HomeStateCopyWith<$Re
   factory _$HomeStateCopyWith(_HomeState value, $Res Function(_HomeState) _then) = __$HomeStateCopyWithImpl;
 @override @useResult
 $Res call({
- HomeStatus status, List<String> categories, Map<String, List<Product>> itemsByCategory, Map<String, List<Product>> initialItemsByCategory, String searchTerm, List<CartItem> cartItems, TransactionStatus transactionStatus, String? branchId, String? storeId
+ HomeStatus status, List<String> categories, Map<String, List<Product>> itemsByCategory, Map<String, List<Product>> initialItemsByCategory, String searchTerm, List<CartItem> cartItems
 });
 
 
@@ -298,7 +292,7 @@ class __$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? categories = null,Object? itemsByCategory = null,Object? initialItemsByCategory = null,Object? searchTerm = null,Object? cartItems = null,Object? transactionStatus = null,Object? branchId = freezed,Object? storeId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? categories = null,Object? itemsByCategory = null,Object? initialItemsByCategory = null,Object? searchTerm = null,Object? cartItems = null,}) {
   return _then(_HomeState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as HomeStatus,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
@@ -306,10 +300,7 @@ as List<String>,itemsByCategory: null == itemsByCategory ? _self._itemsByCategor
 as Map<String, List<Product>>,initialItemsByCategory: null == initialItemsByCategory ? _self._initialItemsByCategory : initialItemsByCategory // ignore: cast_nullable_to_non_nullable
 as Map<String, List<Product>>,searchTerm: null == searchTerm ? _self.searchTerm : searchTerm // ignore: cast_nullable_to_non_nullable
 as String,cartItems: null == cartItems ? _self._cartItems : cartItems // ignore: cast_nullable_to_non_nullable
-as List<CartItem>,transactionStatus: null == transactionStatus ? _self.transactionStatus : transactionStatus // ignore: cast_nullable_to_non_nullable
-as TransactionStatus,branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
-as String?,storeId: freezed == storeId ? _self.storeId : storeId // ignore: cast_nullable_to_non_nullable
-as String?,
+as List<CartItem>,
   ));
 }
 

@@ -1,18 +1,14 @@
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
-import 'package:kasway/data/repositories/transaction_repository.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bloc/bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc({
-    required ProductRepository productRepository,
-    required TransactionRepository transactionRepository,
-  })  : _productRepository = productRepository,
-        _transactionRepository = transactionRepository,
-        super(const HomeState()) {
+  HomeBloc({required ProductRepository productRepository})
+    : _productRepository = productRepository,
+      super(const HomeState()) {
     on<HomeStarted>(_onStarted);
     on<HomeProductAdded>(_onProductAdded);
     on<HomeProductWithAdditionsAdded>(_onProductWithAdditionsAdded);
@@ -20,62 +16,33 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeCartCleared>(_onCartCleared);
     on<HomeCartQuantityUpdated>(_onCartQuantityUpdated);
     on<HomeSearchTermChanged>(_onSearchTermChanged);
-    on<HomeTransactionSubmitted>(_onTransactionSubmitted);
   }
 
   final ProductRepository _productRepository;
-  final TransactionRepository _transactionRepository;
 
   Future<void> _onStarted(HomeStarted event, Emitter<HomeState> emit) async {
-    emit(state.copyWith(
-      status: HomeStatus.loading,
-      branchId: event.branchId,
-      storeId: event.storeId,
-    ));
+    emit(state.copyWith(status: HomeStatus.loading));
     try {
-      final result = await _productRepository.getItemsForBranch(
-        branchId: event.branchId,
-        storeId: event.storeId,
-      );
+      final categories = ['Promo', 'Makanan', 'Minuman', 'Paket', 'Lainnya'];
+      final itemsByCategory = <String, List<Product>>{};
+
+      for (final category in categories) {
+        final products = await _productRepository.getProductsByCategory(
+          category,
+        );
+        itemsByCategory[category] = products;
+      }
 
       emit(
         state.copyWith(
           status: HomeStatus.success,
-          categories: result.categories,
-          itemsByCategory: result.itemsByCategory,
-          initialItemsByCategory: result.itemsByCategory,
+          categories: categories,
+          itemsByCategory: itemsByCategory,
+          initialItemsByCategory: itemsByCategory,
         ),
       );
     } catch (_) {
       emit(state.copyWith(status: HomeStatus.failure));
-    }
-  }
-
-  Future<void> _onTransactionSubmitted(
-    HomeTransactionSubmitted event,
-    Emitter<HomeState> emit,
-  ) async {
-    final storeId = state.storeId;
-    if (storeId == null) return;
-
-    emit(state.copyWith(transactionStatus: TransactionStatus.saving));
-    try {
-      final total = state.cartItems.fold<double>(
-        0,
-        (sum, item) => sum + item.totalPrice,
-      );
-      await _transactionRepository.saveTransaction(
-        storeId: storeId,
-        paymentMethod: event.paymentMethod,
-        cartItems: state.cartItems,
-        totalAmount: total,
-      );
-      emit(state.copyWith(
-        transactionStatus: TransactionStatus.saved,
-        cartItems: [],
-      ));
-    } catch (_) {
-      emit(state.copyWith(transactionStatus: TransactionStatus.failure));
     }
   }
 
@@ -91,7 +58,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (newQuantity <= 99) {
         cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
       } else {
-        return;
+        return; // Don't emit if already at max
       }
     } else {
       cartItems.add(CartItem(product: event.product, quantity: 1));
@@ -106,6 +73,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) {
     final cartItems = List<CartItem>.from(state.cartItems);
 
+    // Find existing item with same product ID and same additions
     final index = cartItems.indexWhere(
       (item) =>
           item.product.id == event.product.id &&
@@ -117,7 +85,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (newQuantity <= 99) {
         cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
       } else {
-        return;
+        return; // Don't emit if already at max
       }
     } else {
       cartItems.add(

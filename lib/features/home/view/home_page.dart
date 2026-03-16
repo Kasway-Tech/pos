@@ -84,8 +84,7 @@ class _HomeViewState extends State<HomeView>
         }
       },
       builder: (context, state) {
-        if (state.status == HomeStatus.initial ||
-            state.status == HomeStatus.loading) {
+        if (state.status == HomeStatus.loading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
