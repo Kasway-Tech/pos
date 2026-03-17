@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../features/home/view/home_page.dart';
 import '../features/home/view/order_confirmation_page.dart';
 import '../features/home/view/payment_successful_page.dart';
-import '../features/home/view/select_payment_method_page.dart';
 import '../features/profile/view/help_support_page.dart';
 import '../features/profile/view/order_history_page.dart';
 import '../features/profile/view/payment_methods_page.dart';
@@ -23,10 +22,6 @@ class AppRouter {
       GoRoute(
         path: '/order-confirmation',
         builder: (context, state) => const OrderConfirmationPage(),
-      ),
-      GoRoute(
-        path: '/select-payment-method',
-        builder: (context, state) => const SelectPaymentMethodPage(),
       ),
       GoRoute(
         path: '/payment-success',

@@ -4,7 +4,6 @@ import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:kasway/features/home/view/additions_page.dart';
-import 'package:kasway/features/home/view/select_payment_method_page.dart';
 import 'package:kasway/features/home/view/widgets/additions_side_view.dart';
 import 'package:kasway/features/home/view/widgets/order_side_view.dart';
 import 'package:kasway/features/home/view/widgets/products_view.dart';
@@ -184,8 +183,12 @@ class _HomeViewState extends State<HomeView>
                               : OrderSideView(
                                   key: const ValueKey('order'),
                                   showAppBar: true,
-                                  onProceedToPayment: () =>
-                                      _showPaymentDialog(context),
+                                  onProceedToPayment: () {
+                                    context.read<HomeBloc>().add(
+                                      HomeCartCleared(),
+                                    );
+                                    context.push('/payment-success');
+                                  },
                                 ),
                         ),
                       ),
@@ -539,18 +542,4 @@ class _HomeViewState extends State<HomeView>
     }
   }
 
-  void _showPaymentDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      useRootNavigator: true,
-      builder: (context) => Dialog(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
-          child: const SelectPaymentMethodPage(isDialog: true),
-        ),
-      ),
-    );
-  }
 }

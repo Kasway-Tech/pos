@@ -208,9 +208,12 @@ class _OrderSideViewState extends State<OrderSideView> {
                             onPressed: state.cartItems.isEmpty
                                 ? null
                                 : widget.onProceedToPayment ??
-                                      () => context.push(
-                                        '/select-payment-method',
-                                      ),
+                                      () {
+                                        context.read<HomeBloc>().add(
+                                          HomeCartCleared(),
+                                        );
+                                        context.push('/payment-success');
+                                      },
                             style: ElevatedButton.styleFrom(
                               elevation: 0,
                               backgroundColor: Colors.transparent,
