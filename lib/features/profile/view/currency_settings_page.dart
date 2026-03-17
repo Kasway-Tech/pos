@@ -53,7 +53,7 @@ class CurrencySettingsPage extends StatelessWidget {
     }
     return CountryFlag.fromCurrencyCode(
       currency.code,
-      theme: const ImageTheme(width: 72, height: 52),
+      theme: const ImageTheme(width: 56, height: 40),
     );
   }
 }
