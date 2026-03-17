@@ -6,7 +6,6 @@ import '../features/home/view/order_confirmation_page.dart';
 import '../features/home/view/payment_successful_page.dart';
 import '../features/profile/view/help_support_page.dart';
 import '../features/profile/view/order_history_page.dart';
-import '../features/profile/view/payment_methods_page.dart';
 import '../features/profile/view/profile_page.dart';
 import '../features/profile/view/settings_page.dart';
 import '../features/profile/view/theme_settings_page.dart';
@@ -34,10 +33,6 @@ class AppRouter {
           GoRoute(
             path: 'orders',
             builder: (context, state) => const OrderHistoryPage(),
-          ),
-          GoRoute(
-            path: 'payments',
-            builder: (context, state) => const PaymentMethodsPage(),
           ),
           GoRoute(
             path: 'settings',

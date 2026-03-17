@@ -48,6 +48,9 @@ dependencies:
   screen_retriever: ^0.2.0
   window_manager: ^0.5.1
   shared_preferences: ^2.3.5
+  rinf: ^8.10.0
+  meta: ^1.17.0
+  tuple: ^2.0.2
 
 dev_dependencies:
   flutter_test:
