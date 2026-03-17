@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/currency/currency_state.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -41,6 +45,25 @@ class _SettingsPageState extends State<SettingsPage> {
                   subtitle: const Text('English (US)'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
+                ),
+                BlocBuilder<CurrencyCubit, CurrencyState>(
+                  builder: (context, state) => ListTile(
+                    title: const Text('Default Currency'),
+                    subtitle: Text(state.selectedCurrency.displayName),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/profile/currency'),
+                  ),
+                ),
+                BlocBuilder<CurrencyCubit, CurrencyState>(
+                  builder: (context, state) => SwitchListTile(
+                    title: const Text('Dynamic Pricing'),
+                    subtitle: const Text(
+                      'Auto-update prices every 60 seconds',
+                    ),
+                    value: state.dynamicPricing,
+                    onChanged: (val) =>
+                        context.read<CurrencyCubit>().setDynamicPricing(val),
+                  ),
                 ),
                 const Divider(),
                 const Padding(

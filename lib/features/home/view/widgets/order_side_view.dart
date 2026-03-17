@@ -1,3 +1,4 @@
+import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
@@ -5,7 +6,6 @@ import 'package:kasway/features/home/view/widgets/order_cart_item_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 class OrderSideView extends StatefulWidget {
   const OrderSideView({
@@ -43,12 +43,6 @@ class _OrderSideViewState extends State<OrderSideView> {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'IDR ',
-      decimalDigits: 0,
-    );
-
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
@@ -149,8 +143,8 @@ class _OrderSideViewState extends State<OrderSideView> {
                                     item.quantity);
                           }),
                       builder: (context, grandTotal) {
-                        return Text(
-                          currencyFormat.format(grandTotal),
+                        return PriceText(
+                          grandTotal,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         );

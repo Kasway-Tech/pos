@@ -1,10 +1,10 @@
+import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class ProductCard extends StatefulWidget {
   const ProductCard({
@@ -24,12 +24,6 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   bool _longPressHandled = false;
-
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'IDR ',
-    decimalDigits: 0,
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -124,9 +118,8 @@ class _ProductCardState extends State<ProductCard> {
                                           : null,
                                     ),
                               ),
-                              Text(
-                                _currencyFormat.format(widget.product.price),
-                                textAlign: TextAlign.right,
+                              PriceText(
+                                widget.product.price,
                                 style: TextStyle(
                                   color: active
                                       ? Theme.of(context).colorScheme.onPrimary

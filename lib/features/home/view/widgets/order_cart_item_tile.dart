@@ -1,3 +1,4 @@
+import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -5,7 +6,6 @@ import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:kasway/features/home/view/widgets/numeric_input_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class OrderCartItemTile extends StatefulWidget {
   const OrderCartItemTile({super.key, required this.cartItem});
@@ -19,12 +19,6 @@ class OrderCartItemTile extends StatefulWidget {
 class _OrderCartItemTileState extends State<OrderCartItemTile>
     with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
-
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'IDR ',
-    decimalDigits: 0,
-  );
 
   double get _additionsTotal => widget.cartItem.selectedAdditions.fold(
     0.0,
@@ -106,11 +100,10 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        _currencyFormat.format(_itemTotal),
+                      PriceText(
+                        _itemTotal,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.right,
                       ),
                     ],
                   ),
@@ -126,15 +119,25 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
                                   color: Theme.of(context).colorScheme.outline,
                                 ),
                           ),
-                          Text(
-                            _additionsTotal > 0
-                                ? _currencyFormat.format(_additionsTotal)
-                                : 'FREE',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
+                          _additionsTotal > 0
+                              ? PriceText(
+                                  _additionsTotal,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
+                                )
+                              : Text(
+                                  'FREE',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
                                 ),
-                          ),
                         ],
                       ),
                       secondChild: Column(
@@ -157,17 +160,27 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
                                           ).colorScheme.outline,
                                         ),
                                   ),
-                                  Text(
-                                    addition.price > 0
-                                        ? _currencyFormat.format(addition.price)
-                                        : 'FREE',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: Theme.of(
+                                  addition.price > 0
+                                      ? PriceText(
+                                          addition.price,
+                                          style: Theme.of(
                                             context,
-                                          ).colorScheme.outline,
+                                          ).textTheme.bodySmall?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.outline,
+                                          ),
+                                        )
+                                      : Text(
+                                          'FREE',
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.outline,
+                                          ),
                                         ),
-                                  ),
                                 ],
                               ),
                             ),

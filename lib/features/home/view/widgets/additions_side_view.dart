@@ -1,8 +1,8 @@
+import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/addition.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class AdditionsSideView extends StatefulWidget {
   const AdditionsSideView({
@@ -22,12 +22,6 @@ class AdditionsSideView extends StatefulWidget {
 
 class _AdditionsSideViewState extends State<AdditionsSideView> {
   final Set<String> _selectedAdditionIds = {};
-
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'IDR ',
-    decimalDigits: 0,
-  );
 
   double get _additionsTotal {
     return widget.product.additions
@@ -150,8 +144,8 @@ class _AdditionsSideViewState extends State<AdditionsSideView> {
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text(
-                _currencyFormat.format(_total),
+              PriceText(
+                _total,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -222,12 +216,6 @@ class _AdditionCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  static final _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'IDR ',
-    decimalDigits: 0,
-  );
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -269,17 +257,24 @@ class _AdditionCard extends StatelessWidget {
                             : null,
                       ),
                     ),
-                    Text(
-                      addition.price > 0
-                          ? '+${_currencyFormat.format(addition.price)}'
-                          : 'Free',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
+                    addition.price > 0
+                        ? PriceText(
+                            addition.price,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.secondary,
+                            ),
+                          )
+                        : Text(
+                            'Free',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
                   ],
                 ),
               ),

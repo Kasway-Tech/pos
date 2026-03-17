@@ -8,6 +8,7 @@ import '../features/profile/view/help_support_page.dart';
 import '../features/profile/view/order_history_page.dart';
 import '../features/profile/view/profile_page.dart';
 import '../features/profile/view/settings_page.dart';
+import '../features/profile/view/currency_settings_page.dart';
 import '../features/profile/view/theme_settings_page.dart';
 
 class AppRouter {
@@ -45,6 +46,10 @@ class AppRouter {
           GoRoute(
             path: 'theme',
             builder: (context, state) => const ThemeSettingsPage(),
+          ),
+          GoRoute(
+            path: 'currency',
+            builder: (context, state) => const CurrencySettingsPage(),
           ),
         ],
       ),
