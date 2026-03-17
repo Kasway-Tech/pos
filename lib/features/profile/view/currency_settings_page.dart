@@ -1,3 +1,4 @@
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -59,11 +60,11 @@ class CurrencySettingsPage extends StatelessWidget {
         child: SvgPicture.asset(currency.iconPath!),
       );
     }
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: Center(
-        child: Text(currency.flag, style: const TextStyle(fontSize: 24)),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CountryFlag.fromCurrencyCode(
+        currency.code,
+        theme: const ImageTheme(width: 40, height: 28),
       ),
     );
   }

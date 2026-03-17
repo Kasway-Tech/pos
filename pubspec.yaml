@@ -52,6 +52,7 @@ dependencies:
   rinf: ^8.10.0
   meta: ^1.17.0
   tuple: ^2.0.2
+  country_flags: ^4.1.2
 
 dev_dependencies:
   flutter_test:
