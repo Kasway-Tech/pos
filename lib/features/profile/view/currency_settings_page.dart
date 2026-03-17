@@ -51,14 +51,14 @@ class CurrencySettingsPage extends StatelessWidget {
     if (currency.isCrypto && currency.iconPath != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: SvgPicture.asset(currency.iconPath!, width: 40, height: 28),
+        child: SvgPicture.asset(currency.iconPath!, width: 56, height: 40),
       );
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),
       child: CountryFlag.fromCurrencyCode(
         currency.code,
-        theme: const ImageTheme(width: 40, height: 28),
+        theme: const ImageTheme(width: 56, height: 40),
       ),
     );
   }
