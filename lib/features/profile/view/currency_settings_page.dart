@@ -49,22 +49,22 @@ class CurrencySettingsPage extends StatelessWidget {
 
   Widget _buildLeading(BuildContext context, Currency currency) {
     if (currency.isCrypto && currency.iconPath != null) {
-      return SizedBox(
-        width: 48,
+      return Container(
+        width: 40,
         height: 40,
-        child: Center(
-          child: SvgPicture.asset(currency.iconPath!, width: 40, height: 40),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(8),
         ),
+        child: SvgPicture.asset(currency.iconPath!),
       );
     }
-    return SizedBox(
-      width: 48,
-      height: 40,
-      child: Center(
-        child: CountryFlag.fromCurrencyCode(
-          currency.code,
-          theme: const ImageTheme(width: 48, height: 28),
-        ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CountryFlag.fromCurrencyCode(
+        currency.code,
+        theme: const ImageTheme(width: 40, height: 28),
       ),
     );
   }
