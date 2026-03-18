@@ -24,6 +24,8 @@ async fn main() {
     spawn(create_actors());
     spawn(wallet::handle_mnemonic_requests());
     spawn(wallet::handle_validate_mnemonic_requests());
+    spawn(wallet::handle_derive_address_requests());
+    spawn(wallet::handle_send_transaction_requests());
 
     // Keep the main function running until Dart shutdown.
     dart_shutdown().await;

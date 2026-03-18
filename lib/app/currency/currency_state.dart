@@ -114,6 +114,10 @@ class CurrencyState extends Equatable {
   );
 
   @override
-  List<Object?> get props =>
-      [selectedCurrency.code, exchangeRates, dynamicPricing, isLoading];
+  List<Object?> get props => [
+    selectedCurrency.code,
+    exchangeRates,
+    dynamicPricing,
+    isLoading,
+  ];
 }

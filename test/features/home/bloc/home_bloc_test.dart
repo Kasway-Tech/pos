@@ -1,6 +1,7 @@
 import 'package:kasway/data/models/addition.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
+import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -11,9 +12,12 @@ import 'package:mocktail/mocktail.dart';
 
 class MockProductRepository extends Mock implements ProductRepository {}
 
+class MockOrderRepository extends Mock implements OrderRepository {}
+
 void main() {
   group('HomeBloc', () {
     late ProductRepository productRepository;
+    late OrderRepository orderRepository;
 
     final addition1 = const Addition(
       id: 'a1',
@@ -39,10 +43,14 @@ void main() {
 
     setUp(() {
       productRepository = MockProductRepository();
+      orderRepository = MockOrderRepository();
     });
 
     HomeBloc buildBloc() {
-      return HomeBloc(productRepository: productRepository);
+      return HomeBloc(
+        productRepository: productRepository,
+        orderRepository: orderRepository,
+      );
     }
 
     group('HomeStarted', () {

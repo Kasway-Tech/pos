@@ -6,3 +6,7 @@
 [workspace]
 resolver = "3"
 members = ["native/*"]
+
+[patch.crates-io]
+mac_address = { path = "native/mac_address_stub" }
+kaspa-hashes = { path = "native/kaspa_hashes_patch" }

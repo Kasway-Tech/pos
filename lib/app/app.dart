@@ -9,7 +9,9 @@ import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/locale/locale_state.dart';
 import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
+import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/home/bloc/home_bloc.dart';
@@ -63,12 +65,15 @@ class _AppState extends State<App> {
 
           return MultiRepositoryProvider(
             providers: [
-              RepositoryProvider(create: (context) => ProductRepository()),
+              RepositoryProvider(create: (_) => ProductRepository()),
+              RepositoryProvider(create: (_) => OrderRepository()),
+              RepositoryProvider(create: (_) => WithdrawalRepository()),
             ],
             child: BlocProvider(
-              create: (context) =>
-                  HomeBloc(productRepository: context.read<ProductRepository>())
-                    ..add(HomeStarted()),
+              create: (context) => HomeBloc(
+                productRepository: context.read<ProductRepository>(),
+                orderRepository: context.read<OrderRepository>(),
+              )..add(HomeStarted()),
               child: MaterialApp.router(
                 scrollBehavior: AppScrollBehavior(),
                 title: 'Kasway',

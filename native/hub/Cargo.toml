@@ -23,6 +23,17 @@ tokio = { version = "1.45.0", features = ["rt", "macros", "time"] }
 async-trait = "0.1.87"
 messages = "0.3.1"
 bip39 = { version = "2", features = ["rand"] }
+kaspa-bip32 = "0.15"
+kaspa-addresses = "0.15"
+secp256k1 = "0.29"
+# Force no-asm on kaspa-hashes so it uses pure Rust keccak instead of
+# x86_64 assembly (which uses Linux ELF syntax that breaks iOS Mach-O builds).
+kaspa-hashes = { version = "0.15", features = ["no-asm"] }
+# kaspa-wallet-core and kaspa-wrpc-client v0.15.0 have compilation bugs on native
+# targets (kaspa-rpc-core WASM code fails). Transaction sending uses the
+# Kaspa REST API via reqwest instead.
+reqwest = { version = "0.12", features = ["json"] }
+serde_json = "1"
 
 # Uncomment below to target the web.
 # tokio_with_wasm = { version = "0.8.5", features = ["rt", "macros", "time"] }

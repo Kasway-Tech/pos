@@ -1,6 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/widgets/price_text.dart';
+import 'package:kasway/data/repositories/order_repository.dart';
+import 'package:kasway/data/repositories/withdrawal_repository.dart';
+import 'package:kasway/src/bindings/signals/signals.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -16,11 +27,8 @@ class ProfilePage extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
               children: [
-                // User Info Section
-                const _ProfileHeader(
-                  name: 'John Doe',
-                  email: 'john.doe@example.com',
-                ),
+                // Wallet Card Section
+                const _WalletCard(),
                 const SizedBox(height: 32.0),
 
                 // Menus Section
@@ -126,43 +134,432 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.name, required this.email});
+// ---------------------------------------------------------------------------
+// Wallet Card
+// ---------------------------------------------------------------------------
 
-  final String name;
-  final String email;
+class _WalletCard extends StatefulWidget {
+  const _WalletCard();
+
+  @override
+  State<_WalletCard> createState() => _WalletCardState();
+}
+
+class _WalletCardState extends State<_WalletCard> {
+  String _address = '';
+  bool _addressLoading = true;
+  StreamSubscription<dynamic>? _addressSub;
+  Future<double>? _balanceFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _balanceFuture = _loadBalance();
+    _loadAddress();
+  }
+
+  Future<double> _loadBalance() async {
+    final orderRepo = context.read<OrderRepository>();
+    final withdrawalRepo = context.read<WithdrawalRepository>();
+    final totalRevenue = await orderRepo.getTotalRevenue();
+    final totalWithdrawn = await withdrawalRepo.getTotalWithdrawn();
+    return totalRevenue - totalWithdrawn;
+  }
+
+  Future<void> _loadAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
+    if (mnemonic.isEmpty) {
+      if (mounted) setState(() => _addressLoading = false);
+      return;
+    }
+
+    _addressSub = KaspaAddressResponse.rustSignalStream.listen((pack) {
+      if (!mounted) return;
+      setState(() {
+        _addressLoading = false;
+        _address = pack.message.address;
+      });
+    });
+
+    DeriveKaspaAddressRequest(mnemonic: mnemonic).sendSignalToRust();
+  }
+
+  @override
+  void dispose() {
+    _addressSub?.cancel();
+    super.dispose();
+  }
+
+  String _truncateAddress(String addr) {
+    if (addr.length <= 20) return addr;
+    return '${addr.substring(0, 14)}…${addr.substring(addr.length - 6)}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Icon(
-            Icons.person,
-            size: 50,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Address row ---
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Kaspa Address',
+                          style: textTheme.labelMedium?.copyWith(
+                            color: colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        _addressLoading
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                _address.isEmpty
+                                    ? 'No wallet configured'
+                                    : _truncateAddress(_address),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                  color: _address.isEmpty
+                                      ? colorScheme.outline
+                                      : null,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                      ],
+                    ),
+                  ),
+                  if (_address.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.copy_outlined),
+                      tooltip: 'Copy address',
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _address));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Address copied'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+
+              const Divider(height: 28),
+
+              // --- Balance ---
+              Text(
+                'Balance',
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 6),
+              FutureBuilder<double>(
+                future: _balanceFuture,
+                builder: (context, snapshot) {
+                  return _RevenuePriceDisplay(
+                    revenueIdr: snapshot.data ?? 0.0,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // --- History + Withdraw buttons ---
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonal(
+                      onPressed: () => context.push('/profile/withdrawals'),
+                      child: const Text('History'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _address.isEmpty
+                          ? null
+                          : () => _showWithdrawSheet(context),
+                      icon: const Icon(Icons.send_outlined),
+                      label: const Text('Withdraw'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16.0),
-        Text(
-          name,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4.0),
-        Text(
-          email,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
-          ),
-        ),
-      ],
+      ),
+    );
+  }
+
+  void _showWithdrawSheet(BuildContext context) {
+    final withdrawalRepo = context.read<WithdrawalRepository>();
+    final kasIdrRate =
+        context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => _WithdrawSheet(
+        fromAddress: _address,
+        withdrawalRepository: withdrawalRepo,
+        kasIdrRate: kasIdrRate,
+      ),
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Dual-currency revenue display
+// ---------------------------------------------------------------------------
+
+class _RevenuePriceDisplay extends StatelessWidget {
+  const _RevenuePriceDisplay({required this.revenueIdr});
+
+  final double revenueIdr;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CurrencyCubit, CurrencyState>(
+      builder: (context, state) {
+        final kasIdr = state.exchangeRates['idr'] ?? 0.0;
+        final kasAmount = kasIdr > 0 ? revenueIdr / kasIdr : 0.0;
+        final kasStr = 'KAS ${kasAmount.toStringAsFixed(4)}';
+
+        final textTheme = Theme.of(context).textTheme;
+        final boldHeadline = textTheme.headlineSmall
+            ?.copyWith(fontWeight: FontWeight.bold);
+        final subStyle = textTheme.bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.outline);
+
+        if (state.selectedCurrency.isCrypto) {
+          return Text(kasStr, style: boldHeadline);
+        } else {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PriceText(revenueIdr, style: boldHeadline),
+              Text('≈ $kasStr', style: subStyle),
+            ],
+          );
+        }
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Withdraw Bottom Sheet
+// ---------------------------------------------------------------------------
+
+class _WithdrawSheet extends StatefulWidget {
+  const _WithdrawSheet({
+    required this.fromAddress,
+    required this.withdrawalRepository,
+    required this.kasIdrRate,
+  });
+
+  final String fromAddress;
+  final WithdrawalRepository withdrawalRepository;
+  final double kasIdrRate;
+
+  @override
+  State<_WithdrawSheet> createState() => _WithdrawSheetState();
+}
+
+class _WithdrawSheetState extends State<_WithdrawSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _toAddressController = TextEditingController();
+  final _amountController = TextEditingController();
+  bool _submitting = false;
+  StreamSubscription<dynamic>? _txSub;
+
+  @override
+  void dispose() {
+    _toAddressController.dispose();
+    _amountController.dispose();
+    _txSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
+    if (mnemonic.isEmpty) {
+      _showError('No wallet mnemonic found. Please set up your wallet first.');
+      return;
+    }
+
+    final toAddr = _toAddressController.text.trim();
+    final kasAmount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final amountSompi = (kasAmount * 1e8).toInt();
+    final addrProof = toAddr.length >= 20 ? toAddr.substring(0, 20) : toAddr;
+    final payloadNote =
+        'kasway:withdraw:${DateTime.now().toUtc().toIso8601String()}:${kasAmount.toStringAsFixed(4)}kas:ack:$addrProof';
+
+    setState(() => _submitting = true);
+
+    _txSub = KaspaTransactionResponse.rustSignalStream.listen((pack) async {
+      _txSub?.cancel();
+      if (!mounted) return;
+
+      if (pack.message.error.isNotEmpty) {
+        setState(() => _submitting = false);
+        _showError(pack.message.error);
+      } else {
+        final amountIdr = kasAmount * widget.kasIdrRate;
+        await widget.withdrawalRepository.recordWithdrawal(
+          txId: pack.message.txId,
+          toAddress: toAddr,
+          amountKas: kasAmount,
+          amountIdr: amountIdr,
+          kasIdrRate: widget.kasIdrRate,
+          createdAt: DateTime.now(),
+        );
+        if (!mounted) return;
+        setState(() => _submitting = false);
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sent! TX: ${pack.message.txId}'),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
+    });
+
+    SendKaspaTransactionRequest(
+      mnemonic: mnemonic,
+      toAddress: toAddr,
+      amountSompi: Uint64.fromBigInt(BigInt.from(amountSompi)),
+      payloadNote: payloadNote,
+    ).sendSignalToRust();
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Transaction Failed'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        24,
+        24,
+        MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Withdraw KAS',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: _toAddressController,
+              decoration: const InputDecoration(
+                labelText: 'Destination Kaspa Address',
+                hintText: 'kaspa:q...',
+                border: OutlineInputBorder(),
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Address is required';
+                if (!v.trim().startsWith('kaspa:')) {
+                  return 'Must be a valid kaspa: address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _amountController,
+              decoration: const InputDecoration(
+                labelText: 'Amount (KAS)',
+                hintText: '0.00',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Amount is required';
+                final n = double.tryParse(v.trim());
+                if (n == null || n <= 0) return 'Enter a valid amount';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _submitting ? null : _submit,
+              child: _submitting
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Send'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Profile Menu Item
+// ---------------------------------------------------------------------------
 
 class _ProfileMenuItem extends StatelessWidget {
   const _ProfileMenuItem({

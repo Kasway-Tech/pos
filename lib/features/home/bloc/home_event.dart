@@ -124,3 +124,11 @@ class HomeCategoryDeleted extends HomeEvent {
   @override
   List<Object?> get props => [name];
 }
+
+class HomeOrderCompleted extends HomeEvent {
+  const HomeOrderCompleted({required this.totalIdr});
+  final double totalIdr;
+
+  @override
+  List<Object?> get props => [totalIdr];
+}

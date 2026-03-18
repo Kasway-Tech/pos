@@ -1,14 +1,18 @@
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
+import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bloc/bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc({required ProductRepository productRepository})
-    : _productRepository = productRepository,
-      super(const HomeState()) {
+  HomeBloc({
+    required ProductRepository productRepository,
+    required OrderRepository orderRepository,
+  })  : _productRepository = productRepository,
+        _orderRepository = orderRepository,
+        super(const HomeState()) {
     on<HomeStarted>(_onStarted);
     on<HomeProductAdded>(_onProductAdded);
     on<HomeProductWithAdditionsAdded>(_onProductWithAdditionsAdded);
@@ -22,9 +26,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeCategoryAdded>(_onCategoryAdded);
     on<HomeCategoryRenamed>(_onCategoryRenamed);
     on<HomeCategoryDeleted>(_onCategoryDeleted);
+    on<HomeOrderCompleted>(_onOrderCompleted);
   }
 
   final ProductRepository _productRepository;
+  final OrderRepository _orderRepository;
 
   Future<void> _onStarted(HomeStarted event, Emitter<HomeState> emit) async {
     emit(state.copyWith(status: HomeStatus.loading));
@@ -332,6 +338,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       await _productRepository.deleteCategory(event.name);
     } catch (_) {
       emit(previous);
+    }
+  }
+
+  Future<void> _onOrderCompleted(
+    HomeOrderCompleted event,
+    Emitter<HomeState> emit,
+  ) async {
+    // Fire-and-forget: persist the order total; no state change needed.
+    try {
+      await _orderRepository.createOrder(event.totalIdr);
+    } catch (_) {
+      // Silently ignore — revenue tracking should not block order flow.
     }
   }
 }

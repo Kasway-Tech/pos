@@ -14,7 +14,7 @@ class CurrencySettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Default Currency')),
+        appBar: AppBar(title: const Text('Display Currency')),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -22,8 +22,7 @@ class CurrencySettingsPage extends StatelessWidget {
               builder: (context, state) {
                 return ListView.separated(
                   itemCount: CurrencyState.allCurrencies.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1),
+                  separatorBuilder: (context, index) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final currency = CurrencyState.allCurrencies[index];
                     final isSelected =
@@ -31,9 +30,7 @@ class CurrencySettingsPage extends StatelessWidget {
                     return ListTile(
                       leading: _buildLeading(context, currency),
                       title: Text(currency.displayName),
-                      trailing: isSelected
-                          ? const Icon(Icons.check)
-                          : null,
+                      trailing: isSelected ? const Icon(Icons.check) : null,
                       onTap: () =>
                           context.read<CurrencyCubit>().setCurrency(currency),
                     );

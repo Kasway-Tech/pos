@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/data_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -36,7 +37,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _importCatalog() async {
     setState(() => _loading = true);
     try {
-      final dataService = DataService(ProductRepository());
+      final dataService = DataService(ProductRepository(), WithdrawalRepository());
       final result = await dataService.importData();
       if (!mounted) return;
       if (result.error != null) {

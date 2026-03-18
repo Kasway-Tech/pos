@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/data_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -20,7 +21,10 @@ class _DataTransferPageState extends State<DataTransferPage> {
   @override
   void initState() {
     super.initState();
-    _dataService = DataService(ProductRepository());
+    _dataService = DataService(
+      ProductRepository(),
+      context.read<WithdrawalRepository>(),
+    );
   }
 
   Future<void> _export() async {

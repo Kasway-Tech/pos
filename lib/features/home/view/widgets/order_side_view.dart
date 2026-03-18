@@ -203,9 +203,27 @@ class _OrderSideViewState extends State<OrderSideView> {
                                 ? null
                                 : widget.onProceedToPayment ??
                                       () {
-                                        context.read<HomeBloc>().add(
-                                          HomeCartCleared(),
-                                        );
+                                        final total =
+                                            state.cartItems.fold<double>(
+                                              0,
+                                              (sum, item) {
+                                                final addTotal = item
+                                                    .selectedAdditions
+                                                    .fold<double>(
+                                                      0,
+                                                      (s, a) => s + a.price,
+                                                    );
+                                                return sum +
+                                                    (item.product.price +
+                                                            addTotal) *
+                                                        item.quantity;
+                                              },
+                                            );
+                                        context.read<HomeBloc>()
+                                          ..add(HomeOrderCompleted(
+                                            totalIdr: total,
+                                          ))
+                                          ..add(HomeCartCleared());
                                         context.push('/payment-success');
                                       },
                             style: ElevatedButton.styleFrom(

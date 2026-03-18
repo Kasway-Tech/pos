@@ -90,7 +90,10 @@ class _ItemManagementPageState extends State<ItemManagementPage>
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                       child: FilledButton(
-                        onPressed: widget.onSetupComplete,
+                        onPressed: state.itemsByCategory.values
+                                .any((items) => items.isNotEmpty)
+                            ? widget.onSetupComplete
+                            : null,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
                         ),

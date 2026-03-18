@@ -43,7 +43,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 BlocBuilder<CurrencyCubit, CurrencyState>(
                   builder: (context, state) => ListTile(
-                    title: const Text('Default Currency'),
+                    title: const Text('Display Currency'),
                     subtitle: Text(state.selectedCurrency.displayName),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push('/profile/currency'),

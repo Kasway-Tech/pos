@@ -52,8 +52,10 @@ class OnboardingCurrencyPage extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: BlocBuilder<CurrencyCubit, CurrencyState>(
                     builder: (context, state) {
-                      return ListView.builder(
+                      return ListView.separated(
                         itemCount: CurrencyState.allCurrencies.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final currency = CurrencyState.allCurrencies[index];
                           final isSelected =
@@ -62,7 +64,8 @@ class OnboardingCurrencyPage extends StatelessWidget {
                             leading: _buildLeading(context, currency),
                             title: Text(currency.displayName),
                             trailing: isSelected
-                                ? Icon(Icons.check, color: colorScheme.primary)
+                                ? Icon(Icons.check,
+                                    color: colorScheme.primary)
                                 : null,
                             onTap: () => context
                                 .read<CurrencyCubit>()

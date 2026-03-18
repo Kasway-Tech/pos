@@ -28,7 +28,11 @@ class CurrencyCubit extends Cubit<CurrencyState> {
           CurrencyState.allCurrencies.where((c) => c.code == code).firstOrNull ??
           selected;
     }
-    emit(state.copyWith(selectedCurrency: selected, dynamicPricing: dynamic));
+
+    emit(state.copyWith(
+      selectedCurrency: selected,
+      dynamicPricing: dynamic,
+    ));
 
     if (dynamic) {
       await _fetchRates();

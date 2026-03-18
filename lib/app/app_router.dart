@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../features/auth/view/auth_page.dart';
 import '../features/auth/view/eula_page.dart';
 import '../features/auth/view/login_page.dart';
-import '../features/auth/view/onboarding_currency_page.dart';
 import '../features/auth/view/seed_phrase_page.dart';
 import '../features/home/view/home_page.dart';
 import '../features/home/view/order_confirmation_page.dart';
@@ -20,6 +19,8 @@ import '../features/profile/view/currency_settings_page.dart';
 import '../features/profile/view/theme_settings_page.dart';
 import '../features/items/view/item_management_page.dart';
 import '../features/profile/view/data_transfer_page.dart';
+import '../features/profile/view/withdrawal_history_page.dart';
+import '../features/auth/view/onboarding_currency_page.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -89,6 +90,10 @@ class AppRouter {
             GoRoute(
               path: 'data-transfer',
               builder: (context, state) => const DataTransferPage(),
+            ),
+            GoRoute(
+              path: 'withdrawals',
+              builder: (context, state) => const WithdrawalHistoryPage(),
             ),
           ],
         ),

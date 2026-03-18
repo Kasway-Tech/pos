@@ -118,10 +118,10 @@ All product prices are stored in IDR (Indonesian Rupiah). The currency system co
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/app/currency/currency_state.dart` | `Currency` model + `CurrencyState` with `formatPrice(idrPrice)` |
-| `lib/app/currency/currency_cubit.dart` | Fetches CoinGecko rates, 60s refresh timer, SharedPreferences persistence |
+| `lib/app/currency/currency_state.dart` | `Currency` model + `CurrencyState` with `formatPrice(idrPrice)` + `formatPriceInFiat(idrPrice, fiat)` |
+| `lib/app/currency/currency_cubit.dart` | Fetches CoinGecko rates, 60s refresh timer, SharedPreferences persistence, `setReferenceFiat()` |
 | `lib/app/widgets/price_text.dart` | `PriceText(idrPrice)` widget — use this everywhere a price is displayed |
-| `lib/features/profile/view/currency_settings_page.dart` | Currency picker page (`/profile/currency`) |
+| `lib/features/profile/view/currency_settings_page.dart` | Two-section currency page: **Display Currency** (all 12 incl. KAS) + **Reference Fiat** (11 fiats only) |
 
 ### How to display a price
 Always use `PriceText(someDoubleInIdr)` instead of formatting directly with `NumberFormat`. It wraps a `BlocBuilder<CurrencyCubit, CurrencyState>` and calls `state.formatPrice(idrPrice)` automatically.
@@ -133,6 +133,14 @@ PriceText(product.price, style: someTextStyle)
 ```
 
 Never hardcode `NumberFormat.currency(locale: 'id_ID', ...)` for prices shown to the user.
+
+### Reference Fiat
+`CurrencyState.referenceFiat` is always a fiat `Currency` (never KAS). Defaults to IDR. It is:
+- The secondary amount shown in `_RevenuePriceDisplay` when KAS is the display currency (`≈ USD Y.YY`)
+- Stored with each withdrawal record (`refFiatCode`, `refFiatAmount`) as a rate snapshot at withdrawal time
+- Configurable via the **Reference Fiat** section in `/profile/currency`
+
+Use `state.formatPriceInFiat(idrPrice, state.referenceFiat)` to format in the reference fiat without going through `PriceText`.
 
 ### Conversion formula (KAS as bridge currency)
 ```
@@ -152,7 +160,7 @@ Rates are stored in `CurrencyState.exchangeRates` as `Map<String, double>` keyed
 KAS (default), IDR, USD, EUR, GBP, JPY, SGD, MYR, AUD, CNY, HKD, KRW. Defined in `CurrencyState.allCurrencies`.
 
 ### Settings integration
-- **Default Currency** tile → navigates to `/profile/currency`
+- **Currency Settings** tile → navigates to `/profile/currency` (two sections: Display Currency + Reference Fiat)
 - **Dynamic Pricing** toggle → calls `CurrencyCubit.setDynamicPricing(bool)` — when off, the 60s timer stops and prices stay at the last fetched rate
 
 ### No-network fallback
@@ -206,11 +214,15 @@ All 6 catalog events (`HomeCatalogProduct{Added,Updated,Deleted}`, `HomeCategory
 2. `await _productRepository.persistXxx()`
 3. On error: `emit(previous)` — silent rollback
 
-### Schema (kasway.db, version 1)
+### Schema (kasway.db, version 6)
 ```sql
 categories(name TEXT PK, sort_order INTEGER)
-products(id TEXT PK, name TEXT, price REAL, description TEXT, category_name TEXT)
+products(id TEXT PK, name TEXT, price REAL, description TEXT, category_name TEXT, created_at INTEGER)
 additions(id TEXT PK, product_id TEXT, name TEXT, price REAL)
+orders(id TEXT PK, total_idr REAL, created_at INTEGER)  -- added in v4
+withdrawals(tx_id TEXT PK, to_address TEXT, amount_kas REAL, amount_idr REAL,
+            kas_idr_rate REAL, ref_fiat_code TEXT, ref_fiat_amount REAL,
+            created_at INTEGER)  -- added in v5; rate snapshot columns added in v6
 ```
 Category rename cascades: DB transaction updates both `categories` and all matching `products.category_name`.
 
@@ -229,4 +241,87 @@ bloc.add(HomeCatalogProductDeleted(category: 'Makanan', productId: 'f1'));
 bloc.add(HomeCategoryAdded('New Category'));
 bloc.add(HomeCategoryRenamed(oldName: 'Old', newName: 'New'));
 bloc.add(HomeCategoryDeleted('Empty Category'));  // only when count == 0
+
+// Record completed order (fire-and-forget, no state change)
+bloc.add(HomeOrderCompleted(totalIdr: 25000.0));
 ```
+
+## Orders System
+
+Completed orders are persisted in SQLite for today's revenue display on the Profile wallet card.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/data/models/order.dart` | Freezed `Order` model (id, totalIdr, createdAt) |
+| `lib/data/repositories/order_repository.dart` | `createOrder(double)` + `getTodayRevenue()` |
+
+### Revenue query
+`getTodayRevenue()` sums `total_idr` for rows with `created_at >= midnight today` (millisecondsSinceEpoch). Returns 0.0 when no orders.
+
+### When an order is completed
+`HomeOrderCompleted` is dispatched in `order_side_view.dart` before `HomeCartCleared`, so the cart total is captured first. The handler is fire-and-forget (no state emitted).
+
+## Kaspa Wallet Crates (Rust)
+
+Four kaspa crates are used for address derivation and transaction sending. They require the `mac_address` stub to compile on iOS (see iOS/Rust Compatibility Rule above).
+
+```toml
+# native/hub/Cargo.toml
+kaspa-bip32 = "0.15"       # HD key derivation at m/44'/111111'/0'/0/0
+kaspa-addresses = "0.15"   # Kaspa bech32 address encoding
+secp256k1 = "0.29"         # Public key extraction (transitive via kaspa-bip32)
+reqwest = { version = "0.12", features = ["json"] }  # REST API for tx submission
+serde_json = "1"           # JSON for REST API responses
+```
+
+**Note:** `kaspa-wallet-core` and `kaspa-wrpc-client` v0.15.0 have compilation bugs on native targets (WASM-specific code in `kaspa-rpc-core` fails to compile for non-WASM builds). Transaction sending is implemented via the `https://api.kaspa.org` REST API instead of the WebSocket RPC.
+
+**iOS assembly patch:** `kaspa-hashes` v0.15.0's `build.rs` tries to compile Linux ELF x86_64 assembly for the iOS simulator (`x86_64-apple-ios`), which breaks the Mach-O build. Two fixes are applied:
+1. `kaspa-hashes = { version = "0.15", features = ["no-asm"] }` in hub's `Cargo.toml` — forces pure Rust keccak in the Rust code
+2. A local patch at `native/kaspa_hashes_patch/` in workspace `[patch.crates-io]` — fixes the `build.rs` to skip assembly compilation for iOS targets entirely
+
+### New Rust signals (native/hub/src/signals/mod.rs)
+- `DeriveKaspaAddressRequest` (Dart→Rust): `{ mnemonic: String }`
+- `KaspaAddressResponse` (Rust→Dart): `{ address: String, error: String }`
+- `SendKaspaTransactionRequest` (Dart→Rust): `{ mnemonic, to_address, amount_sompi: u64, payload_note: String }` — `payload_note` is hex-encoded and set as the tx `"payload"` field
+- `KaspaTransactionResponse` (Rust→Dart): `{ tx_id: String, error: String }`
+
+### Derivation path
+Kaspa BIP44 path: `m/44'/111111'/0'/0/0` (coin type 111111). Address payload is the x-only 32-byte public key (strip the 0x02/0x03 prefix from the 33-byte compressed pubkey).
+
+### Public Kaspa node
+`wss://public-pool.kaspa.green:17110` — used for UTXO queries and transaction submission.
+
+## Profile Wallet Card
+
+The profile page header is replaced by `_WalletCard`, a StatefulWidget that:
+- Reads `wallet_mnemonic` from SharedPreferences on init
+- Sends `DeriveKaspaAddressRequest` to Rust and streams `KaspaAddressResponse`
+- Loads today's revenue via `OrderRepository.getTodayRevenue()` (FutureBuilder)
+- Shows dual-currency revenue: primary in selected currency + secondary KAS↔fiat equivalent (`_RevenuePriceDisplay`)
+- Shows **History** (tonal) + **Withdraw** (filled) buttons side by side
+
+`_WithdrawSheet` collects destination address + KAS amount, builds a `payload_note` (`kasway:withdraw:<ISO8601>:<amount>kas`), and sends `SendKaspaTransactionRequest` to Rust. On success, records the withdrawal via `WithdrawalRepository` (including rate snapshot) before closing.
+
+Both `OrderRepository` and `WithdrawalRepository` must be provided in the widget tree (provided at app level via `MultiRepositoryProvider`).
+
+## Withdrawals System
+
+Completed withdrawals are persisted in SQLite. History is accessible from the wallet card.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/data/models/withdrawal.dart` | Freezed `Withdrawal` model (txId, toAddress, amountKas, amountIdr, kasIdrRate, refFiatCode, refFiatAmount, createdAt) |
+| `lib/data/repositories/withdrawal_repository.dart` | `recordWithdrawal(...)` + `getWithdrawals()` + `getAllForExport()` |
+| `lib/features/profile/view/withdrawal_history_page.dart` | List of past withdrawals with fiat equivalent + copy-TX-ID action |
+
+### Route
+`/profile/withdrawals` → `WithdrawalHistoryPage`
+
+### Rate snapshot fields
+`kasIdrRate`, `refFiatCode`, `refFiatAmount` are captured at withdrawal time from `CurrencyCubit.state` so historical records are self-contained (not dependent on live rates).
+
+### Export
+`DataService` exports both `kasway_data.csv` (catalog) and `kasway_withdrawals.csv` (withdrawals) when the user taps Export in Data Transfer. The withdrawal CSV includes `kas_idr_rate`, `ref_fiat_code`, `ref_fiat_amount` columns.

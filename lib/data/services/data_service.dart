@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:kasway/data/models/withdrawal.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 
@@ -20,8 +22,9 @@ class ImportResult {
 
 class DataService {
   final ProductRepository _repo;
+  final WithdrawalRepository _withdrawalRepo;
 
-  DataService(this._repo);
+  DataService(this._repo, this._withdrawalRepo);
 
   Future<void> exportData(BuildContext context) async {
     final box = context.findRenderObject() as RenderBox?;
@@ -32,9 +35,15 @@ class DataService {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/kasway_data.csv');
     await file.writeAsString(csv);
+
+    final withdrawals = await _withdrawalRepo.getAllForExport();
+    final withdrawalCsv = _buildWithdrawalCsv(withdrawals);
+    final withdrawalFile = File('${dir.path}/kasway_withdrawals.csv');
+    await withdrawalFile.writeAsString(withdrawalCsv);
+
     await Share.shareXFiles(
-      [XFile(file.path)],
-      subject: 'Kasway Catalog Export',
+      [XFile(file.path), XFile(withdrawalFile.path)],
+      subject: 'Kasway Export',
       sharePositionOrigin: shareRect,
     );
   }
@@ -169,6 +178,27 @@ class DataService {
         'price': double.tryParse(a.substring(colonIdx + 1)) ?? 0.0,
       };
     }).toList();
+  }
+
+  String _buildWithdrawalCsv(List<Withdrawal> withdrawals) {
+    final buf = StringBuffer();
+    buf.writeln(
+        'tx_id,to_address,amount_kas,amount_idr,kas_idr_rate,created_at');
+    for (final w in withdrawals) {
+      buf.write(_csvField(w.txId));
+      buf.write(',');
+      buf.write(_csvField(w.toAddress));
+      buf.write(',');
+      buf.write(w.amountKas.toStringAsFixed(8));
+      buf.write(',');
+      buf.write(w.amountIdr.toStringAsFixed(2));
+      buf.write(',');
+      buf.write(w.kasIdrRate.toStringAsFixed(4));
+      buf.write(',');
+      buf.write(w.createdAt.toIso8601String());
+      buf.writeln();
+    }
+    return buf.toString();
   }
 
   String _csvField(String value) {
