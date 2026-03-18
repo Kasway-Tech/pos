@@ -1,5 +1,3 @@
-import 'package:rinf/rinf.dart';
-import 'src/bindings/bindings.dart';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
@@ -28,8 +26,6 @@ void main() async {
     // Enable full size content view
     WindowManipulator.enableFullSizeContentView();
   }
-
-  await initializeRust(assignRustSignal);
 
   Bloc.observer = const SimpleBlocObserver();
 

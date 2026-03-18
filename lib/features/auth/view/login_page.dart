@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/src/bindings/signals/signals.dart';
+import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
-import 'package:rinf/rinf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum _LoginError { none, invalidWord, invalidChecksum, invalidWordCount, generic }
@@ -25,7 +22,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _controller = TextEditingController();
-  StreamSubscription<RustSignalPack<ValidateMnemonicResponse>>? _sub;
 
   bool _isValidating = false;
   _LoginError _error = _LoginError.none;
@@ -34,25 +30,12 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
-    _sub = ValidateMnemonicResponse.rustSignalStream.listen((pack) {
-      if (!mounted) return;
-      final response = pack.message;
-      if (response.valid) {
-        _onValidationSuccess();
-      } else {
-        setState(() {
-          _isValidating = false;
-          _error = _parseError(response.error);
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
-    _sub?.cancel();
     super.dispose();
   }
 
@@ -103,11 +86,19 @@ class _LoginPageState extends State<LoginPage> {
       _isValidating = true;
       _error = _LoginError.none;
     });
-    ValidateMnemonicRequest(mnemonic: phrase).sendSignalToRust();
+
+    final result = KaspaWalletService().validateMnemonic(phrase);
+    if (result.valid) {
+      _onValidationSuccess(phrase);
+    } else {
+      setState(() {
+        _isValidating = false;
+        _error = _parseError(result.error);
+      });
+    }
   }
 
-  Future<void> _onValidationSuccess() async {
-    final phrase = _words.join(' ');
+  Future<void> _onValidationSuccess(String phrase) async {
     await widget.prefs.setString('wallet_mnemonic', phrase);
     await widget.prefs.setBool('onboarding_complete', true);
     if (!mounted) return;

@@ -27,36 +27,6 @@ Navigator.of(context).push(MaterialPageRoute(
 ));
 ```
 
-## iOS/Rust Compatibility Rule
-
-**Never add Rust crates that pull in `mac_address` as a transitive dependency** — it fails to compile on iOS. This rules out most `kaspa-*` crates from `rusty-kaspa` (they transitively depend on `mac_address` for network interface detection).
-
-**For BIP39 mnemonic generation**, use the standalone `bip39` crate with the `rand` feature (pure Rust, no platform deps):
-```toml
-bip39 = { version = "2", features = ["rand"] }
-```
-```rust
-use bip39::Mnemonic;
-use rinf::{DartSignal, RustSignal};  // RustSignal must be in scope for send_signal_to_dart()
-
-let response = match Mnemonic::generate(word_count) {
-    Ok(m) => MyResponse { phrase: m.to_string(), error: String::new() },
-    Err(e) => MyResponse { phrase: String::new(), error: e.to_string() },
-};
-response.send_signal_to_dart();  // assign to variable first — chained match.method() breaks type inference
-```
-
-Two gotchas:
-- `bip39 v2` hides `Mnemonic::generate` behind the `rand` feature — without it only `from_entropy*` methods exist
-- Always import `rinf::RustSignal` in scope or `.send_signal_to_dart()` won't resolve
-- Assign match result to a variable before calling methods — Rust type inference fails on `match { ... }.method()`
-
-If a required kaspa crate must be added in future, mitigate with a `[patch.crates-io]` no-op stub in the **workspace** `Cargo.toml` (at `pos/Cargo.toml`, not the hub crate):
-```toml
-[patch.crates-io]
-mac_address = { path = "native/mac_address_stub" }
-```
-
 ## Commands
 
 ```bash
@@ -262,47 +232,64 @@ Completed orders are persisted in SQLite for today's revenue display on the Prof
 ### When an order is completed
 `HomeOrderCompleted` is dispatched in `order_side_view.dart` before `HomeCartCleared`, so the cart total is captured first. The handler is fire-and-forget (no state emitted).
 
-## Kaspa Wallet Crates (Rust)
+## KaspaWalletService (Pure Dart)
 
-Four kaspa crates are used for address derivation and transaction sending. They require the `mac_address` stub to compile on iOS (see iOS/Rust Compatibility Rule above).
+All Kaspa wallet operations are implemented in pure Dart at `lib/data/services/kaspa_wallet_service.dart`. No Rust/FFI bridge is used.
 
-```toml
-# native/hub/Cargo.toml
-kaspa-bip32 = "0.15"       # HD key derivation at m/44'/111111'/0'/0/0
-kaspa-addresses = "0.15"   # Kaspa bech32 address encoding
-secp256k1 = "0.29"         # Public key extraction (transitive via kaspa-bip32)
-reqwest = { version = "0.12", features = ["json"] }  # REST API for tx submission
-serde_json = "1"           # JSON for REST API responses
+### Dart packages
+| Package | Purpose |
+|---------|---------|
+| `bip39 ^1.0.6` | BIP39 mnemonic generation (`generateMnemonic`) and validation (`validateMnemonic`) |
+| `bip32 ^2.0.0` | BIP32 HD key derivation — `BIP32.fromSeed(seed).derivePath(path)` |
+| `hex ^0.2.0` | Hex encoding/decoding for scripts and payload |
+
+### API
+```dart
+final svc = KaspaWalletService();
+
+// 1. Generate mnemonic (synchronous)
+final phrase = svc.generateMnemonic(wordCount: 12);
+
+// 2. Validate mnemonic (synchronous)
+final (:valid, :error) = svc.validateMnemonic(phrase);
+// error contains "InvalidWordCount", "InvalidWord", or "InvalidChecksum" keywords
+
+// 3. Derive Kaspa mainnet address (synchronous, wrap in Future.microtask if needed)
+final address = svc.deriveAddress(phrase); // "kaspa:q..."
+
+// 4. Submit transaction (async, REST API)
+final (:txId, :error) = await svc.sendTransaction(
+  mnemonic: phrase,
+  toAddress: 'kaspa:q...',
+  amountSompi: 500000000, // 5 KAS
+  payloadNote: 'kasway:withdraw:...',
+);
 ```
 
-**Note:** `kaspa-wallet-core` and `kaspa-wrpc-client` v0.15.0 have compilation bugs on native targets (WASM-specific code in `kaspa-rpc-core` fails to compile for non-WASM builds). Transaction sending is implemented via the `https://api.kaspa.org` REST API instead of the WebSocket RPC.
+### Kaspa address encoding
+Kaspa uses a **cashaddr-style** encoding (NOT standard bech32): separator `:`, custom 40-bit polymod checksum. Implementation is inline in `KaspaWalletService` — do not use the `bech32` Dart package for Kaspa addresses.
 
-**iOS assembly patch:** `kaspa-hashes` v0.15.0's `build.rs` tries to compile Linux ELF x86_64 assembly for the iOS simulator (`x86_64-apple-ios`), which breaks the Mach-O build. Two fixes are applied:
-1. `kaspa-hashes = { version = "0.15", features = ["no-asm"] }` in hub's `Cargo.toml` — forces pure Rust keccak in the Rust code
-2. A local patch at `native/kaspa_hashes_patch/` in workspace `[patch.crates-io]` — fixes the `build.rs` to skip assembly compilation for iOS targets entirely
+- HRP: `"kaspa"`
+- Version byte: `0x00` (PubKey)
+- Payload: version_byte + 32-byte x-only pubkey (compressed pubkey[1..]) → convertBits(8→5)
+- Derivation path: `m/44'/111111'/0'/0/0` (Kaspa coin type 111111)
 
-### New Rust signals (native/hub/src/signals/mod.rs)
-- `DeriveKaspaAddressRequest` (Dart→Rust): `{ mnemonic: String }`
-- `KaspaAddressResponse` (Rust→Dart): `{ address: String, error: String }`
-- `SendKaspaTransactionRequest` (Dart→Rust): `{ mnemonic, to_address, amount_sompi: u64, payload_note: String }` — `payload_note` is hex-encoded and set as the tx `"payload"` field
-- `KaspaTransactionResponse` (Rust→Dart): `{ tx_id: String, error: String }`
+### P2PK script format
+`OP_DATA_32 (0x20)` + 32-byte x-only pubkey + `OP_CHECKSIG (0xac)` = 34-byte script hex (68 chars).
 
-### Derivation path
-Kaspa BIP44 path: `m/44'/111111'/0'/0/0` (coin type 111111). Address payload is the x-only 32-byte public key (strip the 0x02/0x03 prefix from the 33-byte compressed pubkey).
-
-### Public Kaspa node
-`wss://public-pool.kaspa.green:17110` — used for UTXO queries and transaction submission.
+### Transaction note (known limitation)
+`sendTransaction` submits **unsigned** transactions (`signatureScript: ""`). This replicates the former Rust behaviour and means withdrawals may not relay on mainnet. A future task would add Schnorr signing.
 
 ## Profile Wallet Card
 
 The profile page header is replaced by `_WalletCard`, a StatefulWidget that:
 - Reads `wallet_mnemonic` from SharedPreferences on init
-- Sends `DeriveKaspaAddressRequest` to Rust and streams `KaspaAddressResponse`
-- Loads today's revenue via `OrderRepository.getTodayRevenue()` (FutureBuilder)
+- Calls `KaspaWalletService().deriveAddress(mnemonic)` in a `Future.microtask` to derive the address
+- Loads today's revenue via `OrderRepository.getTotalRevenue()` minus `WithdrawalRepository.getTotalWithdrawn()`
 - Shows dual-currency revenue: primary in selected currency + secondary KAS↔fiat equivalent (`_RevenuePriceDisplay`)
 - Shows **History** (tonal) + **Withdraw** (filled) buttons side by side
 
-`_WithdrawSheet` collects destination address + KAS amount, builds a `payload_note` (`kasway:withdraw:<ISO8601>:<amount>kas`), and sends `SendKaspaTransactionRequest` to Rust. On success, records the withdrawal via `WithdrawalRepository` (including rate snapshot) before closing.
+`_WithdrawSheet` collects destination address + KAS amount, builds a `payload_note` (`kasway:withdraw:<ISO8601>:<amount>kas:ack:<addr_proof>`), and calls `KaspaWalletService().sendTransaction(...)`. On success, records the withdrawal via `WithdrawalRepository` before closing.
 
 Both `OrderRepository` and `WithdrawalRepository` must be provided in the widget tree (provided at app level via `MultiRepositoryProvider`).
 

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +7,7 @@ import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
-import 'package:kasway/src/bindings/signals/signals.dart';
+import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -153,7 +151,6 @@ class _WalletCard extends StatefulWidget {
 class _WalletCardState extends State<_WalletCard> {
   String _address = '';
   bool _addressLoading = true;
-  StreamSubscription<dynamic>? _addressSub;
   Future<double>? _balanceFuture;
 
   @override
@@ -179,20 +176,18 @@ class _WalletCardState extends State<_WalletCard> {
       return;
     }
 
-    _addressSub = KaspaAddressResponse.rustSignalStream.listen((pack) {
-      if (!mounted) return;
-      setState(() {
-        _addressLoading = false;
-        _address = pack.message.address;
-      });
+    final address = await Future.microtask(
+      () => KaspaWalletService().deriveAddress(mnemonic),
+    );
+    if (!mounted) return;
+    setState(() {
+      _addressLoading = false;
+      _address = address;
     });
-
-    DeriveKaspaAddressRequest(mnemonic: mnemonic).sendSignalToRust();
   }
 
   @override
   void dispose() {
-    _addressSub?.cancel();
     super.dispose();
   }
 
@@ -404,13 +399,11 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
   final _toAddressController = TextEditingController();
   final _amountController = TextEditingController();
   bool _submitting = false;
-  StreamSubscription<dynamic>? _txSub;
 
   @override
   void dispose() {
     _toAddressController.dispose();
     _amountController.dispose();
-    _txSub?.cancel();
     super.dispose();
   }
 
@@ -433,41 +426,38 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
 
     setState(() => _submitting = true);
 
-    _txSub = KaspaTransactionResponse.rustSignalStream.listen((pack) async {
-      _txSub?.cancel();
-      if (!mounted) return;
-
-      if (pack.message.error.isNotEmpty) {
-        setState(() => _submitting = false);
-        _showError(pack.message.error);
-      } else {
-        final amountIdr = kasAmount * widget.kasIdrRate;
-        await widget.withdrawalRepository.recordWithdrawal(
-          txId: pack.message.txId,
-          toAddress: toAddr,
-          amountKas: kasAmount,
-          amountIdr: amountIdr,
-          kasIdrRate: widget.kasIdrRate,
-          createdAt: DateTime.now(),
-        );
-        if (!mounted) return;
-        setState(() => _submitting = false);
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sent! TX: ${pack.message.txId}'),
-            duration: const Duration(seconds: 6),
-          ),
-        );
-      }
-    });
-
-    SendKaspaTransactionRequest(
+    final result = await KaspaWalletService().sendTransaction(
       mnemonic: mnemonic,
       toAddress: toAddr,
-      amountSompi: Uint64.fromBigInt(BigInt.from(amountSompi)),
+      amountSompi: amountSompi,
       payloadNote: payloadNote,
-    ).sendSignalToRust();
+    );
+
+    if (!mounted) return;
+
+    if (result.error.isNotEmpty) {
+      setState(() => _submitting = false);
+      _showError(result.error);
+    } else {
+      final amountIdr = kasAmount * widget.kasIdrRate;
+      await widget.withdrawalRepository.recordWithdrawal(
+        txId: result.txId,
+        toAddress: toAddr,
+        amountKas: kasAmount,
+        amountIdr: amountIdr,
+        kasIdrRate: widget.kasIdrRate,
+        createdAt: DateTime.now(),
+      );
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sent! TX: ${result.txId}'),
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    }
   }
 
   void _showError(String message) {

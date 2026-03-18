@@ -1,12 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/src/bindings/signals/signals.dart';
+import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
-import 'package:rinf/rinf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SeedPhrasePage extends StatefulWidget {
@@ -19,30 +16,23 @@ class SeedPhrasePage extends StatefulWidget {
 class _SeedPhrasePageState extends State<SeedPhrasePage> {
   List<String> _words = [];
   String _error = '';
-  StreamSubscription<RustSignalPack<MnemonicResponse>>? _sub;
 
   @override
   void initState() {
     super.initState();
-    _sub = MnemonicResponse.rustSignalStream.listen((pack) {
-      if (!mounted) return;
-      final response = pack.message;
-      if (response.error.isNotEmpty) {
-        setState(() => _error = response.error);
-      } else {
-        setState(() {
-          _words = response.mnemonic.split(' ');
-          _error = '';
-        });
-      }
-    });
-    GenerateMnemonicRequest(wordCount: 12).sendSignalToRust();
+    _generateMnemonic();
   }
 
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
+  void _generateMnemonic() {
+    try {
+      final mnemonic = KaspaWalletService().generateMnemonic(wordCount: 12);
+      setState(() {
+        _words = mnemonic.split(' ');
+        _error = '';
+      });
+    } catch (e) {
+      setState(() => _error = e.toString());
+    }
   }
 
   Future<void> _continue() async {
