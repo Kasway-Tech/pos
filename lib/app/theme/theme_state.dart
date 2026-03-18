@@ -6,7 +6,7 @@ class ThemeState extends Equatable {
 
   const ThemeState({
     this.seedColor = defaultSeedColor,
-    this.themeMode = ThemeMode.system,
+    this.themeMode = ThemeMode.dark,
   });
 
   final Color seedColor;

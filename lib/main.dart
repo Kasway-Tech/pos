@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app/app.dart';
@@ -32,5 +33,7 @@ void main() async {
 
   Bloc.observer = const SimpleBlocObserver();
 
-  runApp(const App());
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(App(prefs: prefs));
 }

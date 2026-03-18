@@ -24,7 +24,7 @@ class ThemeCubit extends Cubit<ThemeState> {
             : ThemeState.defaultSeedColor,
         themeMode: themeModeIndex != null
             ? ThemeMode.values[themeModeIndex]
-            : ThemeMode.system,
+            : ThemeMode.dark,
       ),
     );
   }

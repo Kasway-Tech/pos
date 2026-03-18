@@ -5,19 +5,23 @@ import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
-import 'package:kasway/features/items/view/category_management_page.dart';
+import 'package:kasway/features/items/view/create_option_page.dart';
 import 'package:kasway/features/items/view/item_form_page.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
 class ItemManagementPage extends StatefulWidget {
-  const ItemManagementPage({super.key});
+  const ItemManagementPage({super.key, this.onSetupComplete});
+
+  /// When provided, a floating "Done" button is shown at the bottom.
+  /// Intended for the onboarding flow.
+  final VoidCallback? onSetupComplete;
 
   @override
   State<ItemManagementPage> createState() => _ItemManagementPageState();
 }
 
 class _ItemManagementPageState extends State<ItemManagementPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   TabController? _tabController;
   int _categoryCount = 0;
 
@@ -35,22 +39,18 @@ class _ItemManagementPageState extends State<ItemManagementPage>
     }
   }
 
-  void _openAddForm(BuildContext context, {String? defaultCategory}) {
+  void _openCreateOptions(BuildContext context, List<String> categories) {
+    final currentCategory = _tabController != null && categories.isNotEmpty
+        ? categories[_tabController!.index]
+        : null;
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => BlocProvider.value(
-        value: context.read<HomeBloc>(),
-        child: ItemFormPage(defaultCategory: defaultCategory),
-      ),
+      builder: (_) => CreateOptionPage(currentCategory: currentCategory),
     ));
   }
 
-  void _openEditForm(
-      BuildContext context, Product product, String category) {
+  void _openEditForm(BuildContext context, Product product, String category) {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => BlocProvider.value(
-        value: context.read<HomeBloc>(),
-        child: ItemFormPage(product: product, defaultCategory: category),
-      ),
+      builder: (_) => ItemFormPage(product: product, defaultCategory: category),
     ));
   }
 
@@ -67,7 +67,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
         return TitlebarSafeArea(
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Manage Item'),
+              title: const Text('Manage Items'),
               centerTitle: true,
               bottom: categories.isEmpty
                   ? null
@@ -75,49 +75,45 @@ class _ItemManagementPageState extends State<ItemManagementPage>
                       controller: _tabController,
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
-                      tabs: categories
-                          .map((c) => Tab(text: c))
-                          .toList(),
+                      tabs: categories.map((c) => Tab(text: c)).toList(),
                     ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.category_outlined),
-                  tooltip: 'Manage Categories',
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<HomeBloc>(),
-                      child: const CategoryManagementPage(),
-                    ),
-                  )),
-                ),
-                IconButton(
                   icon: const Icon(Icons.add),
-                  tooltip: 'Add Item',
-                  onPressed: () => _openAddForm(context),
+                  tooltip: 'Create',
+                  onPressed: () => _openCreateOptions(context, categories),
                 ),
               ],
             ),
+            bottomNavigationBar: widget.onSetupComplete != null
+                ? SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: FilledButton(
+                        onPressed: widget.onSetupComplete,
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                        ),
+                        child: const Text('Done'),
+                      ),
+                    ),
+                  )
+                : null,
             body: categories.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined,
-                            size: 64,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .outlineVariant),
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
                         const SizedBox(height: 16),
                         const Text('No categories yet'),
                         TextButton(
-                          onPressed: () =>
-                              Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: context.read<HomeBloc>(),
-                              child: const CategoryManagementPage(),
-                            ),
-                          )),
-                          child: const Text('Add Category'),
+                          onPressed: () => _openCreateOptions(context, categories),
+                          child: const Text('Create Category'),
                         ),
                       ],
                     ),
@@ -127,10 +123,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
                     children: categories
                         .map((c) => _CategoryItemList(
                               category: c,
-                              onAddTap: () =>
-                                  _openAddForm(context, defaultCategory: c),
-                              onEditTap: (p) =>
-                                  _openEditForm(context, p, c),
+                              onEditTap: (p) => _openEditForm(context, p, c),
                               onDeleteTap: (p) =>
                                   _confirmDelete(context, p, c),
                             ))
@@ -145,8 +138,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
   Future<void> _confirmDelete(
       BuildContext context, Product product, String category) async {
     final bloc = context.read<HomeBloc>();
-    final inCart =
-        bloc.state.cartItems.any((i) => i.product.id == product.id);
+    final inCart = bloc.state.cartItems.any((i) => i.product.id == product.id);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -161,8 +153,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -177,13 +168,11 @@ class _ItemManagementPageState extends State<ItemManagementPage>
 class _CategoryItemList extends StatelessWidget {
   const _CategoryItemList({
     required this.category,
-    required this.onAddTap,
     required this.onEditTap,
     required this.onDeleteTap,
   });
 
   final String category;
-  final VoidCallback onAddTap;
   final void Function(Product) onEditTap;
   final void Function(Product) onDeleteTap;
 
@@ -206,27 +195,20 @@ class _CategoryItemList extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 const Text('No items in this category'),
-                TextButton(
-                  onPressed: onAddTap,
-                  child: const Text('Add Item'),
-                ),
               ],
             ),
           );
         }
         return ListView.separated(
-          itemCount: items.length + 1,
-          separatorBuilder: (_, index) => const Divider(height: 1),
+          itemCount: items.length,
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) {
-            if (index < items.length) {
-              final product = items[index];
-              return _ProductListTile(
-                product: product,
-                onEdit: () => onEditTap(product),
-                onDelete: () => onDeleteTap(product),
-              );
-            }
-            return _AddItemTile(onTap: onAddTap);
+            final product = items[index];
+            return _ProductListTile(
+              product: product,
+              onEdit: () => onEditTap(product),
+              onDelete: () => onDeleteTap(product),
+            );
           },
         );
       },
@@ -252,8 +234,10 @@ class _ProductListTile extends StatelessWidget {
       leading: CircleAvatar(
         child: Text(product.name[0].toUpperCase()),
       ),
-      title: Text(product.name,
-          style: const TextStyle(fontWeight: FontWeight.w500)),
+      title: Text(
+        product.name,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
       subtitle: Row(
         children: [
           PriceText(product.price),
@@ -261,8 +245,9 @@ class _ProductListTile extends StatelessWidget {
             Text(
               ' · $additionCount addition${additionCount == 1 ? '' : 's'}',
               style: TextStyle(
-                  color: Theme.of(context).colorScheme.outline,
-                  fontSize: 12),
+                color: Theme.of(context).colorScheme.outline,
+                fontSize: 12,
+              ),
             ),
         ],
       ),
@@ -280,27 +265,6 @@ class _ProductListTile extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _AddItemTile extends StatelessWidget {
-  const _AddItemTile({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        Icons.add_circle_outline,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-      title: Text(
-        'Add item',
-        style: TextStyle(color: Theme.of(context).colorScheme.primary),
-      ),
-      onTap: onTap,
     );
   }
 }

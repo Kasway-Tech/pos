@@ -3,6 +3,7 @@
 
 mod actors;
 mod signals;
+mod wallet;
 
 use actors::create_actors;
 use rinf::{dart_shutdown, write_interface};
@@ -21,6 +22,8 @@ async fn main() {
     // If you must use blocking code, use `tokio::task::spawn_blocking`
     // or the equivalent provided by your async library.
     spawn(create_actors());
+    spawn(wallet::handle_mnemonic_requests());
+    spawn(wallet::handle_validate_mnemonic_requests());
 
     // Keep the main function running until Dart shutdown.
     dart_shutdown().await;

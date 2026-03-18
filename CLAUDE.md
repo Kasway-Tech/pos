@@ -6,6 +6,57 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Always run `flutter analyze` on modified files before declaring a task done.** Fix all errors **and** deprecation warnings, then run analyze again to confirm zero issues. This catches type errors and deprecated API usage before the user has to re-run and re-report.
 
+## Imperative Navigation Rule
+
+**Never call `context.read<T>()` inside a `MaterialPageRoute.builder` closure.** The builder is stored and re-invoked lazily (e.g. when `go_router`'s `refreshListenable` fires a rebuild), at which point the originating `context` is deactivated — causing "Looking up a deactivated widget's ancestor" crashes.
+
+Since `HomeBloc` (and other app-level providers) are provided above `MaterialApp.router`, every imperatively pushed page already has them in its widget tree. Push pages directly — no `BlocProvider.value` wrapper needed:
+
+```dart
+// WRONG — context.read inside builder captures a potentially stale context
+Navigator.of(context).push(MaterialPageRoute(
+  builder: (_) => BlocProvider.value(
+    value: context.read<HomeBloc>(),  // crashes on rebuild
+    child: SomePage(),
+  ),
+));
+
+// CORRECT — push the page directly; it reads the bloc from its own context
+Navigator.of(context).push(MaterialPageRoute(
+  builder: (_) => SomePage(),
+));
+```
+
+## iOS/Rust Compatibility Rule
+
+**Never add Rust crates that pull in `mac_address` as a transitive dependency** — it fails to compile on iOS. This rules out most `kaspa-*` crates from `rusty-kaspa` (they transitively depend on `mac_address` for network interface detection).
+
+**For BIP39 mnemonic generation**, use the standalone `bip39` crate with the `rand` feature (pure Rust, no platform deps):
+```toml
+bip39 = { version = "2", features = ["rand"] }
+```
+```rust
+use bip39::Mnemonic;
+use rinf::{DartSignal, RustSignal};  // RustSignal must be in scope for send_signal_to_dart()
+
+let response = match Mnemonic::generate(word_count) {
+    Ok(m) => MyResponse { phrase: m.to_string(), error: String::new() },
+    Err(e) => MyResponse { phrase: String::new(), error: e.to_string() },
+};
+response.send_signal_to_dart();  // assign to variable first — chained match.method() breaks type inference
+```
+
+Two gotchas:
+- `bip39 v2` hides `Mnemonic::generate` behind the `rand` feature — without it only `from_entropy*` methods exist
+- Always import `rinf::RustSignal` in scope or `.send_signal_to_dart()` won't resolve
+- Assign match result to a variable before calling methods — Rust type inference fails on `match { ... }.method()`
+
+If a required kaspa crate must be added in future, mitigate with a `[patch.crates-io]` no-op stub in the **workspace** `Cargo.toml` (at `pos/Cargo.toml`, not the hub crate):
+```toml
+[patch.crates-io]
+mac_address = { path = "native/mac_address_stub" }
+```
+
 ## Commands
 
 ```bash

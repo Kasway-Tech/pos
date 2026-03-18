@@ -7,6 +7,32 @@ pub struct SmallText {
     pub text: String,
 }
 
+/// Dart → Rust: request a new BIP39 mnemonic.
+#[derive(Deserialize, DartSignal)]
+pub struct GenerateMnemonicRequest {
+    pub word_count: u32,
+}
+
+/// Rust → Dart: generated mnemonic phrase.
+#[derive(Serialize, RustSignal)]
+pub struct MnemonicResponse {
+    pub mnemonic: String,
+    pub error: String,
+}
+
+/// Dart → Rust: validate an existing BIP39 mnemonic.
+#[derive(Deserialize, DartSignal)]
+pub struct ValidateMnemonicRequest {
+    pub mnemonic: String,
+}
+
+/// Rust → Dart: result of mnemonic validation.
+#[derive(Serialize, RustSignal)]
+pub struct ValidateMnemonicResponse {
+    pub valid: bool,
+    pub error: String,
+}
+
 /// To send data from Rust to Dart, use `RustSignal`.
 #[derive(Serialize, RustSignal)]
 pub struct SmallNumber {

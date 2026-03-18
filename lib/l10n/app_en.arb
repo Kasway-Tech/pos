@@ -1,0 +1,69 @@
+{
+  "@@locale": "en",
+
+  "language": "Language",
+  "authTagline": "Your crypto POS,\nsecured by you.",
+  "authCreateAccount": "Create Account",
+  "authLoginWithSeedPhrase": "Log in with seed phrase",
+
+  "eulaTitle": "Terms & Conditions",
+  "eulaLastUpdated": "Last updated: March 2026",
+  "eulaMainTitle": "End User License Agreement",
+  "eulaSection1Title": "1. Acceptance of Terms",
+  "eulaSection1Body": "By using Kasway (\"the App\"), you agree to be bound by these Terms and Conditions. If you do not agree, do not use the App.",
+  "eulaSection2Title": "2. Seed Phrase & Security",
+  "eulaSection2Body": "The App generates a BIP39 seed phrase that is stored locally on your device. You are solely responsible for keeping your seed phrase safe. Kasway does not store, transmit, or have access to your seed phrase. Loss of your seed phrase means permanent loss of access to your account — there is no recovery option.",
+  "eulaSection3Title": "3. No Financial Advice",
+  "eulaSection3Body": "Nothing in the App constitutes financial, investment, or legal advice. Cryptocurrency values are volatile. You bear all risks associated with cryptocurrency transactions.",
+  "eulaSection4Title": "4. Data & Privacy",
+  "eulaSection4Body": "All catalog and transaction data is stored locally on your device. The App fetches live exchange rates from CoinGecko (a third-party service). No personally identifiable information is collected or transmitted by Kasway.",
+  "eulaSection5Title": "5. Limitation of Liability",
+  "eulaSection5Body": "To the maximum extent permitted by law, Kasway and its developers shall not be liable for any loss or damage arising from your use of the App, including but not limited to loss of funds, loss of data, or loss of seed phrase.",
+  "eulaSection6Title": "6. Changes to Terms",
+  "eulaSection6Body": "We reserve the right to modify these terms at any time. Continued use of the App after changes constitutes acceptance of the new terms.",
+  "eulaSection7Title": "7. Governing Law",
+  "eulaSection7Body": "These terms are governed by applicable law. Any disputes shall be resolved in the jurisdiction where Kasway is incorporated.",
+  "eulaAgreeLabel": "I have read and agree to the Terms & Conditions and Privacy Policy.",
+  "eulaContinue": "Continue",
+
+  "seedPhraseTitle": "Seed Phrase",
+  "seedPhraseCopyTooltip": "Copy to clipboard",
+  "seedPhraseWarning": "Write these words down. You cannot recover your account without them.",
+  "seedPhraseError": "Error: {error}",
+  "@seedPhraseError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "seedPhraseCopied": "Seed phrase copied to clipboard",
+  "seedPhraseConfirm": "I've saved my seed phrase →",
+
+  "currencyTitle": "Choose Currency",
+  "currencyQuestion": "What currency do you sell in?",
+  "currencyHint": "You can change this at any time in Settings.",
+  "currencyContinue": "Continue",
+
+  "loginTitle": "Log In",
+  "loginEnterPhrase": "Enter your seed phrase",
+  "loginPhraseHint": "Type or paste your 12 or 24 word recovery phrase, separated by spaces.",
+  "loginHintText": "word1 word2 word3 …",
+  "loginClear": "Clear",
+  "loginWordCount": "{count, plural, =1{{count} word} other{{count} words}}",
+  "@loginWordCount": {
+    "placeholders": { "count": { "type": "num", "format": "compact" } }
+  },
+  "loginButton": "Log In",
+  "loginErrorInvalidWord": "One or more words are not valid BIP39 words.",
+  "loginErrorInvalidChecksum": "Invalid seed phrase — checksum does not match.",
+  "loginErrorInvalidWordCount": "Seed phrase must be 12 or 24 words.",
+  "loginErrorGeneric": "Invalid seed phrase. Please check and try again.",
+
+  "onboardingTitle": "Set up your catalog",
+  "onboardingSubtitle": "How would you like to get started?",
+  "onboardingImportTitle": "Import from old device",
+  "onboardingImportSubtitle": "Restore your catalog from a CSV backup",
+  "onboardingManualTitle": "Set up items manually",
+  "onboardingManualSubtitle": "Use the sample catalog or add your own items",
+  "onboardingImportFailed": "Import failed: {error}",
+  "@onboardingImportFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  }
+}

@@ -41,17 +41,20 @@ class _ItemFormPageState extends State<ItemFormPage> {
     super.initState();
     final p = widget.product;
     _lastCurrencyState = context.read<CurrencyCubit>().state;
-    final displayPrice =
-        p != null ? _lastCurrencyState.idrToDisplay(p.price) : null;
+    final displayPrice = p != null
+        ? _lastCurrencyState.idrToDisplay(p.price)
+        : null;
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _priceCtrl = TextEditingController(
-        text: displayPrice != null
-            ? _rawPrice(displayPrice, _lastCurrencyState)
-            : '');
+      text: displayPrice != null
+          ? _rawPrice(displayPrice, _lastCurrencyState)
+          : '',
+    );
     _descCtrl = TextEditingController(text: p?.description ?? '');
     _additions = List<Addition>.from(p?.additions ?? []);
     final categories = context.read<HomeBloc>().state.categories;
-    _selectedCategory = widget.defaultCategory ??
+    _selectedCategory =
+        widget.defaultCategory ??
         (categories.isNotEmpty ? categories.first : '');
   }
 
@@ -71,12 +74,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
         appBar: AppBar(
           title: Text(isEditing ? 'Edit Product' : 'Add Product'),
           centerTitle: true,
-          actions: [
-            TextButton(
-              onPressed: _submit,
-              child: const Text('Save'),
-            ),
-          ],
+          actions: [TextButton(onPressed: _submit, child: const Text('Save'))],
         ),
         body: Center(
           child: ConstrainedBox(
@@ -92,8 +90,9 @@ class _ItemFormPageState extends State<ItemFormPage> {
                       TextFormField(
                         controller: _nameCtrl,
                         autofocus: !isEditing,
-                        decoration:
-                            const InputDecoration(labelText: 'Product Name'),
+                        decoration: const InputDecoration(
+                          labelText: 'Product Name',
+                        ),
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
@@ -104,13 +103,17 @@ class _ItemFormPageState extends State<ItemFormPage> {
                                 curr.selectedCurrency.code ||
                             prev.exchangeRates != curr.exchangeRates,
                         listener: (context, currencyState) {
-                          final displayAmount =
-                              double.tryParse(_priceCtrl.text);
+                          final displayAmount = double.tryParse(
+                            _priceCtrl.text,
+                          );
                           if (displayAmount != null) {
-                            final idr =
-                                _lastCurrencyState.displayToIdr(displayAmount);
-                            _priceCtrl.text =
-                                _rawPrice(currencyState.idrToDisplay(idr), currencyState);
+                            final idr = _lastCurrencyState.displayToIdr(
+                              displayAmount,
+                            );
+                            _priceCtrl.text = _rawPrice(
+                              currencyState.idrToDisplay(idr),
+                              currencyState,
+                            );
                           }
                           _lastCurrencyState = currencyState;
                         },
@@ -118,10 +121,12 @@ class _ItemFormPageState extends State<ItemFormPage> {
                           return TextFormField(
                             controller: _priceCtrl,
                             decoration: InputDecoration(
-                                labelText:
-                                    'Price (${currencyState.selectedCurrency.code})'),
+                              labelText:
+                                  'Price (${currencyState.selectedCurrency.code})',
+                            ),
                             keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
+                              decimal: true,
+                            ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) {
                                 return 'Required';
@@ -145,16 +150,20 @@ class _ItemFormPageState extends State<ItemFormPage> {
                             _selectedCategory = categories.first;
                           }
                           return DropdownButtonFormField<String>(
+                            key: ValueKey(_selectedCategory),
                             initialValue: categories.contains(_selectedCategory)
                                 ? _selectedCategory
                                 : null,
-                            decoration:
-                                const InputDecoration(labelText: 'Category'),
+                            decoration: const InputDecoration(
+                              labelText: 'Category',
+                            ),
                             items: categories
-                                .map((c) => DropdownMenuItem(
-                                      value: c,
-                                      child: Text(c),
-                                    ))
+                                .map(
+                                  (c) => DropdownMenuItem(
+                                    value: c,
+                                    child: Text(c),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (v) {
                               if (v != null) {
@@ -167,8 +176,9 @@ class _ItemFormPageState extends State<ItemFormPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _descCtrl,
-                        decoration:
-                            const InputDecoration(labelText: 'Description (optional)'),
+                        decoration: const InputDecoration(
+                          labelText: 'Description (optional)',
+                        ),
                         maxLines: 3,
                       ),
                       const SizedBox(height: 24),
@@ -177,12 +187,14 @@ class _ItemFormPageState extends State<ItemFormPage> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      ..._additions.asMap().entries.map((e) => _AdditionRow(
-                            addition: e.value,
-                            onEdit: () => _showAdditionDialog(index: e.key),
-                            onDelete: () =>
-                                setState(() => _additions.removeAt(e.key)),
-                          )),
+                      ..._additions.asMap().entries.map(
+                        (e) => _AdditionRow(
+                          addition: e.value,
+                          onEdit: () => _showAdditionDialog(index: e.key),
+                          onDelete: () =>
+                              setState(() => _additions.removeAt(e.key)),
+                        ),
+                      ),
                       ListTile(
                         leading: Icon(
                           Icons.add_circle_outline,
@@ -191,7 +203,8 @@ class _ItemFormPageState extends State<ItemFormPage> {
                         title: Text(
                           'Add Addition',
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary),
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                         onTap: () => _showAdditionDialog(),
                       ),
@@ -208,10 +221,13 @@ class _ItemFormPageState extends State<ItemFormPage> {
 
   Future<void> _showAdditionDialog({int? index}) async {
     final existing = index != null ? _additions[index] : null;
-    final nameCtrl =
-        TextEditingController(text: existing?.name ?? '');
+    final currencyState = _lastCurrencyState;
+    final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final priceCtrl = TextEditingController(
-        text: existing != null ? existing.price.toInt().toString() : '');
+      text: existing != null
+          ? _rawPrice(currencyState.idrToDisplay(existing.price), currencyState)
+          : '',
+    );
     final formKey = GlobalKey<FormState>();
 
     final result = await showDialog<Addition>(
@@ -233,9 +249,13 @@ class _ItemFormPageState extends State<ItemFormPage> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: priceCtrl,
-                decoration: const InputDecoration(
-                    labelText: 'Extra Price (IDR, 0 = free)'),
-                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText:
+                      'Extra Price (${currencyState.selectedCurrency.code}, 0 = free)',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Required';
                   if (double.tryParse(v) == null) return 'Enter a valid number';
@@ -253,12 +273,17 @@ class _ItemFormPageState extends State<ItemFormPage> {
           TextButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                Navigator.of(context).pop(Addition(
-                  id: existing?.id ??
-                      '${nameCtrl.text.trim().replaceAll(' ', '_').toLowerCase()}__${DateTime.now().millisecondsSinceEpoch}',
-                  name: nameCtrl.text.trim(),
-                  price: double.parse(priceCtrl.text),
-                ));
+                Navigator.of(context).pop(
+                  Addition(
+                    id:
+                        existing?.id ??
+                        '${nameCtrl.text.trim().replaceAll(' ', '_').toLowerCase()}__${DateTime.now().millisecondsSinceEpoch}',
+                    name: nameCtrl.text.trim(),
+                    price: currencyState.displayToIdr(
+                      double.parse(priceCtrl.text),
+                    ),
+                  ),
+                );
               }
             },
             child: const Text('Save'),
@@ -281,10 +306,10 @@ class _ItemFormPageState extends State<ItemFormPage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     final currencyState = context.read<CurrencyCubit>().state;
-    final idrPrice =
-        currencyState.displayToIdr(double.parse(_priceCtrl.text));
+    final idrPrice = currencyState.displayToIdr(double.parse(_priceCtrl.text));
     final product = Product(
-      id: widget.product?.id ??
+      id:
+          widget.product?.id ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameCtrl.text.trim(),
       price: idrPrice,
@@ -293,14 +318,17 @@ class _ItemFormPageState extends State<ItemFormPage> {
     );
     final bloc = context.read<HomeBloc>();
     if (widget.product == null) {
-      bloc.add(HomeCatalogProductAdded(
-          category: _selectedCategory, product: product));
+      bloc.add(
+        HomeCatalogProductAdded(category: _selectedCategory, product: product),
+      );
     } else {
-      bloc.add(HomeCatalogProductUpdated(
-        oldCategory: widget.defaultCategory!,
-        category: _selectedCategory,
-        product: product,
-      ));
+      bloc.add(
+        HomeCatalogProductUpdated(
+          oldCategory: widget.defaultCategory!,
+          category: _selectedCategory,
+          product: product,
+        ),
+      );
     }
     Navigator.of(context).pop();
   }
@@ -327,10 +355,7 @@ class _AdditionRow extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: onEdit,
-          ),
+          IconButton(icon: const Icon(Icons.edit_outlined), onPressed: onEdit),
           IconButton(
             icon: const Icon(Icons.delete_outline),
             color: Colors.red,
