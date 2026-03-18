@@ -325,3 +325,47 @@ Completed withdrawals are persisted in SQLite. History is accessible from the wa
 
 ### Export
 `DataService` exports both `kasway_data.csv` (catalog) and `kasway_withdrawals.csv` (withdrawals) when the user taps Export in Data Transfer. The withdrawal CSV includes `kas_idr_rate`, `ref_fiat_code`, `ref_fiat_amount` columns.
+
+## Kaspa wRPC Real-Time (Dart WebSocket)
+
+`kaspa-wrpc-client` v0.15.0 is **not usable on native targets** — `kaspa-rpc-core` contains WASM-gated code that fails to compile outside WASM. Rust's `tokio-tungstenite` also fails on macOS Flutter because Rust DNS resolution (`getaddrinfo` via `spawn_blocking`) does not work in the sandboxed Flutter process.
+
+**Solution:** Use `dart:io WebSocket` directly. Dart's networking stack uses macOS-native APIs and works correctly in the Flutter sandbox.
+
+### Public node network — resolver pattern (Dart)
+```dart
+// Try each resolver in order; fall back to hardcoded URL on failure.
+const resolvers = [
+  'https://kaspa.stream/v2/kaspa/mainnet/wrpc/json',
+  'https://kaspa.red/v2/kaspa/mainnet/wrpc/json',
+  'https://kaspa.green/v2/kaspa/mainnet/wrpc/json',
+  'https://kaspa.blue/v2/kaspa/mainnet/wrpc/json',
+];
+const fallback = 'wss://public-pool.kaspa.green:18110';
+// Response JSON: {"url": "wss://..."}  (also check "address", "endpoint")
+```
+
+### Confirmed wire protocol (getBlockDagInfo polling, 1s interval)
+```
+Request:  {"id": N, "method": "getBlockDagInfo", "params": {}}
+Response: {"id": N, "method": "getBlockDagInfo",
+           "params": {"virtualDaaScore": 384349863, "blockCount": ..., ...}}
+```
+`notifyVirtualDaaScoreChanged` returns "RPC method not found" on this endpoint — use polling instead.
+DAA score field: `params["virtualDaaScore"]` (int, no quotes).
+
+### Hardcoded node URL
+`wss://rose.kaspa.green/kaspa/mainnet/wrpc/json` — DNS for `public-pool.kaspa.green` fails in this Flutter build environment.
+
+### Dart WebSocket lifecycle pattern
+```dart
+final ws = await WebSocket.connect(url);
+// Poll every second:
+Stream.periodic(Duration(seconds: 1)).listen((_) =>
+  ws.add(jsonEncode({'id': _reqId++, 'method': 'getBlockDagInfo', 'params': {}})));
+await for (final raw in ws) { /* parse params.virtualDaaScore */ }
+// Reconnect on close/error with 3s delay; honour _disposed flag.
+```
+
+### Route
+`/profile/node-status` → `NodeStatusPage` (real-time DAA score, no Rust signals needed)

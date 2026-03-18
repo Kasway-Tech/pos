@@ -48,6 +48,11 @@ class ProfilePage extends StatelessWidget {
                   onTap: () => context.push('/profile/data-transfer'),
                 ),
                 _ProfileMenuItem(
+                  icon: Icons.router,
+                  title: 'Node Status',
+                  onTap: () => context.push('/profile/node-status'),
+                ),
+                _ProfileMenuItem(
                   icon: Icons.palette_outlined,
                   title: 'Theme Settings',
                   onTap: () => context.push('/profile/theme'),

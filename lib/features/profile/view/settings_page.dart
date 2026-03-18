@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
-import 'package:kasway/app/theme/theme_cubit.dart';
-import 'package:kasway/app/theme/theme_state.dart';
+import 'package:kasway/app/locale/locale_cubit.dart';
+import 'package:kasway/app/locale/locale_state.dart';
+import 'package:kasway/app/widgets/language_picker_sheet.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -35,11 +36,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   value: _notifications,
                   onChanged: (val) => setState(() => _notifications = val),
                 ),
-                ListTile(
-                  title: const Text('Language'),
-                  subtitle: const Text('English (US)'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
+                BlocBuilder<LocaleCubit, LocaleState>(
+                  builder: (context, state) => ListTile(
+                    title: const Text('Language'),
+                    subtitle: Text(state.language.displayName),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => LanguagePickerSheet.show(context),
+                  ),
                 ),
                 BlocBuilder<CurrencyCubit, CurrencyState>(
                   builder: (context, state) => ListTile(
@@ -47,35 +50,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: Text(state.selectedCurrency.displayName),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push('/profile/currency'),
-                  ),
-                ),
-                BlocBuilder<ThemeCubit, ThemeState>(
-                  builder: (context, state) => ListTile(
-                    title: const Text('Primary Color'),
-                    subtitle: const Text('Reset to default brand color'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: state.seedColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        TextButton(
-                          onPressed:
-                              state.seedColor == ThemeState.defaultSeedColor
-                                  ? null
-                                  : () => context
-                                      .read<ThemeCubit>()
-                                      .resetSeedColor(),
-                          child: const Text('Reset'),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 BlocBuilder<CurrencyCubit, CurrencyState>(
