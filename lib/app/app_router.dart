@@ -11,6 +11,7 @@ import '../features/profile/view/settings_page.dart';
 import '../features/profile/view/currency_settings_page.dart';
 import '../features/profile/view/theme_settings_page.dart';
 import '../features/items/view/item_management_page.dart';
+import '../features/profile/view/data_transfer_page.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -55,6 +56,10 @@ class AppRouter {
           GoRoute(
             path: 'items',
             builder: (context, state) => const ItemManagementPage(),
+          ),
+          GoRoute(
+            path: 'data-transfer',
+            builder: (context, state) => const DataTransferPage(),
           ),
         ],
       ),

@@ -1,0 +1,51 @@
+id,category,name,price,description,additions
+p1,Promo,Promo 1,10000,,
+p2,Promo,Promo 2,20000,,
+p3,Promo,Promo 3,30000,,
+p4,Promo,Promo 4,40000,,
+p5,Promo,Promo 5,50000,,
+p6,Promo,Promo 6,60000,,
+p7,Promo,Promo 7,70000,,
+p8,Promo,Promo 8,80000,,
+p9,Promo,Promo 9,90000,,
+p10,Promo,Promo 10,100000,,
+f1,Makanan,Nasi Goreng,25000,,"Extra Cheese:5000|Extra Sauce:3000|No Onion:0|Extra Spicy:0"
+f2,Makanan,Mie Goreng,22000,,"Extra Cheese:5000|Extra Sauce:3000|No Onion:0|Extra Spicy:0"
+f3,Makanan,Burger Deluxe,35000,,"Extra Cheese:5000|Extra Sauce:3000|No Onion:0|Extra Spicy:0"
+f4,Makanan,Pizza Slice,30000,,"Extra Cheese:5000|Extra Sauce:3000|No Onion:0|Extra Spicy:0"
+f5,Makanan,Makanan 5,50000,,
+f6,Makanan,Makanan 6,60000,,
+f7,Makanan,Makanan 7,70000,,
+f8,Makanan,Makanan 8,80000,,
+f9,Makanan,Makanan 9,90000,,
+f10,Makanan,Makanan 10,100000,,
+d1,Minuman,Espresso,18000,,"Extra Shot:5000|Less Sugar:0|Oat Milk:8000|Whipped Cream:5000"
+d2,Minuman,Cappuccino,25000,,"Extra Shot:5000|Less Sugar:0|Oat Milk:8000|Whipped Cream:5000"
+d3,Minuman,Latte,28000,,"Extra Shot:5000|Less Sugar:0|Oat Milk:8000|Whipped Cream:5000"
+d4,Minuman,Americano,22000,,"Extra Shot:5000|Less Sugar:0|Oat Milk:8000|Whipped Cream:5000"
+d5,Minuman,Matcha Latte,30000,,"Extra Shot:5000|Less Sugar:0|Oat Milk:8000|Whipped Cream:5000"
+d6,Minuman,Minuman 6,60000,,
+d7,Minuman,Minuman 7,70000,,
+d8,Minuman,Minuman 8,80000,,
+d9,Minuman,Minuman 9,90000,,
+d10,Minuman,Minuman 10,100000,,
+pk1,Paket,Paket Hemat 1,45000,,"Upsize Drink:5000|Extra Fries:8000"
+pk2,Paket,Paket Hemat 2,55000,,"Upsize Drink:5000|Extra Fries:8000"
+pk3,Paket,Paket 3,30000,,
+pk4,Paket,Paket 4,40000,,
+pk5,Paket,Paket 5,50000,,
+pk6,Paket,Paket 6,60000,,
+pk7,Paket,Paket 7,70000,,
+pk8,Paket,Paket 8,80000,,
+pk9,Paket,Paket 9,90000,,
+pk10,Paket,Paket 10,100000,,
+o1,Lainnya,Lainnya 1,10000,,
+o2,Lainnya,Lainnya 2,20000,,
+o3,Lainnya,Lainnya 3,30000,,
+o4,Lainnya,Lainnya 4,40000,,
+o5,Lainnya,Lainnya 5,50000,,
+o6,Lainnya,Lainnya 6,60000,,
+o7,Lainnya,Lainnya 7,70000,,
+o8,Lainnya,Lainnya 8,80000,,
+o9,Lainnya,Lainnya 9,90000,,
+o10,Lainnya,Lainnya 10,100000,,

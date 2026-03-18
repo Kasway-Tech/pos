@@ -35,6 +35,11 @@ class ProfilePage extends StatelessWidget {
                   onTap: () => context.push('/profile/items'),
                 ),
                 _ProfileMenuItem(
+                  icon: Icons.swap_horiz,
+                  title: 'Data Transfer',
+                  onTap: () => context.push('/profile/data-transfer'),
+                ),
+                _ProfileMenuItem(
                   icon: Icons.palette_outlined,
                   title: 'Theme Settings',
                   onTap: () => context.push('/profile/theme'),
