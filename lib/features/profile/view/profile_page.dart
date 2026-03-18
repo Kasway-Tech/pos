@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
@@ -49,6 +51,11 @@ class ProfilePage extends StatelessWidget {
                   icon: Icons.router,
                   title: 'Node Status',
                   onTap: () => context.push('/profile/node-status'),
+                ),
+                _ProfileMenuItem(
+                  icon: Icons.lan_outlined,
+                  title: 'Network',
+                  onTap: () => context.push('/profile/network'),
                 ),
                 _ProfileMenuItem(
                   icon: Icons.palette_outlined,
@@ -347,11 +354,24 @@ class _RevenuePriceDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CurrencyCubit, CurrencyState>(
-      builder: (context, state) {
+    return BlocBuilder<NetworkCubit, NetworkState>(
+      builder: (context, networkState) {
+        return BlocBuilder<CurrencyCubit, CurrencyState>(
+          builder: (context, state) => _buildContent(context, state, networkState),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    CurrencyState state,
+    NetworkState networkState,
+  ) {
         final kasIdr = state.exchangeRates['idr'] ?? 0.0;
         final kasAmount = kasIdr > 0 ? revenueIdr / kasIdr : 0.0;
-        final kasStr = 'KAS ${kasAmount.toStringAsFixed(4)}';
+        final kasSymbol = networkState.kasSymbol;
+        final kasStr = '$kasSymbol ${kasAmount.toStringAsFixed(4)}';
 
         final textTheme = Theme.of(context).textTheme;
         final boldHeadline = textTheme.headlineSmall
@@ -370,8 +390,6 @@ class _RevenuePriceDisplay extends StatelessWidget {
             ],
           );
         }
-      },
-    );
   }
 }
 
@@ -479,6 +497,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final kasSymbol = context.watch<NetworkCubit>().state.kasSymbol;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -493,7 +512,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Withdraw KAS',
+              'Withdraw $kasSymbol',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -517,10 +536,10 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount (KAS)',
+              decoration: InputDecoration(
+                labelText: 'Amount ($kasSymbol)',
                 hintText: '0.00',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),

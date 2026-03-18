@@ -54,7 +54,7 @@ class CurrencyState extends Equatable {
   final bool isLoading;
 
   /// Convert an IDR base price to the selected display currency.
-  String formatPrice(double idrPrice) {
+  String formatPrice(double idrPrice, {String kasSymbol = 'KAS'}) {
     final code = selectedCurrency.code.toLowerCase();
     final kasIdr = exchangeRates['idr'] ?? 0;
 
@@ -67,7 +67,7 @@ class CurrencyState extends Equatable {
     }
     if (selectedCurrency.isCrypto) {
       final kas = idrPrice / kasIdr;
-      return 'KAS ${kas.toStringAsFixed(4)}';
+      return '$kasSymbol ${kas.toStringAsFixed(4)}';
     }
     final kasTarget = exchangeRates[code] ?? 0;
     if (kasTarget <= 0) return '-- ${selectedCurrency.code}';

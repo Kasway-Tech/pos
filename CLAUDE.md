@@ -356,3 +356,32 @@ await for (final raw in ws) { /* parse params.virtualDaaScore */ }
 
 ### Route
 `/profile/node-status` → `NodeStatusPage` (real-time DAA score, no Rust signals needed)
+
+## Network Switching (Mainnet / Testnet-10)
+
+Runtime network switching without app restart. `NetworkCubit` manages the active network and node URLs.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/app/network/network_state.dart` | `KaspaNetwork` enum + `NetworkState` with `activeUrl`, `networkLabel`, `kasSymbol` getters |
+| `lib/app/network/network_cubit.dart` | Persists selected network + custom URLs via SharedPreferences |
+| `lib/features/profile/view/network_settings_page.dart` | Settings page: network selector + URL fields + Save button |
+
+### SharedPreferences keys
+`kaspa_network` (string: `"mainnet"` / `"testnet10"`), `kaspa_mainnet_url`, `kaspa_testnet10_url`
+
+### Default URLs
+- Mainnet: `wss://rose.kaspa.green/kaspa/mainnet/wrpc/json`
+- Testnet-10: `wss://electron-10.kaspa.stream/kaspa/testnet-10/wrpc/json`
+
+### KAS symbol
+`NetworkState.kasSymbol` returns `'KAS'` on mainnet and `'TKAS'` on testnet-10.
+`formatPrice()` in `CurrencyState` accepts an optional `kasSymbol` named parameter (defaults to `'KAS'`).
+`PriceText` watches both `CurrencyCubit` and `NetworkCubit` and passes the symbol automatically.
+
+### Auto-reconnect
+`NodeStatusPage` wraps its body in `BlocListener<NetworkCubit, NetworkState>` and calls `_reconnect()` whenever `activeUrl` changes. The reconnect sets `_disposed = true`, closes the socket, waits 50 ms, then resets and starts a fresh `_connect()` loop.
+
+### Route
+`/profile/network` → `NetworkSettingsPage`

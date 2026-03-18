@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/network_state.dart';
 
 class NodeStatusPage extends StatefulWidget {
   const NodeStatusPage({super.key});
@@ -13,8 +16,6 @@ class NodeStatusPage extends StatefulWidget {
 
 class _NodeStatusPageState extends State<NodeStatusPage>
     with SingleTickerProviderStateMixin {
-  static const _kUrl = 'wss://rose.kaspa.green/kaspa/mainnet/wrpc/json';
-
   late final AnimationController _pulseController;
 
   bool _connected = false;
@@ -22,6 +23,8 @@ class _NodeStatusPageState extends State<NodeStatusPage>
   String _error = 'Connecting…';
   int _updateCount = 0;
   String _lastUpdated = '';
+  late String _currentUrl;
+  late String _networkLabel;
 
   WebSocket? _socket;
   bool _disposed = false;
@@ -34,13 +37,16 @@ class _NodeStatusPageState extends State<NodeStatusPage>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+    final networkState = context.read<NetworkCubit>().state;
+    _currentUrl = networkState.activeUrl;
+    _networkLabel = networkState.networkLabel;
     _connect();
   }
 
   Future<void> _connect() async {
     while (!_disposed) {
       try {
-        final ws = await WebSocket.connect(_kUrl);
+        final ws = await WebSocket.connect(_currentUrl);
         if (_disposed) {
           await ws.close();
           return;
@@ -82,6 +88,25 @@ class _NodeStatusPageState extends State<NodeStatusPage>
     }
   }
 
+  Future<void> _reconnect(String newUrl, String newLabel) async {
+    _disposed = true;
+    await _socket?.close();
+    // Give the event loop a tick to process socket closure before resetting.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    if (!mounted) return;
+    setState(() {
+      _disposed = false;
+      _connected = false;
+      _error = 'Connecting…';
+      _daaScore = '—';
+      _currentUrl = newUrl;
+      _networkLabel = newLabel;
+      _updateCount = 0;
+      _lastUpdated = '';
+    });
+    _connect();
+  }
+
   void _handleFrame(String text) {
     try {
       final json = jsonDecode(text) as Map<String, dynamic>;
@@ -120,52 +145,78 @@ class _NodeStatusPageState extends State<NodeStatusPage>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Node Status'), centerTitle: true),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _StatusChip(
-                  connected: _connected,
-                  nodeUrl: _kUrl,
-                  error: _error,
-                ),
-                const SizedBox(height: 48),
-                _PulseDisplay(
-                  controller: _pulseController,
-                  child: Text(
-                    _daaScore,
-                    style: textTheme.displaySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
+    return BlocListener<NetworkCubit, NetworkState>(
+      listenWhen: (previous, current) =>
+          previous.activeUrl != current.activeUrl,
+      listener: (context, state) {
+        _reconnect(state.activeUrl, state.networkLabel);
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Node Status'), centerTitle: true),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Network label badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
                     ),
-                    textAlign: TextAlign.center,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _networkLabel,
+                      style: textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Virtual DAA Score',
-                  style: textTheme.labelLarge?.copyWith(
-                    color: colorScheme.outline,
+                  const SizedBox(height: 20),
+                  _StatusChip(
+                    connected: _connected,
+                    nodeUrl: _currentUrl,
+                    error: _error,
                   ),
-                ),
-                const SizedBox(height: 24),
-                if (_updateCount > 0)
+                  const SizedBox(height: 48),
+                  _PulseDisplay(
+                    controller: _pulseController,
+                    child: Text(
+                      _daaScore,
+                      style: textTheme.displaySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
-                    'Update #$_updateCount — $_lastUpdated',
-                    style: textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
+                    'Virtual DAA Score',
+                    style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.outline,
                     ),
                   ),
-              ],
+                  const SizedBox(height: 24),
+                  if (_updateCount > 0)
+                    Text(
+                      'Update #$_updateCount — $_lastUpdated',
+                      style: textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        color: colorScheme.outline,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

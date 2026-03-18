@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/data/models/withdrawal.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
@@ -31,6 +32,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final kasSymbol = context.watch<NetworkCubit>().state.kasSymbol;
     return TitlebarSafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -55,7 +57,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                   itemBuilder: (context, index) {
                     final w = withdrawals[index];
                     return ListTile(
-                      title: Text('KAS ${w.amountKas.toStringAsFixed(4)}'),
+                      title: Text('$kasSymbol ${w.amountKas.toStringAsFixed(4)}'),
                       subtitle: Text(
                         '${_truncateAddress(w.toAddress)}  •  ${_dateFormat.format(w.createdAt.toLocal())}',
                       ),

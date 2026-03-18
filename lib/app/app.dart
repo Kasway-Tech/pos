@@ -7,6 +7,7 @@ import 'package:kasway/l10n/app_localizations.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/locale/locale_state.dart';
+import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
@@ -53,6 +54,7 @@ class _AppState extends State<App> {
         BlocProvider(create: (_) => ThemeCubit()),
         BlocProvider(create: (_) => CurrencyCubit()),
         BlocProvider(create: (_) => LocaleCubit()),
+        BlocProvider(create: (_) => NetworkCubit()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {
