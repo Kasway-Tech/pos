@@ -59,3 +59,68 @@ class HomeSearchTermChanged extends HomeEvent {
   @override
   List<Object?> get props => [searchTerm];
 }
+
+// Catalog product events
+class HomeCatalogProductAdded extends HomeEvent {
+  const HomeCatalogProductAdded({
+    required this.category,
+    required this.product,
+  });
+  final String category;
+  final Product product;
+
+  @override
+  List<Object?> get props => [category, product];
+}
+
+class HomeCatalogProductUpdated extends HomeEvent {
+  const HomeCatalogProductUpdated({
+    required this.oldCategory,
+    required this.category,
+    required this.product,
+  });
+  final String oldCategory;
+  final String category;
+  final Product product;
+
+  @override
+  List<Object?> get props => [oldCategory, category, product];
+}
+
+class HomeCatalogProductDeleted extends HomeEvent {
+  const HomeCatalogProductDeleted({
+    required this.category,
+    required this.productId,
+  });
+  final String category;
+  final String productId;
+
+  @override
+  List<Object?> get props => [category, productId];
+}
+
+// Catalog category events
+class HomeCategoryAdded extends HomeEvent {
+  const HomeCategoryAdded(this.name);
+  final String name;
+
+  @override
+  List<Object?> get props => [name];
+}
+
+class HomeCategoryRenamed extends HomeEvent {
+  const HomeCategoryRenamed({required this.oldName, required this.newName});
+  final String oldName;
+  final String newName;
+
+  @override
+  List<Object?> get props => [oldName, newName];
+}
+
+class HomeCategoryDeleted extends HomeEvent {
+  const HomeCategoryDeleted(this.name);
+  final String name;
+
+  @override
+  List<Object?> get props => [name];
+}

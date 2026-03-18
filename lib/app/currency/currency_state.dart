@@ -79,6 +79,28 @@ class CurrencyState extends Equatable {
     ).format(converted);
   }
 
+  /// Convert an IDR price to the selected display currency as a raw number.
+  double idrToDisplay(double idrPrice) {
+    final code = selectedCurrency.code.toLowerCase();
+    final kasIdr = exchangeRates['idr'] ?? 0;
+    if (selectedCurrency.code == 'IDR' || kasIdr <= 0) return idrPrice;
+    if (selectedCurrency.isCrypto) return idrPrice / kasIdr;
+    final kasTarget = exchangeRates[code] ?? 0;
+    if (kasTarget <= 0) return idrPrice;
+    return (idrPrice / kasIdr) * kasTarget;
+  }
+
+  /// Convert a display-currency amount back to IDR.
+  double displayToIdr(double displayAmount) {
+    final code = selectedCurrency.code.toLowerCase();
+    final kasIdr = exchangeRates['idr'] ?? 0;
+    if (selectedCurrency.code == 'IDR' || kasIdr <= 0) return displayAmount;
+    if (selectedCurrency.isCrypto) return displayAmount * kasIdr;
+    final kasTarget = exchangeRates[code] ?? 0;
+    if (kasTarget <= 0) return displayAmount;
+    return displayAmount * (kasIdr / kasTarget);
+  }
+
   CurrencyState copyWith({
     Currency? selectedCurrency,
     Map<String, double>? exchangeRates,

@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Code Quality Rule
+
+**Always run `flutter analyze` on modified files before declaring a task done.** Fix all errors **and** deprecation warnings, then run analyze again to confirm zero issues. This catches type errors and deprecated API usage before the user has to re-run and re-report.
+
 ## Commands
 
 ```bash
@@ -53,7 +57,7 @@ lib/
 
 - **Product**: Has optional `additions` (variants/customizations with extra price).
 - **CartItem**: A product + selected additions + quantity. Has a `totalPrice` getter `(product.price + additions sum) * quantity`.
-- **HomeBloc**: Central bloc managing the product catalog (5 hardcoded categories), cart, and search. Products are currently seeded in-memory inside `ProductRepository`.
+- **HomeBloc**: Central bloc managing the product catalog (loaded from SQLite), cart, and search. Products and categories are stored in `kasway.db` via `AppDatabase`.
 - **Tablet detection**: `app.dart` detects screen width 600–1200px to adapt layout.
 
 ## Currency & Pricing System
@@ -126,3 +130,52 @@ CountryFlag.fromCountryCode('ID', theme: const ImageTheme(width: 40, height: 28)
 ```
 
 Size is set via `ImageTheme(width:, height:)`. Wrap in `ClipRRect` for rounded corners.
+
+## Item Management System
+
+Products and categories are persisted in SQLite (`sqflite`) via `AppDatabase` singleton. On first launch the DB is seeded with the original 50 products across 5 categories.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/data/database/app_database.dart` | SQLite singleton: schema, migrations, seed data |
+| `lib/data/repositories/product_repository.dart` | DB-backed CRUD for products and categories |
+| `lib/features/items/view/item_management_page.dart` | Tab-based product list, accessible from Profile |
+| `lib/features/items/view/item_form_page.dart` | Add/Edit product form (pushed imperatively) |
+| `lib/features/items/view/category_management_page.dart` | Category CRUD (pushed imperatively) |
+
+### Navigation
+Profile → **Item Management** (`/profile/items`) → `ItemManagementPage`
+- Manage categories: `IconButton(Icons.category_outlined)` in AppBar → `CategoryManagementPage` (imperative push)
+- Add/edit items: pushed imperatively via `Navigator.of(context).push(MaterialPageRoute(...))` with `BlocProvider.value` to share the parent `HomeBloc`
+
+### Optimistic Updates
+All 6 catalog events (`HomeCatalogProduct{Added,Updated,Deleted}`, `HomeCategory{Added,Renamed,Deleted}`) follow the pattern:
+1. Emit new state immediately (UI updates instantly)
+2. `await _productRepository.persistXxx()`
+3. On error: `emit(previous)` — silent rollback
+
+### Schema (kasway.db, version 1)
+```sql
+categories(name TEXT PK, sort_order INTEGER)
+products(id TEXT PK, name TEXT, price REAL, description TEXT, category_name TEXT)
+additions(id TEXT PK, product_id TEXT, name TEXT, price REAL)
+```
+Category rename cascades: DB transaction updates both `categories` and all matching `products.category_name`.
+
+### HomeBloc catalog events
+```dart
+// Add to catalog
+bloc.add(HomeCatalogProductAdded(category: 'Makanan', product: p));
+
+// Edit (handles cross-category moves via oldCategory)
+bloc.add(HomeCatalogProductUpdated(oldCategory: 'Makanan', category: 'Promo', product: p));
+
+// Delete (also removes from active cart)
+bloc.add(HomeCatalogProductDeleted(category: 'Makanan', productId: 'f1'));
+
+// Categories
+bloc.add(HomeCategoryAdded('New Category'));
+bloc.add(HomeCategoryRenamed(oldName: 'Old', newName: 'New'));
+bloc.add(HomeCategoryDeleted('Empty Category'));  // only when count == 0
+```

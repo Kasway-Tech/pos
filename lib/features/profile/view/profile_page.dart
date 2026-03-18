@@ -30,6 +30,11 @@ class ProfilePage extends StatelessWidget {
                   onTap: () => context.push('/profile/orders'),
                 ),
                 _ProfileMenuItem(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Manage Item',
+                  onTap: () => context.push('/profile/items'),
+                ),
+                _ProfileMenuItem(
                   icon: Icons.palette_outlined,
                   title: 'Theme Settings',
                   onTap: () => context.push('/profile/theme'),

@@ -16,6 +16,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeCartCleared>(_onCartCleared);
     on<HomeCartQuantityUpdated>(_onCartQuantityUpdated);
     on<HomeSearchTermChanged>(_onSearchTermChanged);
+    on<HomeCatalogProductAdded>(_onCatalogProductAdded);
+    on<HomeCatalogProductUpdated>(_onCatalogProductUpdated);
+    on<HomeCatalogProductDeleted>(_onCatalogProductDeleted);
+    on<HomeCategoryAdded>(_onCategoryAdded);
+    on<HomeCategoryRenamed>(_onCategoryRenamed);
+    on<HomeCategoryDeleted>(_onCategoryDeleted);
   }
 
   final ProductRepository _productRepository;
@@ -23,24 +29,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onStarted(HomeStarted event, Emitter<HomeState> emit) async {
     emit(state.copyWith(status: HomeStatus.loading));
     try {
-      final categories = ['Promo', 'Makanan', 'Minuman', 'Paket', 'Lainnya'];
+      final categories = await _productRepository.getCategories();
       final itemsByCategory = <String, List<Product>>{};
 
       for (final category in categories) {
-        final products = await _productRepository.getProductsByCategory(
-          category,
-        );
-        itemsByCategory[category] = products;
+        itemsByCategory[category] =
+            await _productRepository.getProductsByCategory(category);
       }
 
-      emit(
-        state.copyWith(
-          status: HomeStatus.success,
-          categories: categories,
-          itemsByCategory: itemsByCategory,
-          initialItemsByCategory: itemsByCategory,
-        ),
-      );
+      emit(state.copyWith(
+        status: HomeStatus.success,
+        categories: categories,
+        itemsByCategory: itemsByCategory,
+        initialItemsByCategory: itemsByCategory,
+      ));
     } catch (_) {
       emit(state.copyWith(status: HomeStatus.failure));
     }
@@ -58,7 +60,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (newQuantity <= 99) {
         cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
       } else {
-        return; // Don't emit if already at max
+        return;
       }
     } else {
       cartItems.add(CartItem(product: event.product, quantity: 1));
@@ -73,7 +75,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) {
     final cartItems = List<CartItem>.from(state.cartItems);
 
-    // Find existing item with same product ID and same additions
     final index = cartItems.indexWhere(
       (item) =>
           item.product.id == event.product.id &&
@@ -85,7 +86,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (newQuantity <= 99) {
         cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
       } else {
-        return; // Don't emit if already at max
+        return;
       }
     } else {
       cartItems.add(
@@ -157,11 +158,180 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
-    emit(
-      state.copyWith(
-        searchTerm: event.searchTerm,
-        itemsByCategory: itemsByCategory,
-      ),
-    );
+    emit(state.copyWith(
+      searchTerm: event.searchTerm,
+      itemsByCategory: itemsByCategory,
+    ));
+  }
+
+  Future<void> _onCatalogProductAdded(
+    HomeCatalogProductAdded event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previous = state;
+    final List<Product> newList = [
+      ...(state.itemsByCategory[event.category] ?? []),
+      event.product,
+    ];
+    final updated = Map<String, List<Product>>.from(state.itemsByCategory)
+      ..[event.category] = newList;
+    final initial = Map<String, List<Product>>.from(state.initialItemsByCategory)
+      ..[event.category] = newList;
+    emit(state.copyWith(
+        itemsByCategory: updated, initialItemsByCategory: initial));
+    try {
+      await _productRepository.insertProduct(event.product, event.category);
+    } catch (_) {
+      emit(previous);
+    }
+  }
+
+  Future<void> _onCatalogProductUpdated(
+    HomeCatalogProductUpdated event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previous = state;
+    final updated = Map<String, List<Product>>.from(state.itemsByCategory);
+    final initial =
+        Map<String, List<Product>>.from(state.initialItemsByCategory);
+
+    // Remove from old category
+    for (final map in [updated, initial]) {
+      map[event.oldCategory] = (map[event.oldCategory] ?? [])
+          .where((p) => p.id != event.product.id)
+          .toList();
+    }
+
+    // Insert into new category (or update in place if same)
+    for (final map in [updated, initial]) {
+      final list = List<Product>.from(map[event.category] ?? []);
+      if (event.oldCategory == event.category) {
+        final i = list.indexWhere((p) => p.id == event.product.id);
+        if (i >= 0) {
+          list[i] = event.product;
+        } else {
+          list.add(event.product);
+        }
+      } else {
+        list.add(event.product);
+      }
+      map[event.category] = list;
+    }
+
+    // Sync active cart
+    final updatedCart = state.cartItems
+        .map((item) => item.product.id == event.product.id
+            ? item.copyWith(product: event.product)
+            : item)
+        .toList();
+
+    emit(state.copyWith(
+      itemsByCategory: updated,
+      initialItemsByCategory: initial,
+      cartItems: updatedCart,
+    ));
+    try {
+      await _productRepository.updateProduct(event.product, event.category);
+    } catch (_) {
+      emit(previous);
+    }
+  }
+
+  Future<void> _onCatalogProductDeleted(
+    HomeCatalogProductDeleted event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previous = state;
+    final updated = Map<String, List<Product>>.from(state.itemsByCategory);
+    final initial =
+        Map<String, List<Product>>.from(state.initialItemsByCategory);
+    for (final map in [updated, initial]) {
+      map[event.category] = (map[event.category] ?? [])
+          .where((p) => p.id != event.productId)
+          .toList();
+    }
+    final updatedCart = state.cartItems
+        .where((i) => i.product.id != event.productId)
+        .toList();
+    emit(state.copyWith(
+      itemsByCategory: updated,
+      initialItemsByCategory: initial,
+      cartItems: updatedCart,
+    ));
+    try {
+      await _productRepository.deleteProduct(event.productId);
+    } catch (_) {
+      emit(previous);
+    }
+  }
+
+  Future<void> _onCategoryAdded(
+    HomeCategoryAdded event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previous = state;
+    final cats = [...state.categories, event.name];
+    final updated = {...state.itemsByCategory, event.name: <Product>[]};
+    final initial = {
+      ...state.initialItemsByCategory,
+      event.name: <Product>[],
+    };
+    emit(state.copyWith(
+        categories: cats,
+        itemsByCategory: updated,
+        initialItemsByCategory: initial));
+    try {
+      await _productRepository.insertCategory(event.name, cats.length - 1);
+    } catch (_) {
+      emit(previous);
+    }
+  }
+
+  Future<void> _onCategoryRenamed(
+    HomeCategoryRenamed event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previous = state;
+    final cats = state.categories
+        .map((c) => c == event.oldName ? event.newName : c)
+        .toList();
+
+    Map<String, List<Product>> rekey(Map<String, List<Product>> m) => {
+          for (final e in m.entries)
+            (e.key == event.oldName ? event.newName : e.key): e.value,
+        };
+
+    emit(state.copyWith(
+      categories: cats,
+      itemsByCategory: rekey(state.itemsByCategory),
+      initialItemsByCategory: rekey(state.initialItemsByCategory),
+    ));
+    try {
+      await _productRepository.renameCategory(event.oldName, event.newName);
+    } catch (_) {
+      emit(previous);
+    }
+  }
+
+  Future<void> _onCategoryDeleted(
+    HomeCategoryDeleted event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previous = state;
+    final cats = state.categories.where((c) => c != event.name).toList();
+    final updated = Map<String, List<Product>>.from(state.itemsByCategory)
+      ..remove(event.name);
+    final initial =
+        Map<String, List<Product>>.from(state.initialItemsByCategory)
+          ..remove(event.name);
+    emit(state.copyWith(
+        categories: cats,
+        itemsByCategory: updated,
+        initialItemsByCategory: initial));
+    try {
+      await _productRepository.deleteCategory(event.name);
+    } catch (_) {
+      emit(previous);
+    }
   }
 }
