@@ -104,7 +104,7 @@ class ThemeSettingsPage extends StatelessWidget {
                           itemBuilder: (context, index) {
                             final option = _colorOptions[index];
                             final isSelected =
-                                state.seedColor.value == option.color.value;
+                                state.seedColor.toARGB32() == option.color.toARGB32();
 
                             return InkWell(
                               onTap: () {
@@ -140,6 +140,16 @@ class ThemeSettingsPage extends StatelessWidget {
                               ),
                             );
                           },
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed:
+                              state.seedColor.toARGB32() ==
+                                  ThemeState.defaultSeedColor.toARGB32()
+                              ? null
+                              : () => context.read<ThemeCubit>().resetSeedColor(),
+                          icon: const Icon(Icons.restart_alt),
+                          label: const Text('Reset to default'),
                         ),
                       ],
                     );

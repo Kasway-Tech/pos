@@ -21,7 +21,7 @@ class ThemeCubit extends Cubit<ThemeState> {
       ThemeState(
         seedColor: colorValue != null
             ? Color(colorValue)
-            : const Color(0xff1e6b4f),
+            : ThemeState.defaultSeedColor,
         themeMode: themeModeIndex != null
             ? ThemeMode.values[themeModeIndex]
             : ThemeMode.system,
@@ -29,9 +29,11 @@ class ThemeCubit extends Cubit<ThemeState> {
     );
   }
 
+  Future<void> resetSeedColor() => setSeedColor(ThemeState.defaultSeedColor);
+
   Future<void> setSeedColor(Color color) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_seedColorKey, color.value);
+    await prefs.setInt(_seedColorKey, color.toARGB32());
     emit(state.copyWith(seedColor: color));
   }
 

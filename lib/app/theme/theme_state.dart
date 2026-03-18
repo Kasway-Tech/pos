@@ -2,8 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 class ThemeState extends Equatable {
+  static const Color defaultSeedColor = Color(0xff1e6b4f); // Brand green
+
   const ThemeState({
-    this.seedColor = const Color(0xff1e6b4f), // Brand green color
+    this.seedColor = defaultSeedColor,
     this.themeMode = ThemeMode.system,
   });
 
