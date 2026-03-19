@@ -75,6 +75,11 @@ class ProfilePage extends StatelessWidget {
                   title: 'Help & Support',
                   onTap: () => context.push('/profile/help'),
                 ),
+                _ProfileMenuItem(
+                  icon: Icons.favorite_outline,
+                  title: 'Donate',
+                  onTap: () => context.push('/profile/donate'),
+                ),
                 const Divider(height: 32.0),
 
                 // Actions Section

@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/donation/donation_cubit.dart';
+import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 
@@ -121,10 +126,41 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
   void _onConfirmed() {
     if (!mounted) return;
     _wsDisposed = true; // stop polling
+    _tryAutoDonate();
     context.read<HomeBloc>()
       ..add(HomeOrderCompleted(totalIdr: widget.totalIdr))
       ..add(HomeCartCleared());
     context.go('/payment-success');
+  }
+
+  void _tryAutoDonate() {
+    final donationState = context.read<DonationCubit>().state;
+    if (!donationState.autoEnabled) return;
+    final hrp = context.read<NetworkCubit>().state.addressHrp;
+    if (hrp != 'kaspa') return; // mainnet only
+    final walletState = context.read<WalletCubit>().state;
+    if (walletState.mnemonic.isEmpty) return;
+    final kasIdr =
+        context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+    if (kasIdr <= 0) return;
+
+    final double donationKas;
+    if (donationState.mode == DonationMode.percentage) {
+      final totalKas = widget.totalIdr / kasIdr;
+      donationKas = totalKas * (donationState.percentageValue / 100);
+    } else {
+      donationKas = donationState.fixedKasAmount;
+    }
+    if (donationKas <= 0) return;
+
+    KaspaWalletService().sendTransaction(
+      mnemonic: walletState.mnemonic,
+      toAddress: DonationConstants.address,
+      amountSompi: (donationKas * 1e8).toInt(),
+      payloadNote:
+          'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',
+      hrp: hrp,
+    ); // fire-and-forget
   }
 
   @override

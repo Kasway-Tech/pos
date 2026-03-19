@@ -465,3 +465,30 @@ Response: {"id": N, "method": "getUtxosByAddresses",
                                    "utxoEntry": {"amount": "100000000", ...}}]}}
 ```
 Amount in entries is a **string** representation of sompi (u64).
+
+## Donation System
+
+Merchants can donate KAS to the developer, either manually (one-time) or automatically after each confirmed payment.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/app/donation/donation_state.dart` | `DonationState` + `DonationMode` enum + `DonationConstants.address` (hardcoded dev address) |
+| `lib/app/donation/donation_cubit.dart` | Persists settings via SharedPreferences; exposes `setAutoEnabled`, `setMode`, `setPercentage`, `setFixedAmount` |
+| `lib/features/profile/view/donation_page.dart` | Two-section page: one-time donation sheet + auto-donate settings |
+
+### Route
+`/profile/donate` → `DonationPage`
+
+### Auto-donation
+`_tryAutoDonate()` is called fire-and-forget inside `KaspaConfirmationPage._onConfirmed()`, before dispatching `HomeOrderCompleted`. Guards: auto disabled, hrp != 'kaspa' (testnet skip), empty mnemonic, kasIdr <= 0.
+
+### SharedPreferences keys
+`donation_auto_enabled`, `donation_mode` (`"percentage"` / `"fixedAmount"`), `donation_percentage`, `donation_fixed_kas`
+
+### Modes
+- **Percentage**: `totalKas * (percentageValue / 100)` donated per transaction
+- **Fixed**: `fixedKasAmount` KAS donated per transaction (regardless of cart total)
+
+### Payload format
+`kasway:donate:<ISO8601>:<amount>kas` (one-time) or `kasway:donate:<ISO8601>` (auto)
