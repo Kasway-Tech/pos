@@ -10,10 +10,13 @@ import 'package:kasway/app/locale/locale_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
+import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:go_router/go_router.dart';
 
 import '../features/home/bloc/home_bloc.dart';
 import '../features/home/bloc/home_event.dart';
@@ -32,6 +35,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   late final ValueNotifier<bool> _onboardingNotifier;
+  late final GoRouter _router;
 
   @override
   void initState() {
@@ -39,11 +43,17 @@ class _AppState extends State<App> {
     _onboardingNotifier = ValueNotifier(
       widget.prefs.getBool('onboarding_complete') ?? false,
     );
+    // Create the router once. If it were created inside BlocBuilder<ThemeCubit>,
+    // every theme state change would produce a new GoRouter instance, causing
+    // Flutter's Router widget to reinitialize from scratch and show an empty
+    // (black) frame before the splash screen re-renders.
+    _router = AppRouter.router(widget.prefs, _onboardingNotifier);
   }
 
   @override
   void dispose() {
     _onboardingNotifier.dispose();
+    _router.dispose();
     super.dispose();
   }
 
@@ -55,6 +65,12 @@ class _AppState extends State<App> {
         BlocProvider(create: (_) => CurrencyCubit()),
         BlocProvider(create: (_) => LocaleCubit()),
         BlocProvider(create: (_) => NetworkCubit()),
+        BlocProvider(
+          create: (context) => WalletCubit(
+            prefs: widget.prefs,
+            networkCubit: context.read<NetworkCubit>(),
+          ),
+        ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {
@@ -92,10 +108,7 @@ class _AppState extends State<App> {
                 theme: theme.light(themeState.seedColor, isTablet),
                 darkTheme: theme.dark(themeState.seedColor, isTablet),
                 themeMode: themeState.themeMode,
-                routerConfig: AppRouter.router(
-                  widget.prefs,
-                  _onboardingNotifier,
-                ),
+                routerConfig: _router,
               ),
             ),
           );

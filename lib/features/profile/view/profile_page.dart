@@ -1,7 +1,3 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +6,8 @@ import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
+import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -153,260 +151,15 @@ class ProfilePage extends StatelessWidget {
 // Wallet Card
 // ---------------------------------------------------------------------------
 
-class _WalletCard extends StatefulWidget {
+class _WalletCard extends StatelessWidget {
   const _WalletCard();
 
-  @override
-  State<_WalletCard> createState() => _WalletCardState();
-}
-
-class _WalletCardState extends State<_WalletCard> {
-  String _address = '';
-  bool _addressLoading = true;
-  // Holds the real on-chain KAS balance fetched via wRPC.
-  Future<double>? _balanceFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAddress();
-  }
-
-  /// Fetches the real UTXO balance for [_address] from the wRPC node.
-  /// Returns the total KAS amount (sompi / 1e8).
-  Future<double> _fetchKasBalance() async {
-    if (_address.isEmpty) return 0.0;
-    final url = context.read<NetworkCubit>().state.activeUrl;
-    try {
-      final ws = await WebSocket.connect(url)
-          .timeout(const Duration(seconds: 10));
-      final completer = Completer<double>();
-      StreamSubscription? sub;
-      sub = ws.listen(
-        (raw) {
-          if (raw is! String) return;
-          try {
-            final msg = jsonDecode(raw) as Map<String, dynamic>;
-            final params = msg['params'] as Map<String, dynamic>?;
-            final entries = params?['entries'] as List<dynamic>?;
-            if (entries == null) return;
-            double total = 0;
-            for (final entry in entries) {
-              final utxo = (entry as Map<String, dynamic>?)?['utxoEntry']
-                  as Map<String, dynamic>?;
-              final sompi =
-                  int.tryParse(utxo?['amount']?.toString() ?? '0') ?? 0;
-              total += sompi / 1e8;
-            }
-            if (!completer.isCompleted) completer.complete(total);
-          } catch (_) {}
-        },
-        onError: (_) {
-          if (!completer.isCompleted) completer.complete(0.0);
-        },
-        onDone: () {
-          if (!completer.isCompleted) completer.complete(0.0);
-        },
-      );
-      ws.add(jsonEncode({
-        'id': 1,
-        'method': 'getUtxosByAddresses',
-        'params': {
-          'addresses': [_address],
-        },
-      }));
-      try {
-        return await completer.future.timeout(const Duration(seconds: 10));
-      } finally {
-        await sub.cancel();
-        ws.close();
-      }
-    } catch (_) {
-      return 0.0;
-    }
-  }
-
-  Future<void> _loadAddress() async {
-    final hrp = context.read<NetworkCubit>().state.addressHrp;
-    final prefs = await SharedPreferences.getInstance();
-    final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
-    if (mnemonic.isEmpty) {
-      if (mounted) setState(() => _addressLoading = false);
-      return;
-    }
-
-    final address = await Future.microtask(
-      () => KaspaWalletService().deriveAddress(mnemonic, hrp: hrp),
-    );
-    if (!mounted) return;
-    setState(() {
-      _addressLoading = false;
-      _address = address;
-      _balanceFuture = _fetchKasBalance();
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  String _truncateAddress(String addr) {
+  static String _truncateAddress(String addr) {
     if (addr.length <= 20) return addr;
     return '${addr.substring(0, 14)}…${addr.substring(addr.length - 6)}';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<NetworkCubit, NetworkState>(
-          listenWhen: (prev, curr) => prev.network != curr.network,
-          listener: (context, _) {
-            setState(() {
-              _address = '';
-              _addressLoading = true;
-              _balanceFuture = null;
-            });
-            _loadAddress();
-          },
-        ),
-        BlocListener<HomeBloc, HomeState>(
-          listenWhen: (prev, curr) =>
-              prev.cartItems.isNotEmpty && curr.cartItems.isEmpty,
-          listener: (context, _) =>
-              setState(() => _balanceFuture = _fetchKasBalance()),
-        ),
-      ],
-      child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- Address row ---
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kaspa Address',
-                          style: textTheme.labelMedium?.copyWith(
-                            color: colorScheme.outline,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        _addressLoading
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                _address.isEmpty
-                                    ? 'No wallet configured'
-                                    : _truncateAddress(_address),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                  color: _address.isEmpty
-                                      ? colorScheme.outline
-                                      : null,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                      ],
-                    ),
-                  ),
-                  if (_address.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.copy_outlined),
-                      tooltip: 'Copy address',
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: _address));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Address copied'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
-
-              const Divider(height: 28),
-
-              // --- Balance ---
-              Text(
-                'Balance',
-                style: textTheme.labelMedium?.copyWith(
-                  color: colorScheme.outline,
-                ),
-              ),
-              const SizedBox(height: 6),
-              FutureBuilder<double>(
-                future: _balanceFuture,
-                builder: (context, snapshot) {
-                  if (_balanceFuture != null &&
-                      snapshot.connectionState != ConnectionState.done) {
-                    return const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    );
-                  }
-                  return _RevenuePriceDisplay(
-                    kasBalance: snapshot.data ?? 0.0,
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // --- History + Withdraw buttons ---
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.tonal(
-                      onPressed: () => context.push('/profile/withdrawals'),
-                      child: const Text('History'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _address.isEmpty
-                          ? null
-                          : () => _showWithdrawSheet(context),
-                      icon: const Icon(Icons.send_outlined),
-                      label: const Text('Withdraw'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      ),
-    );
-  }
-
-  void _showWithdrawSheet(BuildContext context) {
+  void _showWithdrawSheet(BuildContext context, String address) {
     final withdrawalRepo = context.read<WithdrawalRepository>();
     final kasIdrRate =
         context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
@@ -418,10 +171,127 @@ class _WalletCardState extends State<_WalletCard> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) => _WithdrawSheet(
-        fromAddress: _address,
+        fromAddress: address,
         withdrawalRepository: withdrawalRepo,
         kasIdrRate: kasIdrRate,
         hrp: hrp,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return BlocListener<HomeBloc, HomeState>(
+      listenWhen: (prev, curr) =>
+          prev.cartItems.isNotEmpty && curr.cartItems.isEmpty,
+      listener: (context, _) => context.read<WalletCubit>().refreshBalance(),
+      child: BlocBuilder<WalletCubit, WalletState>(
+        builder: (context, walletState) {
+          final address = walletState.address;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- Address row ---
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Kaspa Address',
+                                style: textTheme.labelMedium?.copyWith(
+                                  color: colorScheme.outline,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                address.isEmpty
+                                    ? 'No wallet configured'
+                                    : _truncateAddress(address),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                  color: address.isEmpty
+                                      ? colorScheme.outline
+                                      : null,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (address.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.copy_outlined),
+                            tooltip: 'Copy address',
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: address));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Address copied'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+
+                    const Divider(height: 28),
+
+                    // --- Balance ---
+                    Text(
+                      'Balance',
+                      style: textTheme.labelMedium?.copyWith(
+                        color: colorScheme.outline,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _RevenuePriceDisplay(kasBalance: walletState.balanceKas),
+
+                    const SizedBox(height: 16),
+
+                    // --- History + Withdraw buttons ---
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.tonal(
+                            onPressed: () =>
+                                context.push('/profile/withdrawals'),
+                            child: const Text('History'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: address.isEmpty
+                                ? null
+                                : () => _showWithdrawSheet(context, address),
+                            icon: const Icon(Icons.send_outlined),
+                            label: const Text('Withdraw'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

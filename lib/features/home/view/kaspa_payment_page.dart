@@ -6,15 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
+import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/cart_item.dart';
-import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/view/kaspa_confirmation_page.dart';
 
@@ -29,9 +28,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   List<CartItem> _cartItems = [];
   double _totalIdr = 0;
   bool _initialized = false;
-  String? _merchantAddress;
-  bool _loadingAddress = true;
-  String? _addressError;
+  String _merchantAddress = '';
 
   WebSocket? _ws;
   bool _wsDisposed = false;
@@ -51,7 +48,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     _cartItems = state.cartItems;
     _totalIdr = _cartItems.fold<double>(0, (sum, item) => sum + item.totalPrice);
 
-    Future.microtask(_loadAddress);
+    _merchantAddress = context.read<WalletCubit>().state.address;
+    Future.microtask(_connectWrpc);
   }
 
   @override
@@ -62,37 +60,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     super.dispose();
   }
 
-  Future<void> _loadAddress() async {
-    final hrp = context.read<NetworkCubit>().state.addressHrp;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final mnemonic = prefs.getString('wallet_mnemonic');
-      if (mnemonic == null || mnemonic.isEmpty) {
-        setState(() {
-          _addressError =
-              'No wallet mnemonic found. Please set up your wallet first.';
-          _loadingAddress = false;
-        });
-        return;
-      }
-      final address = KaspaWalletService().deriveAddress(mnemonic, hrp: hrp);
-      setState(() {
-        _merchantAddress = address;
-        _loadingAddress = false;
-      });
-      Future.microtask(_connectWrpc);
-    } catch (e) {
-      setState(() {
-        _addressError = 'Failed to derive wallet address: $e';
-        _loadingAddress = false;
-      });
-    }
-  }
-
   Future<void> _connectWrpc() async {
-    if (!mounted || _merchantAddress == null) return;
+    if (!mounted || _merchantAddress.isEmpty) return;
     final jsonUrl = context.read<NetworkCubit>().state.activeUrl;
-    final address = _merchantAddress!;
+    final address = _merchantAddress;
 
     while (!_wsDisposed) {
       try {
@@ -254,9 +225,9 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kaspa Payment')),
-      body: BlocListener<NetworkCubit, NetworkState>(
-        listenWhen: (prev, curr) => prev.network != curr.network,
-        listener: (context, _) {
+      body: BlocListener<WalletCubit, WalletState>(
+        listenWhen: (prev, curr) => prev.address != curr.address,
+        listener: (context, walletState) {
           _wsDisposed = true;
           _pollSub?.cancel();
           _pollSub = null;
@@ -265,27 +236,23 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             setState(() {
               _wsDisposed = false;
               _ws = null;
-              _loadingAddress = true;
-              _addressError = null;
-              _merchantAddress = null;
+              _merchantAddress = walletState.address;
               _knownOutpoints.clear();
               _baselineLoaded = false;
             });
-            Future.microtask(_loadAddress);
+            Future.microtask(_connectWrpc);
           });
         },
         child: BlocBuilder<CurrencyCubit, CurrencyState>(
           builder: (context, currencyState) {
-            if (_loadingAddress) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
 
-            if (_addressError != null) {
+            if (_merchantAddress.isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    _addressError!,
+                    'No wallet configured. Please set up your wallet first.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.error),
@@ -294,23 +261,23 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               );
             }
 
-            final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
             if (kasIdr <= 0) {
-              return const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Fetching exchange rates…'),
-                  ],
+              return BlocBuilder<NetworkCubit, NetworkState>(
+                builder: (context, networkState) => Center(
+                  child: Text(
+                    '-- ${networkState.kasSymbol}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ),
               );
             }
 
             final kasAmount = _totalIdr / kasIdr;
             final qrData = _buildQrString(
-              _merchantAddress!,
+              _merchantAddress,
               kasAmount,
               _cartItems,
               _totalIdr,

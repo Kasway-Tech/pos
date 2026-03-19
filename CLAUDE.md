@@ -280,14 +280,33 @@ Kaspa uses a **cashaddr-style** encoding (NOT standard bech32): separator `:`, c
 ### Transaction note (known limitation)
 `sendTransaction` submits **unsigned** transactions (`signatureScript: ""`). This replicates the former Rust behaviour and means withdrawals may not relay on mainnet. A future task would add Schnorr signing.
 
-## Profile Wallet Card
+## Splash Screen + WalletCubit (App-Level Preloading)
 
-The profile page header is replaced by `_WalletCard`, a StatefulWidget that:
-- Reads `wallet_mnemonic` from SharedPreferences on init
-- Calls `KaspaWalletService().deriveAddress(mnemonic)` in a `Future.microtask` to derive the address
-- Loads today's revenue via `OrderRepository.getTotalRevenue()` minus `WithdrawalRepository.getTotalWithdrawn()`
-- Shows dual-currency revenue: primary in selected currency + secondary KAS↔fiat equivalent (`_RevenuePriceDisplay`)
-- Shows **History** (tonal) + **Withdraw** (filled) buttons side by side
+### Routing flow
+```
+App start → /splash
+  ├─ HomeBloc loading + WalletCubit deriving + CurrencyCubit fetching rates...
+  └─ all ready (or 3s rate timeout) → /auth (not onboarded) or / (onboarded)
+```
+
+### WalletCubit (`lib/app/wallet/`)
+App-level singleton provided in `app.dart` above `MaterialApp.router`. Owns:
+- `mnemonic` — read once from SharedPreferences at startup
+- `address` — derived via `KaspaWalletService().deriveAddress()` in `Future.microtask`
+- `balanceKas` — fetched via wRPC `getUtxosByAddresses` (10s timeout), background
+- `addressReady` — `true` once derivation completes (or confirmed no wallet)
+
+Subscribes to `NetworkCubit.stream`; on network change re-derives address and re-fetches balance.
+Call `walletCubit.refreshBalance()` after a withdrawal or when the cart is cleared.
+
+### SplashPage (`lib/features/splash/view/splash_page.dart`)
+Waits for: `HomeBloc.status != loading/initial` AND `WalletCubit.addressReady` AND (exchange rates loaded OR 3s timeout OR dynamic pricing off). Then navigates via `context.go(done ? '/' : '/auth')`.
+
+### Profile Wallet Card
+`_WalletCard` is a `StatelessWidget` that reads from `WalletCubit` via `BlocBuilder`. No local address/balance loading logic — all data is available instantly post-splash. `BlocListener<HomeBloc>` calls `walletCubit.refreshBalance()` when cart is cleared.
+
+### Kaspa Payment QR Page
+Reads `_merchantAddress = context.read<WalletCubit>().state.address` in `didChangeDependencies` (no async needed). `BlocListener<WalletCubit>` restarts wRPC on address change (network switch). If address is empty, shows error. If `kasIdr <= 0` (rare post-splash), shows `-- KAS` with no QR.
 
 `_WithdrawSheet` collects destination address + KAS amount, builds a `payload_note` (`kasway:withdraw:<ISO8601>:<amount>kas:ack:<addr_proof>`), and calls `KaspaWalletService().sendTransaction(...)`. On success, records the withdrawal via `WithdrawalRepository` before closing.
 
@@ -297,10 +316,10 @@ Both `OrderRepository` and `WithdrawalRepository` must be provided in the widget
 
 Cart → "Proceed to Payment" → `/kaspa-payment` (QR page, customer scans and pays)
 
-Cart items are captured in local state on mount via `didChangeDependencies`. Payment confirmation (and cart clearing) is not yet implemented — the QR page is display-only.
+Cart items are captured in local state on mount via `didChangeDependencies`. Address is read instantly from `WalletCubit` (no spinner).
 
 ### File
-`lib/features/home/view/kaspa_payment_page.dart` — `StatefulWidget`. Loads mnemonic from SharedPreferences, derives address via `KaspaWalletService().deriveAddress()`, builds a QR code using `qr_flutter` (`QrImageView`).
+`lib/features/home/view/kaspa_payment_page.dart` — `StatefulWidget`. Reads address from `WalletCubit.state.address`, builds a QR code using `qr_flutter` (`QrImageView`).
 
 ### QR URI format
 ```

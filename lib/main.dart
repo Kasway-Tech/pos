@@ -25,6 +25,15 @@ void main() async {
 
     // Enable full size content view
     WindowManipulator.enableFullSizeContentView();
+
+    // Delay showing the window until Flutter has painted its first frame.
+    // Without this, the native window appears with a black background for a
+    // brief moment before the splash screen renders (transparent titlebar +
+    // full-size content view removes the default white window chrome).
+    windowManager.waitUntilReadyToShow(null, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
   }
 
   Bloc.observer = const SimpleBlocObserver();

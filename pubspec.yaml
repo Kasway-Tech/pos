@@ -80,6 +80,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   freezed: ^3.2.3
   json_serializable: ^6.11.2
+  flutter_native_splash: ^2.4.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -98,6 +99,23 @@ flutter:
     - assets/svg/
     - assets/svg/payment_methods/
     - assets/app_icon.png
+
+flutter_native_splash:
+  # Light mode: white background matching the iOS LaunchScreen and Android launch_background
+  color: "#FFFFFF"
+  # Dark mode: Material 3 dark surface, matching NormalTheme on Android dark mode
+  color_dark: "#1C1B1F"
+  # App icon centered on the splash — visually consistent with the Flutter SplashPage
+  image: assets/app_icon.png
+  image_dark: assets/app_icon.png
+  # Android 12+ uses the SplashScreen API with its own adaptive icon spec
+  android_12:
+    color: "#FFFFFF"
+    color_dark: "#1C1B1F"
+    image: assets/app_icon.png
+    image_dark: assets/app_icon.png
+  # macOS is handled via window_manager's waitUntilReadyToShow in main.dart
+  web: false
 
 flutter_launcher_icons:
   android: "launcher_icon"
