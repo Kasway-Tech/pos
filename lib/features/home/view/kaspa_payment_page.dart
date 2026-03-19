@@ -44,6 +44,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   }
 
   Future<void> _loadAddress() async {
+    final hrp = context.read<NetworkCubit>().state.addressHrp;
     try {
       final prefs = await SharedPreferences.getInstance();
       final mnemonic = prefs.getString('wallet_mnemonic');
@@ -54,7 +55,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         });
         return;
       }
-      final address = KaspaWalletService().deriveAddress(mnemonic);
+      final address = KaspaWalletService().deriveAddress(mnemonic, hrp: hrp);
       setState(() {
         _merchantAddress = address;
         _loadingAddress = false;
@@ -87,8 +88,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     var kasStr = kasAmount.toStringAsFixed(8);
     kasStr = kasStr.replaceAll(RegExp(r'0+$'), '');
     if (kasStr.endsWith('.')) kasStr += '00000001';
-    final bare = address.startsWith('kaspa:') ? address.substring(6) : address;
-    return 'kaspa:$bare?amount=$kasStr&payload=$b64';
+    return '$address?amount=$kasStr&payload=$b64';
   }
 
   /// Format a price with the currency symbol/code after the number.
@@ -122,7 +122,17 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kaspa Payment')),
-      body: BlocBuilder<CurrencyCubit, CurrencyState>(
+      body: BlocListener<NetworkCubit, NetworkState>(
+        listenWhen: (prev, curr) => prev.network != curr.network,
+        listener: (context, _) {
+          setState(() {
+            _loadingAddress = true;
+            _addressError = null;
+            _merchantAddress = null;
+          });
+          Future.microtask(_loadAddress);
+        },
+        child: BlocBuilder<CurrencyCubit, CurrencyState>(
         builder: (context, currencyState) {
           if (_loadingAddress) {
             return const Center(child: CircularProgressIndicator());
@@ -340,6 +350,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             },
           );
         },
+        ),
       ),
     );
   }

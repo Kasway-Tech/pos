@@ -176,6 +176,7 @@ class _WalletCardState extends State<_WalletCard> {
   }
 
   Future<void> _loadAddress() async {
+    final hrp = context.read<NetworkCubit>().state.addressHrp;
     final prefs = await SharedPreferences.getInstance();
     final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
     if (mnemonic.isEmpty) {
@@ -184,7 +185,7 @@ class _WalletCardState extends State<_WalletCard> {
     }
 
     final address = await Future.microtask(
-      () => KaspaWalletService().deriveAddress(mnemonic),
+      () => KaspaWalletService().deriveAddress(mnemonic, hrp: hrp),
     );
     if (!mounted) return;
     setState(() {
@@ -208,7 +209,16 @@ class _WalletCardState extends State<_WalletCard> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Padding(
+    return BlocListener<NetworkCubit, NetworkState>(
+      listenWhen: (prev, curr) => prev.network != curr.network,
+      listener: (context, _) {
+        setState(() {
+          _address = '';
+          _addressLoading = true;
+        });
+        _loadAddress();
+      },
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Card(
         shape: RoundedRectangleBorder(
@@ -321,6 +331,7 @@ class _WalletCardState extends State<_WalletCard> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -328,6 +339,7 @@ class _WalletCardState extends State<_WalletCard> {
     final withdrawalRepo = context.read<WithdrawalRepository>();
     final kasIdrRate =
         context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+    final hrp = context.read<NetworkCubit>().state.addressHrp;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -338,6 +350,7 @@ class _WalletCardState extends State<_WalletCard> {
         fromAddress: _address,
         withdrawalRepository: withdrawalRepo,
         kasIdrRate: kasIdrRate,
+        hrp: hrp,
       ),
     );
   }
@@ -402,11 +415,13 @@ class _WithdrawSheet extends StatefulWidget {
     required this.fromAddress,
     required this.withdrawalRepository,
     required this.kasIdrRate,
+    required this.hrp,
   });
 
   final String fromAddress;
   final WithdrawalRepository withdrawalRepository;
   final double kasIdrRate;
+  final String hrp;
 
   @override
   State<_WithdrawSheet> createState() => _WithdrawSheetState();
@@ -449,6 +464,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
       toAddress: toAddr,
       amountSompi: amountSompi,
       payloadNote: payloadNote,
+      hrp: widget.hrp,
     );
 
     if (!mounted) return;
@@ -520,15 +536,15 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
             const SizedBox(height: 20),
             TextFormField(
               controller: _toAddressController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Destination Kaspa Address',
-                hintText: 'kaspa:q...',
-                border: OutlineInputBorder(),
+                hintText: '${widget.hrp}:q...',
+                border: const OutlineInputBorder(),
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Address is required';
-                if (!v.trim().startsWith('kaspa:')) {
-                  return 'Must be a valid kaspa: address';
+                if (!v.trim().startsWith('${widget.hrp}:')) {
+                  return 'Must be a valid ${widget.hrp}: address';
                 }
                 return null;
               },

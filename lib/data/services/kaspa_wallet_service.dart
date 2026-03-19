@@ -64,12 +64,13 @@ class KaspaWalletService {
 
   /// Derives the primary Kaspa address from a BIP39 mnemonic.
   /// Path: m/44'/111111'/0'/0/0  (Kaspa coin type 111111)
-  String deriveAddress(String mnemonic) {
+  /// [hrp] defaults to 'kaspa' (mainnet); pass 'kaspatest' for testnet-10.
+  String deriveAddress(String mnemonic, {String hrp = 'kaspa'}) {
     final seed = bip39.mnemonicToSeed(mnemonic);
     final root = bip32.BIP32.fromSeed(seed);
     final child = root.derivePath("m/44'/111111'/0'/0/0");
     // child.publicKey is the 33-byte compressed secp256k1 pubkey.
-    return _encodeKaspaAddress(child.publicKey);
+    return _encodeKaspaAddress(child.publicKey, hrp: hrp);
   }
 
   // ---------------------------------------------------------------------------
@@ -84,15 +85,16 @@ class KaspaWalletService {
     required String toAddress,
     required int amountSompi,
     required String payloadNote,
+    String hrp = 'kaspa',
   }) async {
     // Derive sending address from mnemonic
     final seed = bip39.mnemonicToSeed(mnemonic);
     final root = bip32.BIP32.fromSeed(seed);
     final child = root.derivePath("m/44'/111111'/0'/0/0");
-    final ourAddress = _encodeKaspaAddress(child.publicKey);
+    final ourAddress = _encodeKaspaAddress(child.publicKey, hrp: hrp);
 
-    if (!toAddress.startsWith('kaspa:')) {
-      return (txId: '', error: 'Destination must be a valid kaspa: address');
+    if (!toAddress.startsWith('$hrp:')) {
+      return (txId: '', error: 'Destination must be a valid $hrp: address');
     }
 
     // Fetch UTXOs
@@ -255,10 +257,10 @@ class KaspaWalletService {
     return result;
   }
 
-  /// Encodes a 33-byte compressed secp256k1 public key as a Kaspa mainnet
-  /// address (cashaddr format with HRP "kaspa").
-  static String _encodeKaspaAddress(Uint8List pubkeyBytes) {
-    const hrp = 'kaspa';
+  /// Encodes a 33-byte compressed secp256k1 public key as a Kaspa address
+  /// (cashaddr format). [hrp] defaults to 'kaspa' (mainnet); pass
+  /// 'kaspatest' for testnet-10.
+  static String _encodeKaspaAddress(Uint8List pubkeyBytes, {String hrp = 'kaspa'}) {
     // Version byte 0x00 = PubKey; payload = x-only 32-byte pubkey (skip 02/03 prefix)
     final payload = [0x00, ...pubkeyBytes.sublist(1)];
     final data5 = _convertBits(payload, 8, 5, true);

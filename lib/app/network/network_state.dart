@@ -26,6 +26,9 @@ class NetworkState extends Equatable {
 
   String get kasSymbol => network == KaspaNetwork.mainnet ? 'KAS' : 'TKAS';
 
+  String get addressHrp =>
+      network == KaspaNetwork.mainnet ? 'kaspa' : 'kaspatest';
+
   NetworkState copyWith({
     KaspaNetwork? network,
     String? mainnetUrl,
