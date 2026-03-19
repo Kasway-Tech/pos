@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,9 +11,10 @@ import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
-import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
+import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -158,21 +163,67 @@ class _WalletCard extends StatefulWidget {
 class _WalletCardState extends State<_WalletCard> {
   String _address = '';
   bool _addressLoading = true;
+  // Holds the real on-chain KAS balance fetched via wRPC.
   Future<double>? _balanceFuture;
 
   @override
   void initState() {
     super.initState();
-    _balanceFuture = _loadBalance();
     _loadAddress();
   }
 
-  Future<double> _loadBalance() async {
-    final orderRepo = context.read<OrderRepository>();
-    final withdrawalRepo = context.read<WithdrawalRepository>();
-    final totalRevenue = await orderRepo.getTotalRevenue();
-    final totalWithdrawn = await withdrawalRepo.getTotalWithdrawn();
-    return totalRevenue - totalWithdrawn;
+  /// Fetches the real UTXO balance for [_address] from the wRPC node.
+  /// Returns the total KAS amount (sompi / 1e8).
+  Future<double> _fetchKasBalance() async {
+    if (_address.isEmpty) return 0.0;
+    final url = context.read<NetworkCubit>().state.activeUrl;
+    try {
+      final ws = await WebSocket.connect(url)
+          .timeout(const Duration(seconds: 10));
+      final completer = Completer<double>();
+      StreamSubscription? sub;
+      sub = ws.listen(
+        (raw) {
+          if (raw is! String) return;
+          try {
+            final msg = jsonDecode(raw) as Map<String, dynamic>;
+            final params = msg['params'] as Map<String, dynamic>?;
+            final entries = params?['entries'] as List<dynamic>?;
+            if (entries == null) return;
+            double total = 0;
+            for (final entry in entries) {
+              final utxo = (entry as Map<String, dynamic>?)?['utxoEntry']
+                  as Map<String, dynamic>?;
+              final sompi =
+                  int.tryParse(utxo?['amount']?.toString() ?? '0') ?? 0;
+              total += sompi / 1e8;
+            }
+            if (!completer.isCompleted) completer.complete(total);
+          } catch (_) {}
+        },
+        onError: (_) {
+          if (!completer.isCompleted) completer.complete(0.0);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete(0.0);
+        },
+      );
+      ws.add(jsonEncode({
+        'id': 1,
+        'method': 'getUtxosByAddresses',
+        'params': {
+          'addresses': [_address],
+        },
+      }));
+      try {
+        return await completer.future.timeout(const Duration(seconds: 10));
+      } finally {
+        await sub.cancel();
+        ws.close();
+      }
+    } catch (_) {
+      return 0.0;
+    }
   }
 
   Future<void> _loadAddress() async {
@@ -191,6 +242,7 @@ class _WalletCardState extends State<_WalletCard> {
     setState(() {
       _addressLoading = false;
       _address = address;
+      _balanceFuture = _fetchKasBalance();
     });
   }
 
@@ -209,15 +261,26 @@ class _WalletCardState extends State<_WalletCard> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return BlocListener<NetworkCubit, NetworkState>(
-      listenWhen: (prev, curr) => prev.network != curr.network,
-      listener: (context, _) {
-        setState(() {
-          _address = '';
-          _addressLoading = true;
-        });
-        _loadAddress();
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<NetworkCubit, NetworkState>(
+          listenWhen: (prev, curr) => prev.network != curr.network,
+          listener: (context, _) {
+            setState(() {
+              _address = '';
+              _addressLoading = true;
+              _balanceFuture = null;
+            });
+            _loadAddress();
+          },
+        ),
+        BlocListener<HomeBloc, HomeState>(
+          listenWhen: (prev, curr) =>
+              prev.cartItems.isNotEmpty && curr.cartItems.isEmpty,
+          listener: (context, _) =>
+              setState(() => _balanceFuture = _fetchKasBalance()),
+        ),
+      ],
       child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Card(
@@ -298,8 +361,16 @@ class _WalletCardState extends State<_WalletCard> {
               FutureBuilder<double>(
                 future: _balanceFuture,
                 builder: (context, snapshot) {
+                  if (_balanceFuture != null &&
+                      snapshot.connectionState != ConnectionState.done) {
+                    return const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  }
                   return _RevenuePriceDisplay(
-                    revenueIdr: snapshot.data ?? 0.0,
+                    kasBalance: snapshot.data ?? 0.0,
                   );
                 },
               ),
@@ -361,9 +432,17 @@ class _WalletCardState extends State<_WalletCard> {
 // ---------------------------------------------------------------------------
 
 class _RevenuePriceDisplay extends StatelessWidget {
-  const _RevenuePriceDisplay({required this.revenueIdr});
+  const _RevenuePriceDisplay({required this.kasBalance});
 
-  final double revenueIdr;
+  /// Real on-chain KAS balance (sum of UTXOs, in KAS not sompi).
+  final double kasBalance;
+
+  static String _formatKas(double kas) {
+    // toStringAsFixed(8) gives full sompi precision; strip trailing zeros.
+    final s = kas.toStringAsFixed(8);
+    final trimmed = s.replaceAll(RegExp(r'0+$'), '');
+    return trimmed.endsWith('.') ? '${trimmed}00' : trimmed;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -381,28 +460,31 @@ class _RevenuePriceDisplay extends StatelessWidget {
     CurrencyState state,
     NetworkState networkState,
   ) {
-        final kasIdr = state.exchangeRates['idr'] ?? 0.0;
-        final kasAmount = kasIdr > 0 ? revenueIdr / kasIdr : 0.0;
-        final kasSymbol = networkState.kasSymbol;
-        final kasStr = '$kasSymbol ${kasAmount.toStringAsFixed(4)}';
+    final kasSymbol = networkState.kasSymbol;
+    final kasStr = '$kasSymbol ${_formatKas(kasBalance)}';
 
-        final textTheme = Theme.of(context).textTheme;
-        final boldHeadline = textTheme.headlineSmall
-            ?.copyWith(fontWeight: FontWeight.bold);
-        final subStyle = textTheme.bodySmall
-            ?.copyWith(color: Theme.of(context).colorScheme.outline);
+    final textTheme = Theme.of(context).textTheme;
+    final boldHeadline =
+        textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold);
+    final subStyle = textTheme.bodySmall
+        ?.copyWith(color: Theme.of(context).colorScheme.outline);
 
-        if (state.selectedCurrency.isCrypto) {
-          return Text(kasStr, style: boldHeadline);
-        } else {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              PriceText(revenueIdr, style: boldHeadline),
-              Text('≈ $kasStr', style: subStyle),
-            ],
-          );
-        }
+    if (state.selectedCurrency.isCrypto) {
+      return Text(kasStr, style: boldHeadline);
+    } else {
+      // Convert KAS → IDR → selected fiat for display.
+      final kasIdr = state.exchangeRates['idr'] ?? 0.0;
+      final idrValue = kasBalance * kasIdr;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          kasIdr > 0
+              ? PriceText(idrValue, style: boldHeadline)
+              : Text(kasStr, style: boldHeadline),
+          Text('≈ $kasStr', style: subStyle),
+        ],
+      );
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:kasway/data/database/app_database.dart';
+import 'package:kasway/data/models/order.dart';
 
 class OrderRepository {
   final AppDatabase _db = AppDatabase.instance;
@@ -31,6 +32,22 @@ class OrderRepository {
       'SELECT COALESCE(SUM(total_idr), 0) as revenue FROM orders',
     );
     return (result.first['revenue'] as num).toDouble();
+  }
+
+  Future<List<Order>> getOrders() async {
+    final db = await _db.database;
+    final rows = await db.query('orders', orderBy: 'created_at DESC');
+    return rows
+        .map(
+          (row) => Order(
+            id: row['id'] as String,
+            totalIdr: (row['total_idr'] as num).toDouble(),
+            createdAt: DateTime.fromMillisecondsSinceEpoch(
+              row['created_at'] as int,
+            ),
+          ),
+        )
+        .toList();
   }
 
   String _newId() {
