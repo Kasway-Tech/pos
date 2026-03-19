@@ -413,3 +413,36 @@ Runtime network switching without app restart. `NetworkCubit` manages the active
 
 ### Route
 `/profile/network` → `NetworkSettingsPage`
+
+## Kaspa Payment Detection (JSON wRPC polling)
+
+Payment confirmation on the Kaspa payment QR page via periodic `getUtxosByAddresses` polling over the existing JSON wRPC WebSocket (same URL as `NodeStatusPage`). The Borsh subscription approach was attempted but public nodes return error code 3 (not supported) for `NotifyUtxosChanged`.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/data/services/kaspa_wrpc_borsh_codec.dart` | Encode/decode Kaspa wRPC Borsh frames (kept for future use, not used in payment page) |
+| `lib/features/home/view/kaspa_payment_page.dart` | QR page + JSON wRPC polling + payment detection |
+
+### `NetworkState.activeBorshUrl`
+Converts the active JSON URL to Borsh by replacing `/json` with `/borsh` (kept on `NetworkState` for future use):
+```
+wss://rose.kaspa.green/kaspa/mainnet/wrpc/json  →  wss://rose.kaspa.green/kaspa/mainnet/wrpc/borsh
+```
+
+### Payment detection flow
+1. After address is derived, `_connectWrpc()` opens a JSON WebSocket to `activeUrl`
+2. Immediately sends `getUtxosByAddresses` request; first response sets the **baseline** set of known outpoints (to avoid false positives from pre-existing UTXOs)
+3. Every 1 second, polls `getUtxosByAddresses` again; checks for any NEW outpoint (not in baseline) with `amount >= expectedSompi * 0.99` (1% tolerance for rate drift)
+4. On match: dispatches `HomeOrderCompleted(totalIdr)` + `HomeCartCleared()`, shows green overlay, navigates to `/payment-success` after 2 seconds
+   - `_requiredConfirmations = 10` → ~1 second at Kaspa's 10 BPS (DAA score increments ~10/sec)
+5. Reconnects on close/error with 3-second delay; network switch clears baseline and re-derives address
+
+### JSON wRPC request/response
+```
+Request:  {"id": N, "method": "getUtxosByAddresses", "params": {"addresses": ["kaspa:q..."]}}
+Response: {"id": N, "method": "getUtxosByAddresses",
+           "params": {"entries": [{"address": "...", "outpoint": {"transactionId": "...", "index": 0},
+                                   "utxoEntry": {"amount": "100000000", ...}}]}}
+```
+Amount in entries is a **string** representation of sompi (u64).

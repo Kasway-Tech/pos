@@ -29,6 +29,8 @@ class NetworkState extends Equatable {
   String get addressHrp =>
       network == KaspaNetwork.mainnet ? 'kaspa' : 'kaspatest';
 
+  String get activeBorshUrl => activeUrl.replaceFirst('/json', '/borsh');
+
   NetworkState copyWith({
     KaspaNetwork? network,
     String? mainnetUrl,

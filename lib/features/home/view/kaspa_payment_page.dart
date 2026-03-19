@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,6 +16,7 @@ import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/view/kaspa_confirmation_page.dart';
 
 class KaspaPaymentPage extends StatefulWidget {
   const KaspaPaymentPage({super.key});
@@ -30,6 +33,14 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   bool _loadingAddress = true;
   String? _addressError;
 
+  WebSocket? _ws;
+  bool _wsDisposed = false;
+  int _reqId = 1;
+  StreamSubscription<void>? _pollSub;
+
+  final Set<String> _knownOutpoints = {};
+  bool _baselineLoaded = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -43,6 +54,14 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     Future.microtask(_loadAddress);
   }
 
+  @override
+  void dispose() {
+    _wsDisposed = true;
+    _pollSub?.cancel();
+    _ws?.close();
+    super.dispose();
+  }
+
   Future<void> _loadAddress() async {
     final hrp = context.read<NetworkCubit>().state.addressHrp;
     try {
@@ -50,7 +69,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       final mnemonic = prefs.getString('wallet_mnemonic');
       if (mnemonic == null || mnemonic.isEmpty) {
         setState(() {
-          _addressError = 'No wallet mnemonic found. Please set up your wallet first.';
+          _addressError =
+              'No wallet mnemonic found. Please set up your wallet first.';
           _loadingAddress = false;
         });
         return;
@@ -60,12 +80,125 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         _merchantAddress = address;
         _loadingAddress = false;
       });
+      Future.microtask(_connectWrpc);
     } catch (e) {
       setState(() {
         _addressError = 'Failed to derive wallet address: $e';
         _loadingAddress = false;
       });
     }
+  }
+
+  Future<void> _connectWrpc() async {
+    if (!mounted || _merchantAddress == null) return;
+    final jsonUrl = context.read<NetworkCubit>().state.activeUrl;
+    final address = _merchantAddress!;
+
+    while (!_wsDisposed) {
+      try {
+        final ws = await WebSocket.connect(jsonUrl);
+        if (_wsDisposed) {
+          await ws.close();
+          return;
+        }
+        _ws = ws;
+
+        void send() {
+          if (!_wsDisposed) {
+            ws.add(jsonEncode({
+              'id': _reqId++,
+              'method': 'getUtxosByAddresses',
+              'params': {'addresses': [address]},
+            }));
+          }
+        }
+
+        send();
+        _pollSub =
+            Stream.periodic(const Duration(seconds: 1)).listen((_) => send());
+
+        await for (final raw in ws) {
+          if (_wsDisposed) break;
+          if (raw is String) _handleResponse(raw);
+        }
+      } catch (e) {
+        debugPrint('[wRPC] error: $e');
+      } finally {
+        await _pollSub?.cancel();
+        _pollSub = null;
+      }
+
+      if (_wsDisposed) return;
+      await Future<void>.delayed(const Duration(seconds: 3));
+    }
+  }
+
+  void _handleResponse(String raw) {
+    try {
+      final msg = jsonDecode(raw) as Map<String, dynamic>;
+      final params = msg['params'] as Map<String, dynamic>?;
+      if (params == null) return;
+      final entries = params['entries'] as List<dynamic>?;
+      if (entries == null) return;
+
+      if (!_baselineLoaded) {
+        for (final entry in entries) {
+          final key = _outpointKey(entry);
+          if (key != null) _knownOutpoints.add(key);
+        }
+        _baselineLoaded = true;
+        debugPrint('[wRPC] baseline: ${_knownOutpoints.length} existing UTXOs');
+        return;
+      }
+
+      final kasIdr =
+          context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+      if (kasIdr <= 0) return;
+      final expectedSompi = (_totalIdr / kasIdr * 1e8 * 0.99).floor();
+
+      for (final entry in entries) {
+        final key = _outpointKey(entry);
+        if (key == null || _knownOutpoints.contains(key)) continue;
+
+        final utxoEntry = entry['utxoEntry'] as Map<String, dynamic>?;
+        if (utxoEntry == null) continue;
+        final amount =
+            int.tryParse(utxoEntry['amount']?.toString() ?? '0') ?? 0;
+
+        if (amount >= expectedSompi) {
+          final daaScore = int.tryParse(
+                  utxoEntry['blockDaaScore']?.toString() ?? '0') ??
+              0;
+          debugPrint('[wRPC] UTXO detected! amount=$amount daaScore=$daaScore');
+
+          // Stop QR page polling before navigating
+          _wsDisposed = true;
+          _pollSub?.cancel();
+          _ws?.close();
+
+          if (mounted) {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => KaspaConfirmationPage(
+                detectedDaaScore: daaScore,
+                totalIdr: _totalIdr,
+              ),
+            ));
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('[wRPC] parse error: $e');
+    }
+  }
+
+  String? _outpointKey(dynamic entry) {
+    final outpoint =
+        (entry as Map<String, dynamic>?)?['outpoint'] as Map<String, dynamic>?;
+    if (outpoint == null) return null;
+    final txId = outpoint['transactionId']?.toString() ?? '';
+    final index = outpoint['index']?.toString() ?? '0';
+    return '$txId:$index';
   }
 
   String _buildQrString(
@@ -91,7 +224,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     return '$address?amount=$kasStr&payload=$b64';
   }
 
-  /// Format a price with the currency symbol/code after the number.
   String _formatSuffixed(
     double idrPrice,
     CurrencyState currencyState,
@@ -125,175 +257,197 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       body: BlocListener<NetworkCubit, NetworkState>(
         listenWhen: (prev, curr) => prev.network != curr.network,
         listener: (context, _) {
-          setState(() {
-            _loadingAddress = true;
-            _addressError = null;
-            _merchantAddress = null;
+          _wsDisposed = true;
+          _pollSub?.cancel();
+          _pollSub = null;
+          _ws?.close().then((_) {
+            if (!mounted) return;
+            setState(() {
+              _wsDisposed = false;
+              _ws = null;
+              _loadingAddress = true;
+              _addressError = null;
+              _merchantAddress = null;
+              _knownOutpoints.clear();
+              _baselineLoaded = false;
+            });
+            Future.microtask(_loadAddress);
           });
-          Future.microtask(_loadAddress);
         },
         child: BlocBuilder<CurrencyCubit, CurrencyState>(
-        builder: (context, currencyState) {
-          if (_loadingAddress) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          builder: (context, currencyState) {
+            if (_loadingAddress) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (_addressError != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  _addressError!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ),
-            );
-          }
-
-          final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
-          if (kasIdr <= 0) {
-            return const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Fetching exchange rates…'),
-                ],
-              ),
-            );
-          }
-
-          final kasAmount = _totalIdr / kasIdr;
-          final qrData = _buildQrString(
-            _merchantAddress!,
-            kasAmount,
-            _cartItems,
-            _totalIdr,
-          );
-
-          return BlocBuilder<NetworkCubit, NetworkState>(
-            builder: (context, networkState) {
-              final kasSymbol = networkState.kasSymbol;
-              final kasStr = kasAmount
-                  .toStringAsFixed(8)
-                  .replaceAll(RegExp(r'0+$'), '')
-                  .replaceAll(RegExp(r'\.$'), '');
-
-              return SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
+            if (_addressError != null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    _addressError!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.error),
                   ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8),
-                      Text(
-                        '$kasStr $kasSymbol',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (!currencyState.selectedCurrency.isCrypto)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: PriceText(
-                            _totalIdr,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
+                ),
+              );
+            }
+
+            final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
+            if (kasIdr <= 0) {
+              return const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Fetching exchange rates…'),
+                  ],
+                ),
+              );
+            }
+
+            final kasAmount = _totalIdr / kasIdr;
+            final qrData = _buildQrString(
+              _merchantAddress!,
+              kasAmount,
+              _cartItems,
+              _totalIdr,
+            );
+
+            return BlocBuilder<NetworkCubit, NetworkState>(
+              builder: (context, networkState) {
+                final kasSymbol = networkState.kasSymbol;
+                final kasStr = kasAmount
+                    .toStringAsFixed(8)
+                    .replaceAll(RegExp(r'0+$'), '')
+                    .replaceAll(RegExp(r'\.$'), '');
+
+                return SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(
+                          '$kasStr $kasSymbol',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
                         ),
-                      const SizedBox(height: 32),
-                      Center(
-                        child: QrImageView(
-                          data: qrData,
-                          version: QrVersions.auto,
-                          size: 280,
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.all(16),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Scan with your Kaspa wallet',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
+                        if (!currencyState.selectedCurrency.isCrypto)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: PriceText(
+                              _totalIdr,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outline,
+                                  ),
                             ),
-                      ),
-                      const SizedBox(height: 20),
-                      Card(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.warning_amber_rounded,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Send $kasSymbol only. Sending any other asset will result in permanent loss of funds.',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                      ),
-                                ),
-                              ),
-                            ],
+                          ),
+                        const SizedBox(height: 32),
+                        Center(
+                          child: QrImageView(
+                            data: qrData,
+                            version: QrVersions.auto,
+                            size: 280,
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.all(16),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Divider(),
-                      const SizedBox(height: 8),
-                      ..._cartItems.map((item) {
-                        final hasAdditions = item.selectedAdditions.isNotEmpty;
-                        final qtyStr = item.quantity % 1 == 0
-                            ? item.quantity.toInt().toString()
-                            : item.quantity.toString();
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      '${item.product.name} × $qtyStr',
+                        const SizedBox(height: 20),
+                        Text(
+                          'Scan with your Kaspa wallet',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Send $kasSymbol only. Sending any other asset will result in permanent loss of funds.',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 8),
+                        ..._cartItems.map((item) {
+                          final hasAdditions =
+                              item.selectedAdditions.isNotEmpty;
+                          final qtyStr = item.quantity % 1 == 0
+                              ? item.quantity.toInt().toString()
+                              : item.quantity.toString();
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 6),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '${item.product.name} × $qtyStr',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatSuffixed(item.totalPrice,
+                                          currencyState, kasSymbol),
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium,
                                     ),
-                                  ),
-                                  Text(
-                                    _formatSuffixed(
-                                        item.totalPrice, currencyState, kasSymbol),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium,
-                                  ),
-                                ],
-                              ),
-                              if (hasAdditions)
-                                ...item.selectedAdditions.map((a) => Padding(
+                                  ],
+                                ),
+                                if (hasAdditions)
+                                  ...item.selectedAdditions.map(
+                                    (a) => Padding(
                                       padding: const EdgeInsets.only(
                                           top: 2, left: 12),
                                       child: Row(
@@ -314,12 +468,14 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                           a.price > 0
                                               ? Text(
                                                   _formatSuffixed(a.price,
-                                                      currencyState, kasSymbol),
+                                                      currencyState,
+                                                      kasSymbol),
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall
                                                       ?.copyWith(
-                                                        color: Theme.of(context)
+                                                        color: Theme.of(
+                                                                context)
                                                             .colorScheme
                                                             .outline,
                                                       ),
@@ -330,26 +486,28 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                                       .textTheme
                                                       .bodySmall
                                                       ?.copyWith(
-                                                        color: Theme.of(context)
+                                                        color: Theme.of(
+                                                                context)
                                                             .colorScheme
                                                             .outline,
                                                       ),
                                                 ),
                                         ],
                                       ),
-                                    )),
-                            ],
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 16),
-                    ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
         ),
       ),
     );
