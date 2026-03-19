@@ -7,6 +7,7 @@ import '../features/auth/view/eula_page.dart';
 import '../features/auth/view/login_page.dart';
 import '../features/auth/view/seed_phrase_page.dart';
 import '../features/home/view/home_page.dart';
+import '../features/home/view/kaspa_payment_page.dart';
 import '../features/home/view/order_confirmation_page.dart';
 import '../features/home/view/payment_successful_page.dart';
 import '../features/onboarding/view/onboarding_page.dart';
@@ -50,6 +51,10 @@ class AppRouter {
       },
       routes: [
         GoRoute(path: '/', builder: (context, state) => const HomePage()),
+        GoRoute(
+          path: '/kaspa-payment',
+          builder: (context, state) => const KaspaPaymentPage(),
+        ),
         GoRoute(
           path: '/order-confirmation',
           builder: (context, state) => const OrderConfirmationPage(),

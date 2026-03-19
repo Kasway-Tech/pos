@@ -184,10 +184,7 @@ class _HomeViewState extends State<HomeView>
                                   key: const ValueKey('order'),
                                   showAppBar: true,
                                   onProceedToPayment: () {
-                                    context.read<HomeBloc>().add(
-                                      HomeCartCleared(),
-                                    );
-                                    context.push('/payment-success');
+                                    context.push('/kaspa-payment');
                                   },
                                 ),
                         ),

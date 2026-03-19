@@ -293,6 +293,34 @@ The profile page header is replaced by `_WalletCard`, a StatefulWidget that:
 
 Both `OrderRepository` and `WithdrawalRepository` must be provided in the widget tree (provided at app level via `MultiRepositoryProvider`).
 
+## Kaspa Payment QR Code Flow
+
+Cart → "Proceed to Payment" → `/kaspa-payment` (QR page, customer scans and pays)
+
+Cart items are captured in local state on mount via `didChangeDependencies`. Payment confirmation (and cart clearing) is not yet implemented — the QR page is display-only.
+
+### File
+`lib/features/home/view/kaspa_payment_page.dart` — `StatefulWidget`. Loads mnemonic from SharedPreferences, derives address via `KaspaWalletService().deriveAddress()`, builds a QR code using `qr_flutter` (`QrImageView`).
+
+### QR URI format
+```
+kaspa:<address>?amount=<kas_amount>&payload=<base64url_json>
+```
+- `kas_amount` = `totalIdr / kasIdrRate` (8 decimal places, trailing zeros stripped)
+- `payload` = base64url of `{"items":[{"name","qty","price_idr"}],"total_idr"}`
+
+### Package
+`qr_flutter: ^4.1.0` added to `pubspec.yaml`.
+
+### States handled
+- Loading address → `CircularProgressIndicator`
+- Address error → error text
+- No exchange rates yet → spinner + "Fetching exchange rates…"
+- Ready → KAS amount (above QR) + conditional fiat secondary + QR code + order summary with additions
+
+### Payment confirmation
+Not yet implemented. The page is display-only — the customer scans the QR and pays, but the app does not yet auto-detect or manually confirm the payment.
+
 ## Withdrawals System
 
 Completed withdrawals are persisted in SQLite. History is accessible from the wallet card.

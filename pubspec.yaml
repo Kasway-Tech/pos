@@ -62,6 +62,7 @@ dependencies:
   path_provider: ^2.1.5
   share_plus: ^10.1.4
   file_picker: ^8.1.7
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
