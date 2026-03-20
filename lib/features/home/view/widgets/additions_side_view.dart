@@ -23,6 +23,20 @@ class AdditionsSideView extends StatefulWidget {
 class _AdditionsSideViewState extends State<AdditionsSideView> {
   final Set<String> _selectedAdditionIds = {};
 
+  bool get _allSelected =>
+      widget.product.additions.isNotEmpty &&
+      widget.product.additions.every((a) => _selectedAdditionIds.contains(a.id));
+
+  void _toggleSelectAll() {
+    setState(() {
+      if (_allSelected) {
+        _selectedAdditionIds.clear();
+      } else {
+        _selectedAdditionIds.addAll(widget.product.additions.map((a) => a.id));
+      }
+    });
+  }
+
   double get _additionsTotal {
     return widget.product.additions
         .where((a) => _selectedAdditionIds.contains(a.id))
@@ -64,6 +78,22 @@ class _AdditionsSideViewState extends State<AdditionsSideView> {
           centerTitle: false,
           scrolledUnderElevation: 0,
           backgroundColor: Theme.of(context).colorScheme.surface,
+          actions: widget.product.additions.isNotEmpty
+              ? [
+                  _allSelected
+                      ? FilledButton.icon(
+                          onPressed: _toggleSelectAll,
+                          icon: const Icon(Icons.deselect),
+                          label: const Text('Deselect All'),
+                        )
+                      : TextButton.icon(
+                          onPressed: _toggleSelectAll,
+                          icon: const Icon(Icons.select_all),
+                          label: const Text('Select All'),
+                        ),
+                  const SizedBox(width: 8),
+                ]
+              : null,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: widget.onBack,
