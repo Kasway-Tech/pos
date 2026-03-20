@@ -9,6 +9,7 @@ import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -221,7 +222,7 @@ class _WalletCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (address.isNotEmpty)
+                        if (address.isNotEmpty) ...[
                           IconButton(
                             icon: const Icon(Icons.copy_outlined),
                             tooltip: 'Copy address',
@@ -235,6 +236,18 @@ class _WalletCard extends StatelessWidget {
                               );
                             },
                           ),
+                          IconButton(
+                            icon: const Icon(Icons.open_in_browser_outlined),
+                            tooltip: 'View in explorer',
+                            onPressed: () {
+                              final url =
+                                  '${context.read<NetworkCubit>().state.explorerAddressBaseUrl}$address';
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => ExplorerPage(url: url),
+                              ));
+                            },
+                          ),
+                        ],
                       ],
                     ),
 

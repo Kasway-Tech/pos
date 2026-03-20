@@ -35,6 +35,10 @@ class NetworkState extends Equatable {
       ? 'https://kaspa.stream/transactions/'
       : 'https://tn10.kaspa.stream/transactions/';
 
+  String get explorerAddressBaseUrl => network == KaspaNetwork.mainnet
+      ? 'https://kaspa.stream/addresses/'
+      : 'https://tn10.kaspa.stream/addresses/';
+
   NetworkState copyWith({
     KaspaNetwork? network,
     String? mainnetUrl,
