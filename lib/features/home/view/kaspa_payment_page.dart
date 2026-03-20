@@ -347,155 +347,193 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                 final totalStr = kasFormat(totalKas);
                 final receivedStr = kasFormat(receivedKas);
 
-                return SafeArea(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
+                // --- Left panel: amount, QR, address, warning ---
+                final leftChildren = <Widget>[
+                  const SizedBox(height: 8),
+
+                  // Amount header
+                  Text(
+                    '$remainingStr $kasSymbol',
+                    style: Theme.of(context).textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (!hasPartial && !currencyState.selectedCurrency.isCrypto)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: PriceText(
+                        _totalIdr,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
                     ),
-                    child: Column(
+
+                  // Partial payment progress
+                  if (hasPartial) ...[
+                    const SizedBox(height: 12),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(
+                        begin: 0,
+                        end: (receivedKas / totalKas).clamp(0.0, 1.0),
+                      ),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOut,
+                      builder: (context, value, _) => LinearProgressIndicator(
+                        value: value,
+                        minHeight: 5,
+                        borderRadius: BorderRadius.circular(4),
+                        color: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$receivedStr of $totalStr $kasSymbol received',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // QR code
+                  Center(
+                    child: QrImageView(
+                      data: qrData,
+                      version: QrVersions.auto,
+                      size: 260,
+                      backgroundColor: Colors.white,
+                      padding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Address
+                  Text(
+                    _merchantAddress,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Warning
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 8),
-
-                        // --- Amount header ---
-                        Text(
-                          '$remainingStr $kasSymbol',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.white,
+                          size: 18,
                         ),
-                        if (!hasPartial &&
-                            !currencyState.selectedCurrency.isCrypto)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: PriceText(
-                              _totalIdr,
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outline,
-                                  ),
-                            ),
-                          ),
-
-                        // --- Partial payment progress ---
-                        if (hasPartial) ...[
-                          const SizedBox(height: 12),
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(
-                              begin: 0,
-                              end: (receivedKas / totalKas).clamp(0.0, 1.0),
-                            ),
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeOut,
-                            builder: (context, value, _) =>
-                                LinearProgressIndicator(
-                                  value: value,
-                                  minHeight: 5,
-                                  borderRadius: BorderRadius.circular(4),
-                                  color: Theme.of(context).colorScheme.primary,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '$receivedStr of $totalStr $kasSymbol received',
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Send $kasSymbol only, and exactly the amount shown above. Sending any other asset or incorrect amount might result in funds being lost.',
                             style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-
-                        const SizedBox(height: 24),
-
-                        // --- QR code ---
-                        Center(
-                          child: QrImageView(
-                            data: qrData,
-                            version: QrVersions.auto,
-                            size: 260,
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.all(12),
+                                ?.copyWith(color: Colors.white),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Text(
-                          _merchantAddress,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // --- Warning ---
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1A1A1A),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(
-                                Icons.warning_amber_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Send $kasSymbol only, and exactly the amount shown above. Sending any other asset or incorrect amount might result in funds being lost.',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            child: Column(
-                              children: _cartItems
-                                  .map(
-                                    (item) => LineItemRow(
-                                      productName: item.product.name,
-                                      quantity: item.quantity,
-                                      lineTotal: item.totalPrice,
-                                      additions: item.selectedAdditions
-                                          .map(
-                                            (a) =>
-                                                (name: a.name, price: a.price),
-                                          )
-                                          .toList(),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
+                ];
+
+                // --- Right panel: items card ---
+                final itemsCard = Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      children: _cartItems
+                          .map(
+                            (item) => LineItemRow(
+                              productName: item.product.name,
+                              quantity: item.quantity,
+                              lineTotal: item.totalPrice,
+                              additions: item.selectedAdditions
+                                  .map((a) => (name: a.name, price: a.price))
+                                  .toList(),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                );
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 720;
+
+                    if (isWide) {
+                      // Two-panel layout: 70% left / 30% right
+                      return SafeArea(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 24,
+                                ),
+                                child: Column(children: leftChildren),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.fromLTRB(
+                                  8,
+                                  24,
+                                  24,
+                                  24,
+                                ),
+                                child: itemsCard,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // Single-column layout (mobile / portrait tablet)
+                    return SafeArea(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        child: Column(
+                          children: [
+                            ...leftChildren,
+                            const SizedBox(height: 8),
+                            itemsCard,
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             );
