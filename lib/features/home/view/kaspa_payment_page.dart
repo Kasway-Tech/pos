@@ -39,6 +39,12 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   final Set<String> _knownOutpoints = {};
   bool _baselineLoaded = false;
 
+  // Partial payment tracking
+  int _receivedSompi = 0;
+  final List<({int amountSompi, String txId})> _partialPayments = [];
+  int _lastDaaScore = 0;
+  String _lastTxId = '';
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -127,7 +133,12 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       final kasIdr =
           context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
       if (kasIdr <= 0) return;
-      final expectedSompi = (_totalIdr / kasIdr * 1e8 * 0.99).floor();
+
+      // Full invoice amount in sompi (no pre-applied tolerance here — we apply
+      // it to the accumulated total below).
+      final invoiceSompi = (_totalIdr / kasIdr * 1e8).floor();
+
+      bool changed = false;
 
       for (final entry in entries) {
         final key = _outpointKey(entry);
@@ -138,32 +149,50 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         final amount =
             int.tryParse(utxoEntry['amount']?.toString() ?? '0') ?? 0;
 
-        if (amount >= expectedSompi) {
-          final daaScore = int.tryParse(
-                  utxoEntry['blockDaaScore']?.toString() ?? '0') ??
-              0;
-          final txId = (entry['outpoint'] as Map<String, dynamic>?)?[
-                  'transactionId']?.toString() ??
-              '';
-          debugPrint('[wRPC] UTXO detected! amount=$amount daaScore=$daaScore txId=$txId');
+        // Skip dust (< 1000 sompi).
+        if (amount < 1000) continue;
 
-          // Stop QR page polling before navigating
-          _wsDisposed = true;
-          _pollSub?.cancel();
-          _ws?.close().catchError((_) {});
+        // Mark as seen so we never double-count.
+        _knownOutpoints.add(key);
 
-          if (mounted) {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => KaspaConfirmationPage(
-                detectedDaaScore: daaScore,
-                totalIdr: _totalIdr,
-                cartItems: _cartItems,
-                txId: txId,
-              ),
-            ));
-          }
-          return;
+        final daaScore =
+            int.tryParse(utxoEntry['blockDaaScore']?.toString() ?? '0') ?? 0;
+        final txId =
+            (entry['outpoint'] as Map<String, dynamic>?)?['transactionId']
+                    ?.toString() ??
+                '';
+
+        _receivedSompi += amount;
+        _lastDaaScore = daaScore;
+        _lastTxId = txId;
+        _partialPayments.add((amountSompi: amount, txId: txId));
+        changed = true;
+
+        debugPrint(
+            '[wRPC] UTXO +$amount sompi  total=$_receivedSompi/$invoiceSompi  txId=$txId');
+      }
+
+      if (!changed) return;
+
+      // 1 % tolerance on the accumulated total.
+      if (_receivedSompi >= (invoiceSompi * 0.99).floor()) {
+        _wsDisposed = true;
+        _pollSub?.cancel();
+        _ws?.close().catchError((_) {});
+
+        if (mounted) {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => KaspaConfirmationPage(
+              detectedDaaScore: _lastDaaScore,
+              totalIdr: _totalIdr,
+              cartItems: _cartItems,
+              txId: _lastTxId,
+            ),
+          ));
         }
+      } else {
+        // Partial — update UI to show remaining amount.
+        setState(() {});
       }
     } catch (e) {
       debugPrint('[wRPC] parse error: $e');
@@ -220,6 +249,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               _merchantAddress = walletState.address;
               _knownOutpoints.clear();
               _baselineLoaded = false;
+              _receivedSompi = 0;
+              _partialPayments.clear();
+              _lastDaaScore = 0;
+              _lastTxId = '';
             });
             Future.microtask(_connectWrpc);
           });
@@ -256,10 +289,15 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               );
             }
 
-            final kasAmount = _totalIdr / kasIdr;
+            final totalKas = _totalIdr / kasIdr;
+            final receivedKas = _receivedSompi / 1e8;
+            final remainingKas =
+                (totalKas - receivedKas).clamp(0.0, double.infinity);
+            final hasPartial = _partialPayments.isNotEmpty;
+
             final qrData = _buildQrString(
               _merchantAddress,
-              kasAmount,
+              remainingKas,
               _cartItems,
               _totalIdr,
             );
@@ -267,10 +305,15 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             return BlocBuilder<NetworkCubit, NetworkState>(
               builder: (context, networkState) {
                 final kasSymbol = networkState.kasSymbol;
-                final kasStr = kasAmount
+
+                String kasFormat(double kas) => kas
                     .toStringAsFixed(8)
                     .replaceAll(RegExp(r'0+$'), '')
                     .replaceAll(RegExp(r'\.$'), '');
+
+                final remainingStr = kasFormat(remainingKas);
+                final totalStr = kasFormat(totalKas);
+                final receivedStr = kasFormat(receivedKas);
 
                 return SafeArea(
                   child: SingleChildScrollView(
@@ -281,37 +324,127 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                     child: Column(
                       children: [
                         const SizedBox(height: 8),
-                        Text(
-                          '$kasStr $kasSymbol',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (!currencyState.selectedCurrency.isCrypto)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: PriceText(
-                              _totalIdr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline,
+
+                        // --- Amount header ---
+                        if (hasPartial) ...[
+                          Text(
+                            '$remainingStr $kasSymbol',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'remaining of $totalStr $kasSymbol',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.outline,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ] else ...[
+                          Text(
+                            '$remainingStr $kasSymbol',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                          if (!currencyState.selectedCurrency.isCrypto)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: PriceText(
+                                _totalIdr,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline,
+                                    ),
+                              ),
+                            ),
+                        ],
+
+                        // --- Partial payment banner ---
+                        if (hasPartial) ...[
+                          const SizedBox(height: 16),
+                          Card(
+                            color: Colors.amber.shade50,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.amber.shade300),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.info_outline_rounded,
+                                      color: Colors.amber.shade800, size: 20),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Partial payment received',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium
+                                              ?.copyWith(
+                                                color: Colors.amber.shade900,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '$receivedStr $kasSymbol received · $remainingStr $kasSymbol still needed',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                  color:
+                                                      Colors.amber.shade800),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Please scan the updated QR code to pay the remaining amount.',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                  color:
+                                                      Colors.amber.shade700),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                ],
+                              ),
                             ),
                           ),
-                        const SizedBox(height: 32),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        // --- QR code ---
                         Center(
                           child: QrImageView(
                             data: qrData,
                             version: QrVersions.auto,
-                            size: 280,
+                            size: 220,
                             backgroundColor: Colors.white,
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -339,6 +472,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                               ),
                         ),
                         const SizedBox(height: 20),
+
+                        // --- KAS-only warning ---
                         Card(
                           color: Theme.of(context)
                               .colorScheme
