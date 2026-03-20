@@ -20,6 +20,7 @@ import 'package:kasway/features/items/view/item_management_page.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/features/profile/view/data_transfer_page.dart';
+import 'package:kasway/features/profile/view/display_settings_page.dart';
 import 'package:kasway/features/profile/view/donation_page.dart';
 import 'package:kasway/features/profile/view/network_page.dart';
 import 'package:kasway/features/profile/view/order_history_page.dart';
@@ -38,6 +39,7 @@ enum _ProfileSection {
   items,
   dataTransfer,
   network,
+  display,
   theme,
   settings,
   donate,
@@ -50,6 +52,7 @@ extension _ProfileSectionWidget on _ProfileSection {
         _ProfileSection.items => const ItemManagementPage(),
         _ProfileSection.dataTransfer => const DataTransferPage(),
         _ProfileSection.network => const NetworkPage(),
+        _ProfileSection.display => const DisplaySettingsPage(),
         _ProfileSection.theme => const ThemeSettingsPage(),
         _ProfileSection.settings => const SettingsPage(),
         _ProfileSection.donate => const DonationPage(),
@@ -198,6 +201,12 @@ class _ProfilePageState extends State<ProfilePage> {
         title: 'Network & Node',
         isSelected: isSelected(_ProfileSection.network),
         onTap: () => navigate(_ProfileSection.network, '/profile/network'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.tv_outlined,
+        title: 'Display',
+        isSelected: isSelected(_ProfileSection.display),
+        onTap: () => navigate(_ProfileSection.display, '/profile/display'),
       ),
       _ProfileMenuItem(
         icon: Icons.palette_outlined,

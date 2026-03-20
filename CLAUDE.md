@@ -554,3 +554,61 @@ Merchants can donate KAS to the developer, either manually (one-time) or automat
 
 ### Payload format
 `kasway:donate:<ISO8601>:<amount>kas` (one-time) or `kasway:donate:<ISO8601>` (auto)
+
+## External Display Integration
+
+Merchants with a tablet connected to an external monitor (USB-C/HDMI or wireless) can mirror the Kaspa payment QR screen so customers can see the amount and QR code without looking at the cashier's device. Feature is Android/iOS only; all `DisplayManager` calls are platform-guarded.
+
+### Package
+`presentation_displays: ^1.0.0` — `DisplayManager` (primary) + `SecondaryDisplay` widget (secondary engine).
+
+### Architecture
+```
+KaspaPaymentPage (primary)
+  └─ calls DisplayCubit.transferData(Map) via addPostFrameCallback
+
+DisplayCubit (app-level, prefs-injected)
+  └─ wraps DisplayManager; guarded: Android/iOS only
+
+secondaryDisplayMain() — separate Flutter engine (Android/iOS native)
+  └─ ValueNotifier<Map?> _secondaryDisplayData  ← updated via SecondaryDisplay.callback
+  └─ _SecondaryPaymentScreen(data)             ← renders QR + amounts from the Map
+```
+
+The secondary engine has no BLoC access. All display data is serialised into a `Map<String, dynamic>` and sent via `DisplayManager.transferDataToPresentation()`.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/app/display/display_state.dart` | `DisplayStatus` enum + `DisplayState` plain-Dart class with `copyWith` |
+| `lib/app/display/display_cubit.dart` | Cubit wrapping `DisplayManager`; platform-guarded |
+| `lib/features/profile/view/display_settings_page.dart` | Settings UI: toggle + scan + connect/disconnect |
+| `lib/main.dart` | `secondaryDisplayMain()` entry point + `_SecondaryPaymentScreen` widget |
+
+### Route
+`/profile/display` → `DisplaySettingsPage`
+
+### SharedPreferences keys
+`display_enabled` (bool), `display_last_connected_id` (int)
+
+### Data payload format (Map sent to secondary engine)
+```dart
+{
+  'qr':    String,           // full kaspa:... URI string for QrImageView
+  'kas':   String,           // e.g. "KAS 42.5"
+  'idr':   String,           // pre-formatted fiat secondary amount (empty if crypto mode)
+  'items': List<Map> [       // order line items
+    {'name': String, 'qty': int, 'additions': List<String>}
+  ]
+}
+```
+Pass `null` to reset the secondary display to the idle "Waiting for payment…" screen.
+
+### Platform guard pattern
+```dart
+bool get _isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+// Applied in: DisplayCubit methods, KaspaPaymentPage._transferToDisplay/_clearDisplay
+```
+
+### Auto-reconnect
+On `DisplayCubit` load, if `display_enabled == true` and `display_last_connected_id` is set, a 2-second `Timer` triggers `_tryAutoReconnect()`: scans for displays, then calls `connect()` if the last-known display is still visible.

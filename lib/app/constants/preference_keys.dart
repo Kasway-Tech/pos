@@ -30,4 +30,8 @@ abstract final class PreferenceKeys {
 
   // ── Onboarding ─────────────────────────────────────────────────────────────
   static const String onboardingComplete = 'onboarding_complete';
+
+  // ── Display ────────────────────────────────────────────────────────────────
+  static const String displayEnabled = 'display_enabled';
+  static const String displayLastConnectedId = 'display_last_connected_id';
 }

@@ -885,6 +885,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.3"
+  presentation_displays:
+    dependency: "direct main"
+    description:
+      name: presentation_displays
+      sha256: "4338251d3ab9f7c8c040481e8e987a81aa7accd87bf1f75d7042a268f907742b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   provider:
     dependency: transitive
     description:

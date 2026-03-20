@@ -24,6 +24,7 @@ import '../features/profile/view/withdrawal_history_page.dart';
 import '../features/profile/view/network_page.dart';
 import '../features/auth/view/onboarding_currency_page.dart';
 import '../features/profile/view/donation_page.dart';
+import '../features/profile/view/display_settings_page.dart';
 import '../features/splash/view/splash_page.dart';
 
 class AppRouter {
@@ -114,6 +115,10 @@ class AppRouter {
             GoRoute(
               path: 'donate',
               builder: (context, state) => const DonationPage(),
+            ),
+            GoRoute(
+              path: 'display',
+              builder: (context, state) => const DisplaySettingsPage(),
             ),
           ],
         ),

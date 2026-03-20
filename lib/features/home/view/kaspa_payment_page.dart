@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/data/services/payload_codec.dart';
 
 import 'package:flutter/material.dart';
@@ -42,6 +44,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
   final Set<String> _knownOutpoints = {};
   bool _baselineLoaded = false;
+
+  String _lastQrSent = '';
 
   // Partial payment tracking
   int _receivedSompi = 0;
@@ -207,6 +211,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         _ws?.close().catchError((_) {});
 
         if (mounted) {
+          _clearDisplay();
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => KaspaConfirmationPage(
@@ -233,6 +238,42 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     final txId = outpoint['transactionId']?.toString() ?? '';
     final index = outpoint['index']?.toString() ?? '0';
     return '$txId:$index';
+  }
+
+  bool get _isDisplaySupported =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  void _transferToDisplay({
+    required String qrData,
+    required String kasSymbol,
+    required String kasStr,
+    required String fiatStr,
+  }) {
+    if (!_isDisplaySupported || !mounted) return;
+    final displayCubit = context.read<DisplayCubit>();
+    if (!displayCubit.state.isConnected) return;
+
+    final payload = <String, dynamic>{
+      'qr': qrData,
+      'kas': '$kasSymbol $kasStr',
+      'idr': fiatStr,
+      'items': _cartItems
+          .map(
+            (item) => <String, dynamic>{
+              'name': item.product.name,
+              'qty': item.quantity,
+              'additions':
+                  item.selectedAdditions.map((a) => a.name).toList(),
+            },
+          )
+          .toList(),
+    };
+    displayCubit.transferData(payload);
+  }
+
+  void _clearDisplay() {
+    if (!_isDisplaySupported || !mounted) return;
+    context.read<DisplayCubit>().transferData(null);
   }
 
   String _buildQrString(
@@ -359,6 +400,24 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                 final remainingStr = kasFormat(remainingKas);
                 final totalStr = kasFormat(totalKas);
                 final receivedStr = kasFormat(receivedKas);
+
+                // Pre-formatted fiat secondary amount for the external display.
+                final fiatStr = currencyState.selectedCurrency.isCrypto
+                    ? ''
+                    : currencyState.formatPrice(_totalIdr);
+
+                // Only transfer when QR data changes to avoid redundant calls
+                // on every CurrencyCubit rate refresh.
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (qrData == _lastQrSent) return;
+                  _lastQrSent = qrData;
+                  _transferToDisplay(
+                    qrData: qrData,
+                    kasSymbol: kasSymbol,
+                    kasStr: remainingStr,
+                    fiatStr: fiatStr,
+                  );
+                });
 
                 // --- Left panel: amount, QR, address, warning ---
                 final leftChildren = <Widget>[

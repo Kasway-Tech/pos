@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:kasway/l10n/app_localizations.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/locale/locale_state.dart';
@@ -75,6 +76,9 @@ class _AppState extends State<App> {
         ),
         BlocProvider(
           create: (_) => DonationCubit(prefs: widget.prefs),
+        ),
+        BlocProvider(
+          create: (_) => DisplayCubit(prefs: widget.prefs),
         ),
         BlocProvider(
           create: (context) => WalletCubit(
