@@ -14,6 +14,7 @@ import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -207,8 +208,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   // Overpayment refund
   // ---------------------------------------------------------------------------
 
-  /// Fire-and-forget: resolves the sender's address from the paying transaction
-  /// then sends the excess back.
+  /// Fire-and-forget: resolves the sender's address then returns the excess.
   Future<void> _tryRefund({
     required int excessSompi,
     required String txId,
@@ -216,29 +216,28 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
-      if (mnemonic.isEmpty) return;
+      if (mnemonic.isEmpty) {
+        debugPrint('[refund] no mnemonic, skipping');
+        return;
+      }
 
       if (!mounted) return;
       final networkState = context.read<NetworkCubit>().state;
       final hrp = networkState.addressHrp;
       final activeUrl = networkState.activeUrl;
 
-      // Step 1 — fetch the paying transaction to find the input's source.
-      final payingTx = await _fetchTransaction(txId: txId, activeUrl: activeUrl);
-      if (payingTx == null) {
-        debugPrint('[refund] could not fetch paying tx $txId');
-        return;
-      }
-
-      // Step 2 — resolve the sender's address from the first input.
-      final senderAddress =
-          await _resolveSenderAddress(payingTx: payingTx, hrp: hrp, activeUrl: activeUrl);
+      // Resolve sender — try wRPC first, then REST fallback (mainnet only).
+      final senderAddress = await _resolveSenderAddress(
+        txId: txId,
+        hrp: hrp,
+        activeUrl: activeUrl,
+      );
       if (senderAddress == null) {
-        debugPrint('[refund] could not resolve sender address');
+        debugPrint('[refund] sender address unresolvable for $txId');
         return;
       }
 
-      debugPrint('[refund] sending $excessSompi sompi back to $senderAddress');
+      debugPrint('[refund] returning $excessSompi sompi → $senderAddress');
 
       final result = await KaspaWalletService().sendTransaction(
         mnemonic: mnemonic,
@@ -253,37 +252,122 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       if (result.error.isNotEmpty) {
         debugPrint('[refund] send failed: ${result.error}');
       } else {
-        debugPrint('[refund] sent, txId=${result.txId}');
+        debugPrint('[refund] success txId=${result.txId}');
       }
     } catch (e) {
       debugPrint('[refund] error: $e');
     }
   }
 
-  /// Fetches a transaction by ID over a fresh wRPC WebSocket.
-  Future<Map<String, dynamic>?> _fetchTransaction({
+  /// Resolves the sender's address for [txId].
+  /// Tries wRPC `getTransaction` first; falls back to the Kaspa REST API on
+  /// mainnet when the node does not support the method.
+  Future<String?> _resolveSenderAddress({
+    required String txId,
+    required String hrp,
+    required String activeUrl,
+  }) async {
+    // ── wRPC path ────────────────────────────────────────────────────────────
+    final wRpcAddress =
+        await _resolveSenderViaWrpc(txId: txId, hrp: hrp, activeUrl: activeUrl);
+    if (wRpcAddress != null) return wRpcAddress;
+
+    // ── REST fallback (mainnet only) ─────────────────────────────────────────
+    if (hrp != 'kaspa') return null;
+    return _resolveSenderViaRest(txId: txId);
+  }
+
+  /// Resolves sender address via wRPC `getTransaction` (two-hop lookup).
+  Future<String?> _resolveSenderViaWrpc({
+    required String txId,
+    required String hrp,
+    required String activeUrl,
+  }) async {
+    // Fetch the paying transaction.
+    final payingTx = await _fetchTransactionWrpc(txId: txId, activeUrl: activeUrl);
+    if (payingTx == null) return null;
+
+    final inputs = payingTx['inputs'] as List<dynamic>?;
+    if (inputs == null || inputs.isEmpty) return null;
+
+    final prevOutpoint =
+        (inputs[0] as Map<String, dynamic>?)?['previousOutpoint']
+            as Map<String, dynamic>?;
+    if (prevOutpoint == null) return null;
+
+    final prevTxId = prevOutpoint['transactionId']?.toString() ?? '';
+    final prevIndex =
+        int.tryParse(prevOutpoint['index']?.toString() ?? '0') ?? 0;
+    if (prevTxId.isEmpty) return null;
+
+    // Fetch the previous transaction to get its output's scriptPublicKey.
+    final prevTx =
+        await _fetchTransactionWrpc(txId: prevTxId, activeUrl: activeUrl);
+    if (prevTx == null) return null;
+
+    final outputs = prevTx['outputs'] as List<dynamic>?;
+    if (outputs == null || outputs.length <= prevIndex) return null;
+
+    final output = outputs[prevIndex] as Map<String, dynamic>?;
+    if (output == null) return null;
+
+    // Node may return a compact hex string or {"version": N, "scriptPublicKey": "<hex>"}.
+    final spkRaw = output['scriptPublicKey'];
+    final String compactSpkHex;
+    if (spkRaw is String) {
+      compactSpkHex = spkRaw;
+    } else if (spkRaw is Map<String, dynamic>) {
+      final ver = (spkRaw['version'] as num?)?.toInt() ?? 0;
+      final versionHex = ver.toRadixString(16).padLeft(2, '0');
+      final scriptHex = spkRaw['scriptPublicKey']?.toString() ?? '';
+      // Reconstruct compact format: LE u16 version + script bytes
+      compactSpkHex = '${versionHex}00$scriptHex';
+    } else {
+      return null;
+    }
+
+    return KaspaWalletService.scriptToAddress(compactSpkHex, hrp: hrp);
+  }
+
+  /// Opens a dedicated wRPC WebSocket to fetch one transaction by ID.
+  /// Filters responses by request ID to avoid completing on unrelated messages.
+  Future<Map<String, dynamic>?> _fetchTransactionWrpc({
     required String txId,
     required String activeUrl,
   }) async {
     WebSocket? ws;
+    const reqId = 9001;
     try {
       ws = await WebSocket.connect(activeUrl)
           .timeout(const Duration(seconds: 10));
 
       final completer = Completer<Map<String, dynamic>?>();
+
       ws.listen(
         (raw) {
           if (raw is! String || completer.isCompleted) return;
           try {
             final msg = jsonDecode(raw) as Map<String, dynamic>;
+            // Ignore messages not belonging to our request.
+            if ((msg['id'] as num?)?.toInt() != reqId) return;
+
+            if (msg.containsKey('error')) {
+              debugPrint('[refund] getTransaction error: ${msg['error']}');
+              completer.complete(null);
+              return;
+            }
+
             final tx = (msg['params'] as Map<String, dynamic>?)?['transaction']
                 as Map<String, dynamic>?;
+            debugPrint('[refund] getTransaction ok: ${tx != null}');
             completer.complete(tx);
-          } catch (_) {
-            completer.complete(null);
+          } catch (e) {
+            debugPrint('[refund] parse error: $e');
+            if (!completer.isCompleted) completer.complete(null);
           }
         },
-        onError: (_) {
+        onError: (e) {
+          debugPrint('[refund] ws error: $e');
           if (!completer.isCompleted) completer.complete(null);
         },
         onDone: () {
@@ -292,7 +376,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       );
 
       ws.add(jsonEncode({
-        'id': 1,
+        'id': reqId,
         'method': 'getTransaction',
         'params': {'transactionId': txId, 'includeAcceptingBlockHash': false},
       }));
@@ -306,55 +390,51 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     }
   }
 
-  /// Extracts the sender's Kaspa address from the paying transaction by
-  /// looking up the scriptPublicKey of the first input's previous output.
-  Future<String?> _resolveSenderAddress({
-    required Map<String, dynamic> payingTx,
-    required String hrp,
-    required String activeUrl,
-  }) async {
-    final inputs = payingTx['inputs'] as List<dynamic>?;
-    if (inputs == null || inputs.isEmpty) return null;
+  /// Resolves the sender's address via the Kaspa mainnet REST API.
+  /// Two calls: paying tx → input's previous outpoint → previous tx output address.
+  Future<String?> _resolveSenderViaRest({required String txId}) async {
+    const base = 'https://api.kaspa.org';
+    try {
+      // Step 1: get inputs of the paying transaction.
+      final r1 = await http
+          .get(Uri.parse('$base/transactions/$txId?inputs=true'))
+          .timeout(const Duration(seconds: 10));
+      if (r1.statusCode != 200) {
+        debugPrint('[refund] REST /transactions/$txId → ${r1.statusCode}');
+        return null;
+      }
+      final tx = jsonDecode(r1.body) as Map<String, dynamic>;
+      final inputs = tx['inputs'] as List<dynamic>?;
+      if (inputs == null || inputs.isEmpty) return null;
 
-    final prevOutpoint =
-        (inputs[0] as Map<String, dynamic>?)?['previousOutpoint']
-            as Map<String, dynamic>?;
-    if (prevOutpoint == null) return null;
+      final input = inputs[0] as Map<String, dynamic>;
+      final prevHash =
+          input['previous_outpoint_hash']?.toString() ?? '';
+      final prevIndex =
+          int.tryParse(input['previous_outpoint_index']?.toString() ?? '0') ?? 0;
+      if (prevHash.isEmpty) return null;
 
-    final prevTxId = prevOutpoint['transactionId']?.toString() ?? '';
-    final prevIndex =
-        int.tryParse(prevOutpoint['index']?.toString() ?? '0') ?? 0;
+      // Step 2: get the previous transaction's output to find the address.
+      final r2 = await http
+          .get(Uri.parse('$base/transactions/$prevHash'))
+          .timeout(const Duration(seconds: 10));
+      if (r2.statusCode != 200) {
+        debugPrint('[refund] REST /transactions/$prevHash → ${r2.statusCode}');
+        return null;
+      }
+      final prevTx = jsonDecode(r2.body) as Map<String, dynamic>;
+      final outputs = prevTx['outputs'] as List<dynamic>?;
+      if (outputs == null || outputs.length <= prevIndex) return null;
 
-    if (prevTxId.isEmpty) return null;
-
-    // Fetch the previous transaction to read the output's scriptPublicKey.
-    final prevTx =
-        await _fetchTransaction(txId: prevTxId, activeUrl: activeUrl);
-    if (prevTx == null) return null;
-
-    final outputs = prevTx['outputs'] as List<dynamic>?;
-    if (outputs == null || outputs.length <= prevIndex) return null;
-
-    // The node may return scriptPublicKey as a compact hex string or as a map.
-    final output = outputs[prevIndex] as Map<String, dynamic>?;
-    if (output == null) return null;
-
-    final spkRaw = output['scriptPublicKey'];
-    final String compactSpkHex;
-    if (spkRaw is String) {
-      compactSpkHex = spkRaw;
-    } else if (spkRaw is Map<String, dynamic>) {
-      // {"version": 0, "scriptPublicKey": "<hex>"}
-      final version =
-          (spkRaw['version'] as num?)?.toInt().toRadixString(16).padLeft(4, '0') ??
-              '0000';
-      final scriptHex = spkRaw['scriptPublicKey']?.toString() ?? '';
-      compactSpkHex = '$version$scriptHex';
-    } else {
+      final address =
+          (outputs[prevIndex] as Map<String, dynamic>?)?['script_public_key_address']
+              ?.toString();
+      debugPrint('[refund] REST resolved sender: $address');
+      return address;
+    } catch (e) {
+      debugPrint('[refund] REST error: $e');
       return null;
     }
-
-    return KaspaWalletService.scriptToAddress(compactSpkHex, hrp: hrp);
   }
 
   String? _outpointKey(dynamic entry) {
