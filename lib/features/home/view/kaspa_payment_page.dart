@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:kasway/data/services/payload_codec.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
@@ -221,23 +223,11 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     List<CartItem> items,
     double totalIdr,
   ) {
-    final payload = jsonEncode({
-      'items': items
-          .map(
-            (i) => {
-              'name': i.product.name,
-              'qty': i.quantity,
-              'price_idr': i.product.price,
-            },
-          )
-          .toList(),
-      'total_idr': totalIdr,
-    });
-    final b64 = base64Url.encode(utf8.encode(payload));
+    final p = KaswayPayloadCodec.encode(items, totalIdr);
     var kasStr = kasAmount.toStringAsFixed(8);
     kasStr = kasStr.replaceAll(RegExp(r'0+$'), '');
     if (kasStr.endsWith('.')) kasStr += '00000001';
-    return '$address?amount=$kasStr&payload=$b64';
+    return '$address?amount=$kasStr&p=$p';
   }
 
   @override

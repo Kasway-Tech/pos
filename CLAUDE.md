@@ -356,10 +356,39 @@ Cart items are captured in local state on mount via `didChangeDependencies`. Add
 
 ### QR URI format
 ```
-kaspa:<address>?amount=<kas_amount>&payload=<base64url_json>
+kaspa:<address>?amount=<kas_amount>&p=<base64url_encrypted_blob>
 ```
 - `kas_amount` = `totalIdr / kasIdrRate` (8 decimal places, trailing zeros stripped)
-- `payload` = base64url of `{"items":[{"name","qty","price_idr"}],"total_idr"}`
+- `p` = `KaswayPayloadCodec.encode(items, totalIdr)` — AES-256-GCM encrypted, zlib-compressed binary payload (see below)
+- Old format used `payload=<base64url_json>` (verbose, ~62% larger); `p=` signals the new format to the wallet SDK
+
+### KaswayPayloadCodec (`lib/data/services/payload_codec.dart`)
+Compact encrypted payload for order data in QR codes. ~62% smaller than the old base64(JSON) format.
+
+**Blob structure** (after base64url decoding):
+```
+[12 bytes: random AES-GCM nonce]
+[N bytes + 16 bytes: AES-256-GCM ciphertext + tag]   ← zlib-compressed binary
+```
+
+**Binary payload** (before compress + encrypt):
+```
+0x01          version byte
+uint8         item count
+per item:
+  uint8       UTF-8 name length
+  N bytes     name (UTF-8)
+  uint16 BE   quantity
+  uint32 BE   unit price IDR (whole)
+  uint8       addition count
+  per addition:
+    uint8     UTF-8 name length
+    N bytes   name (UTF-8)
+    uint32 BE addition price IDR (whole)
+uint32 BE     total IDR (whole)
+```
+
+**Key**: hardcoded 32-byte AES-256 key in `_key` constant. The wallet SDK ships an identical copy to decrypt. Version byte allows future key rotation.
 
 ### Package
 `qr_flutter: ^4.1.0` added to `pubspec.yaml`.
