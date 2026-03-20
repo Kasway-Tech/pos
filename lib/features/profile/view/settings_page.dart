@@ -9,15 +9,8 @@ import 'package:kasway/app/locale/locale_state.dart';
 import 'package:kasway/app/widgets/language_picker_sheet.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
-
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  bool _notifications = true;
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +22,6 @@ class _SettingsPageState extends State<SettingsPage> {
             constraints: const BoxConstraints(maxWidth: 600),
             child: ListView(
               children: [
-                SwitchListTile(
-                  title: const Text('Push Notifications'),
-                  subtitle: const Text(
-                    'Receive alerts about orders and promos',
-                  ),
-                  value: _notifications,
-                  onChanged: (val) => setState(() => _notifications = val),
-                ),
                 BlocBuilder<LocaleCubit, LocaleState>(
                   builder: (context, state) => ListTile(
                     title: const Text('Language'),
