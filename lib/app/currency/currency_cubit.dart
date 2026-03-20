@@ -71,6 +71,8 @@ class CurrencyCubit extends Cubit<CurrencyState> {
     );
   }
 
+  Future<void> fetchRates() => _fetchRates();
+
   Future<void> setCurrency(Currency currency) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_currencyKey, currency.code);

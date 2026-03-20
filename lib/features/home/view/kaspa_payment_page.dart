@@ -548,14 +548,33 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             }
 
             if (kasIdr <= 0) {
-              return BlocBuilder<NetworkCubit, NetworkState>(
-                builder: (context, networkState) => Center(
-                  child: Text(
-                    '-- ${networkState.kasSymbol}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Fetching exchange rates…',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please wait a moment.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                      ),
+                      const SizedBox(height: 24),
+                      TextButton.icon(
+                        onPressed: () =>
+                            context.read<CurrencyCubit>().fetchRates(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                      ),
+                    ],
                   ),
                 ),
               );
