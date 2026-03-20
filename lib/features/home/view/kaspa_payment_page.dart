@@ -433,7 +433,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                 ],
                               ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
                         // --- Warning ---
                         Container(
