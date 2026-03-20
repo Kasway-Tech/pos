@@ -39,11 +39,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   final Set<String> _knownOutpoints = {};
   bool _baselineLoaded = false;
 
-  Timer? _countdownTimer;
-  int _secondsUntilUpdate = 0;
-
-  static const _refreshInterval = 60;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -56,31 +51,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
     _merchantAddress = context.read<WalletCubit>().state.address;
     Future.microtask(_connectWrpc);
-    _startCountdownTimer();
-  }
-
-  void _startCountdownTimer() {
-    _updateCountdown();
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) _updateCountdown();
-    });
-  }
-
-  void _updateCountdown() {
-    final lastFetched =
-        context.read<CurrencyCubit>().state.lastFetchedAt;
-    if (lastFetched == null) {
-      setState(() => _secondsUntilUpdate = _refreshInterval);
-      return;
-    }
-    final elapsed = DateTime.now().difference(lastFetched).inSeconds;
-    setState(() =>
-        _secondsUntilUpdate = (_refreshInterval - elapsed).clamp(0, _refreshInterval));
   }
 
   @override
   void dispose() {
-    _countdownTimer?.cancel();
     _wsDisposed = true;
     _pollSub?.cancel();
     _ws?.close();
@@ -323,21 +297,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline,
-                                  ),
-                            ),
-                          ),
-                        if (currencyState.dynamicPricing)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              'Price updates in $_secondsUntilUpdate s',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
                                   ?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
