@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
@@ -229,7 +230,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: const Text('Kaspa Payment')),
+      appBar: BlurAppBar(title: const Text('Payment')),
       body: BlocListener<WalletCubit, WalletState>(
         listenWhen: (prev, curr) => prev.address != curr.address,
         listener: (context, walletState) {
@@ -263,8 +264,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                   child: Text(
                     'No wallet configured. Please set up your wallet first.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
               );
@@ -279,10 +279,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                     children: [
                       const CircularProgressIndicator(),
                       const SizedBox(height: 24),
-                      Text(
-                        'Fetching exchange rates…',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
+                      Text('Fetching exchange rates…',
+                          style: Theme.of(context).textTheme.bodyLarge),
                       const SizedBox(height: 8),
                       Text(
                         'Please wait a moment.',
@@ -329,163 +327,192 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                 final totalStr = kasFormat(totalKas);
                 final receivedStr = kasFormat(receivedKas);
 
+                // Truncate address: kaspa:qqq...xyz
+                final addr = _merchantAddress;
+                final shortAddr = addr.length > 24
+                    ? '${addr.substring(0, 16)}…${addr.substring(addr.length - 8)}'
+                    : addr;
+
+                final colorScheme = Theme.of(context).colorScheme;
+                final textTheme = Theme.of(context).textTheme;
+
                 return SafeArea(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 8),
-
-                        // --- Amount header ---
-                        Text(
-                          '$remainingStr $kasSymbol',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (!hasPartial &&
-                            !currencyState.selectedCurrency.isCrypto)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: PriceText(
-                              _totalIdr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
-                            ),
-                          ),
-
-                        // --- Partial payment progress ---
-                        if (hasPartial) ...[
-                          const SizedBox(height: 12),
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(
-                              begin: 0,
-                              end: (receivedKas / totalKas).clamp(0.0, 1.0),
-                            ),
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeOut,
-                            builder: (context, value, _) =>
-                                LinearProgressIndicator(
-                              value: value,
-                              minHeight: 5,
-                              borderRadius: BorderRadius.circular(4),
-                              color: Theme.of(context).colorScheme.primary,
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '$receivedStr of $totalStr $kasSymbol received',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 24),
+                          child: Column(
+                            children: [
+                              // ── Amount ──────────────────────────────────
+                              Text(
+                                remainingStr,
+                                style: textTheme.displaySmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -1,
                                 ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-
-                        const SizedBox(height: 24),
-
-                        // --- QR code ---
-                        Center(
-                          child: QrImageView(
-                            data: qrData,
-                            version: QrVersions.auto,
-                            size: 220,
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.all(12),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _merchantAddress,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
+                                textAlign: TextAlign.center,
                               ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Scan with your Kaspa wallet',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // --- KAS-only warning ---
-                        Card(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                  size: 20,
+                              Text(
+                                kasSymbol,
+                                style: textTheme.titleMedium?.copyWith(
+                                  color: colorScheme.outline,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Send $kasSymbol only. Sending any other asset will result in permanent loss of funds.',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                        ),
+                              ),
+                              if (!hasPartial &&
+                                  !currencyState.selectedCurrency.isCrypto) ...[
+                                const SizedBox(height: 4),
+                                PriceText(
+                                  _totalIdr,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.outline,
                                   ),
                                 ),
                               ],
-                            ),
+
+                              // ── Partial progress ─────────────────────────
+                              if (hasPartial) ...[
+                                const SizedBox(height: 16),
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween(
+                                    begin: 0,
+                                    end: (receivedKas / totalKas)
+                                        .clamp(0.0, 1.0),
+                                  ),
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.easeOut,
+                                  builder: (context, value, _) =>
+                                      LinearProgressIndicator(
+                                    value: value,
+                                    minHeight: 3,
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: colorScheme.primary,
+                                    backgroundColor:
+                                        colorScheme.surfaceContainerHighest,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '$receivedStr of $totalStr $kasSymbol received',
+                                  style: textTheme.bodySmall
+                                      ?.copyWith(color: colorScheme.outline),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+
+                              const SizedBox(height: 28),
+
+                              // ── QR card ──────────────────────────────────
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.all(16),
+                                child: QrImageView(
+                                  data: qrData,
+                                  version: QrVersions.auto,
+                                  size: 220,
+                                  backgroundColor: Colors.white,
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // ── Address ───────────────────────────────────
+                              GestureDetector(
+                                onTap: () {
+                                  Clipboard.setData(
+                                      ClipboardData(text: _merchantAddress));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Address copied'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      shortAddr,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.outline,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures()
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.copy_outlined,
+                                        size: 13, color: colorScheme.outline),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 4),
+                              Text(
+                                'Scan to pay',
+                                style: textTheme.bodySmall
+                                    ?.copyWith(color: colorScheme.outlineVariant),
+                              ),
+
+                              const SizedBox(height: 28),
+
+                              // ── Order summary ─────────────────────────────
+                              Theme(
+                                data: Theme.of(context).copyWith(
+                                  dividerColor: Colors.transparent,
+                                ),
+                                child: ExpansionTile(
+                                  tilePadding: EdgeInsets.zero,
+                                  title: Text(
+                                    'Order summary',
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  trailing: Icon(
+                                    Icons.expand_more,
+                                    color: colorScheme.outline,
+                                  ),
+                                  children: [
+                                    const SizedBox(height: 4),
+                                    ..._cartItems.map((item) => LineItemRow(
+                                          productName: item.product.name,
+                                          quantity: item.quantity,
+                                          lineTotal: item.totalPrice,
+                                          additions: item.selectedAdditions
+                                              .map((a) => (
+                                                    name: a.name,
+                                                    price: a.price
+                                                  ))
+                                              .toList(),
+                                        )),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        ..._cartItems.map((item) => LineItemRow(
-                              productName: item.product.name,
-                              quantity: item.quantity,
-                              lineTotal: item.totalPrice,
-                              additions: item.selectedAdditions
-                                  .map((a) =>
-                                      (name: a.name, price: a.price))
-                                  .toList(),
-                            )),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+                      ),
+
+                      // ── Footer warning ────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                        child: Text(
+                          'Send $kasSymbol only — other assets cannot be recovered',
+                          textAlign: TextAlign.center,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.outlineVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
