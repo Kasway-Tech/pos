@@ -557,6 +557,28 @@ class KaspaWalletService {
     return sb.toString();
   }
 
+  /// Decodes a compact scriptPublicKey hex string (format: "VVVV{script_hex}")
+  /// for a standard P2PK output and returns the corresponding Kaspa address,
+  /// or null if the script is not a recognised P2PK (34-byte) script.
+  static String? scriptToAddress(String compactSpkHex, {String hrp = 'kaspa'}) {
+    try {
+      final (:version, :script) = parseCompactSpk(compactSpkHex);
+      // P2PK: OP_DATA_32 (0x20) + 32-byte x-only pubkey + OP_CHECKSIG (0xac)
+      if (version != 0 || script.length != 34 ||
+          script[0] != 0x20 || script[33] != 0xac) {
+        return null;
+      }
+      // Wrap the 32-byte x-only key in a fake 33-byte compressed key so that
+      // _encodeKaspaAddress (which calls sublist(1)) works correctly.
+      final fake33 = Uint8List(33);
+      fake33[0] = 0x02;
+      fake33.setRange(1, 33, script.sublist(1, 33));
+      return _encodeKaspaAddress(fake33, hrp: hrp);
+    } catch (_) {
+      return null;
+    }
+  }
+
   static String _addressToP2pkScript(String address) {
     final colonIdx = address.indexOf(':');
     if (colonIdx < 0) return '';

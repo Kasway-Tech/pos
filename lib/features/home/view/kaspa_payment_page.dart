@@ -14,7 +14,9 @@ import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kasway/data/models/cart_item.dart';
+import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/view/kaspa_confirmation_page.dart';
 
@@ -134,8 +136,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
           context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
       if (kasIdr <= 0) return;
 
-      // Full invoice amount in sompi (no pre-applied tolerance here — we apply
-      // it to the accumulated total below).
       final invoiceSompi = (_totalIdr / kasIdr * 1e8).floor();
 
       bool changed = false;
@@ -149,10 +149,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         final amount =
             int.tryParse(utxoEntry['amount']?.toString() ?? '0') ?? 0;
 
-        // Skip dust (< 1000 sompi).
-        if (amount < 1000) continue;
+        if (amount < 1000) continue; // skip dust
 
-        // Mark as seen so we never double-count.
         _knownOutpoints.add(key);
 
         final daaScore =
@@ -174,11 +172,18 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
       if (!changed) return;
 
-      // 1 % tolerance on the accumulated total.
+      // Payment complete (1 % tolerance).
       if (_receivedSompi >= (invoiceSompi * 0.99).floor()) {
         _wsDisposed = true;
         _pollSub?.cancel();
         _ws?.close().catchError((_) {});
+
+        // Fire-and-forget refund if the customer overpaid meaningfully.
+        // Minimum: enough to cover a 1-in 1-out tx fee (~2 000 sompi) + dust.
+        final excessSompi = _receivedSompi - invoiceSompi;
+        if (excessSompi > 2600) {
+          _tryRefund(excessSompi: excessSompi, txId: _lastTxId);
+        }
 
         if (mounted) {
           Navigator.of(context).push(MaterialPageRoute(
@@ -191,12 +196,165 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
           ));
         }
       } else {
-        // Partial — update UI to show remaining amount.
-        setState(() {});
+        setState(() {}); // partial — update remaining amount in UI
       }
     } catch (e) {
       debugPrint('[wRPC] parse error: $e');
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Overpayment refund
+  // ---------------------------------------------------------------------------
+
+  /// Fire-and-forget: resolves the sender's address from the paying transaction
+  /// then sends the excess back.
+  Future<void> _tryRefund({
+    required int excessSompi,
+    required String txId,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
+      if (mnemonic.isEmpty) return;
+
+      if (!mounted) return;
+      final networkState = context.read<NetworkCubit>().state;
+      final hrp = networkState.addressHrp;
+      final activeUrl = networkState.activeUrl;
+
+      // Step 1 — fetch the paying transaction to find the input's source.
+      final payingTx = await _fetchTransaction(txId: txId, activeUrl: activeUrl);
+      if (payingTx == null) {
+        debugPrint('[refund] could not fetch paying tx $txId');
+        return;
+      }
+
+      // Step 2 — resolve the sender's address from the first input.
+      final senderAddress =
+          await _resolveSenderAddress(payingTx: payingTx, hrp: hrp, activeUrl: activeUrl);
+      if (senderAddress == null) {
+        debugPrint('[refund] could not resolve sender address');
+        return;
+      }
+
+      debugPrint('[refund] sending $excessSompi sompi back to $senderAddress');
+
+      final result = await KaspaWalletService().sendTransaction(
+        mnemonic: mnemonic,
+        toAddress: senderAddress,
+        amountSompi: excessSompi,
+        payloadNote:
+            'kasway:refund:${DateTime.now().toUtc().toIso8601String()}',
+        hrp: hrp,
+        activeUrl: activeUrl,
+      );
+
+      if (result.error.isNotEmpty) {
+        debugPrint('[refund] send failed: ${result.error}');
+      } else {
+        debugPrint('[refund] sent, txId=${result.txId}');
+      }
+    } catch (e) {
+      debugPrint('[refund] error: $e');
+    }
+  }
+
+  /// Fetches a transaction by ID over a fresh wRPC WebSocket.
+  Future<Map<String, dynamic>?> _fetchTransaction({
+    required String txId,
+    required String activeUrl,
+  }) async {
+    WebSocket? ws;
+    try {
+      ws = await WebSocket.connect(activeUrl)
+          .timeout(const Duration(seconds: 10));
+
+      final completer = Completer<Map<String, dynamic>?>();
+      ws.listen(
+        (raw) {
+          if (raw is! String || completer.isCompleted) return;
+          try {
+            final msg = jsonDecode(raw) as Map<String, dynamic>;
+            final tx = (msg['params'] as Map<String, dynamic>?)?['transaction']
+                as Map<String, dynamic>?;
+            completer.complete(tx);
+          } catch (_) {
+            completer.complete(null);
+          }
+        },
+        onError: (_) {
+          if (!completer.isCompleted) completer.complete(null);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete(null);
+        },
+      );
+
+      ws.add(jsonEncode({
+        'id': 1,
+        'method': 'getTransaction',
+        'params': {'transactionId': txId, 'includeAcceptingBlockHash': false},
+      }));
+
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } catch (e) {
+      debugPrint('[refund] fetchTransaction error: $e');
+      return null;
+    } finally {
+      await ws?.close();
+    }
+  }
+
+  /// Extracts the sender's Kaspa address from the paying transaction by
+  /// looking up the scriptPublicKey of the first input's previous output.
+  Future<String?> _resolveSenderAddress({
+    required Map<String, dynamic> payingTx,
+    required String hrp,
+    required String activeUrl,
+  }) async {
+    final inputs = payingTx['inputs'] as List<dynamic>?;
+    if (inputs == null || inputs.isEmpty) return null;
+
+    final prevOutpoint =
+        (inputs[0] as Map<String, dynamic>?)?['previousOutpoint']
+            as Map<String, dynamic>?;
+    if (prevOutpoint == null) return null;
+
+    final prevTxId = prevOutpoint['transactionId']?.toString() ?? '';
+    final prevIndex =
+        int.tryParse(prevOutpoint['index']?.toString() ?? '0') ?? 0;
+
+    if (prevTxId.isEmpty) return null;
+
+    // Fetch the previous transaction to read the output's scriptPublicKey.
+    final prevTx =
+        await _fetchTransaction(txId: prevTxId, activeUrl: activeUrl);
+    if (prevTx == null) return null;
+
+    final outputs = prevTx['outputs'] as List<dynamic>?;
+    if (outputs == null || outputs.length <= prevIndex) return null;
+
+    // The node may return scriptPublicKey as a compact hex string or as a map.
+    final output = outputs[prevIndex] as Map<String, dynamic>?;
+    if (output == null) return null;
+
+    final spkRaw = output['scriptPublicKey'];
+    final String compactSpkHex;
+    if (spkRaw is String) {
+      compactSpkHex = spkRaw;
+    } else if (spkRaw is Map<String, dynamic>) {
+      // {"version": 0, "scriptPublicKey": "<hex>"}
+      final version =
+          (spkRaw['version'] as num?)?.toInt().toRadixString(16).padLeft(4, '0') ??
+              '0000';
+      final scriptHex = spkRaw['scriptPublicKey']?.toString() ?? '';
+      compactSpkHex = '$version$scriptHex';
+    } else {
+      return null;
+    }
+
+    return KaspaWalletService.scriptToAddress(compactSpkHex, hrp: hrp);
   }
 
   String? _outpointKey(dynamic entry) {
