@@ -25,6 +25,7 @@ import 'package:kasway/features/profile/view/donation_page.dart';
 import 'package:kasway/features/profile/view/network_page.dart';
 import 'package:kasway/features/profile/view/order_history_page.dart';
 import 'package:kasway/features/profile/view/settings_page.dart';
+import 'package:kasway/features/profile/view/table_layout_page.dart';
 import 'package:kasway/features/profile/view/theme_settings_page.dart';
 import 'package:kasway/features/profile/view/withdrawal_history_page.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
@@ -37,6 +38,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum _ProfileSection {
   orders,
   items,
+  tableLayout,
   dataTransfer,
   network,
   display,
@@ -50,6 +52,7 @@ extension _ProfileSectionWidget on _ProfileSection {
   Widget build() => switch (this) {
         _ProfileSection.orders => const OrderHistoryPage(),
         _ProfileSection.items => const ItemManagementPage(),
+        _ProfileSection.tableLayout => const TableLayoutPage(),
         _ProfileSection.dataTransfer => const DataTransferPage(),
         _ProfileSection.network => const NetworkPage(),
         _ProfileSection.display => const DisplaySettingsPage(),
@@ -188,6 +191,13 @@ class _ProfilePageState extends State<ProfilePage> {
         title: 'Manage Item',
         isSelected: isSelected(_ProfileSection.items),
         onTap: () => navigate(_ProfileSection.items, '/profile/items'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.table_restaurant_outlined,
+        title: 'Table Layout',
+        isSelected: isSelected(_ProfileSection.tableLayout),
+        onTap: () =>
+            navigate(_ProfileSection.tableLayout, '/profile/table-layout'),
       ),
       _ProfileMenuItem(
         icon: Icons.restore_outlined,

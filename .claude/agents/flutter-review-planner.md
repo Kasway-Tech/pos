@@ -90,7 +90,7 @@ Acceptance Criteria:
 ### Post-Refactoring Checklist
 1. `dart run build_runner build --delete-conflicting-outputs` (if Freezed/JSON models changed)
 2. `flutter analyze` → zero errors/warnings
-3. `flutter test` → all pass
+3. `flutter test <path>` → run only test files covering the changed code, not the full suite
 4. Update CLAUDE.md if new patterns introduced
 ```
 

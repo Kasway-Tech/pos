@@ -25,6 +25,8 @@ import '../features/profile/view/network_page.dart';
 import '../features/auth/view/onboarding_currency_page.dart';
 import '../features/profile/view/donation_page.dart';
 import '../features/profile/view/display_settings_page.dart';
+import '../features/profile/view/table_layout_page.dart';
+import '../features/home/view/table_selection_page.dart';
 import '../features/splash/view/splash_page.dart';
 
 class AppRouter {
@@ -120,7 +122,15 @@ class AppRouter {
               path: 'display',
               builder: (context, state) => const DisplaySettingsPage(),
             ),
+            GoRoute(
+              path: 'table-layout',
+              builder: (context, state) => const TableLayoutPage(),
+            ),
           ],
+        ),
+        GoRoute(
+          path: '/table-selection',
+          builder: (context, state) => const TableSelectionPage(),
         ),
         GoRoute(
           path: '/auth',

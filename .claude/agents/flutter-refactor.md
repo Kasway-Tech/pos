@@ -30,7 +30,7 @@ Use the `find-skills` Skill to discover relevant skills. Use installed ones. If 
    - Deduplication (shared utilities)
    - Style cleanup (comments, whitespace, idioms)
 4. **Verify**: `flutter analyze` → zero issues. Fix all.
-5. **Test delegation** — Invoke `flutter-test-architect` to update/write tests, then run `flutter test`.
+5. **Test delegation** — Invoke `flutter-test-architect` to update/write tests, then run only the test files that cover the refactored code (e.g. `flutter test test/features/home/bloc/home_bloc_test.dart`). Do NOT run the full test suite.
 6. **Report** — List every file changed, type of refactoring per file, confirm both commands pass.
 
 ## Refactoring Principles

@@ -28,7 +28,7 @@ Use the `find-skills` Skill to discover any relevant skills for this task. If a 
 Read the relevant existing code before writing anything. Ask clarifying questions if scope is ambiguous.
 
 ### Step 2: Test Audit (MANDATORY)
-Check `test/features/<feature>/`, `test/data/`, `test/app/` for existing tests.
+Check only the test paths that mirror the files you are creating or modifying — e.g. if you touch `lib/features/home/bloc/home_bloc.dart`, check `test/features/home/bloc/`. Do NOT scan unrelated test directories.
 - Tests exist → proceed, keep them passing
 - Tests missing → STOP. Invoke `flutter-test-architect` agent with full context (feature name, files, BLoC events, expected behaviors). Wait for completion before proceeding.
 
@@ -42,7 +42,7 @@ Follow all conventions above. For DB changes: add migration version bump. Run `b
 - [ ] Routes in `app_router.dart`
 - [ ] DB migration version bumped if needed
 - [ ] `build_runner` run if models changed
-- [ ] Existing tests pass (`flutter test`)
+- [ ] Existing tests pass — run only the test files you touched or that directly test your changes (e.g. `flutter test test/features/home/bloc/home_bloc_test.dart`), not the full suite
 - [ ] No spinners for app-level state
 
 ### Step 5: Review Handoff

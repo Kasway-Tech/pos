@@ -16,6 +16,7 @@ class OrderRepository {
     required String txId,
     required String network,
     required List<CartItem> cartItems,
+    String tableLabel = '',
   }) async {
     final db = await _db.database;
     final orderId = _newId();
@@ -27,6 +28,7 @@ class OrderRepository {
         'kas_idr_rate': kasIdrRate,
         'tx_id': txId,
         'network': network,
+        'table_label': tableLabel,
         'created_at': DateTime.now().millisecondsSinceEpoch,
       });
       for (final item in cartItems) {
@@ -69,7 +71,7 @@ class OrderRepository {
     final db = await _db.database;
     final rows = await db.rawQuery('''
       SELECT o.id, o.total_idr, o.created_at, o.kas_amount, o.kas_idr_rate,
-             o.tx_id,
+             o.tx_id, o.table_label,
              oi.id as item_id, oi.product_name, oi.unit_price,
              oi.quantity as item_quantity, oi.additions
       FROM orders o
@@ -91,6 +93,7 @@ class OrderRepository {
           kasAmount: (row['kas_amount'] as num? ?? 0).toDouble(),
           kasIdrRate: (row['kas_idr_rate'] as num? ?? 0).toDouble(),
           txId: row['tx_id'] as String? ?? '',
+          tableLabel: row['table_label'] as String? ?? '',
           createdAt: DateTime.fromMillisecondsSinceEpoch(
             row['created_at'] as int,
           ),

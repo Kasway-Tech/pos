@@ -12,6 +12,7 @@ abstract class Order with _$Order {
     @Default(0.0) double kasAmount,
     @Default(0.0) double kasIdrRate,
     @Default('') String txId,
+    @Default('') String tableLabel,
     @Default([]) List<OrderItem> items,
   }) = _Order;
 }

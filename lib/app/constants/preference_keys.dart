@@ -34,4 +34,7 @@ abstract final class PreferenceKeys {
   // ── Display ────────────────────────────────────────────────────────────────
   static const String displayEnabled = 'display_enabled';
   static const String displayLastConnectedId = 'display_last_connected_id';
+
+  // ── Table Layout ───────────────────────────────────────────────────────────
+  static const String tableLayoutEnabled = 'table_layout_enabled';
 }

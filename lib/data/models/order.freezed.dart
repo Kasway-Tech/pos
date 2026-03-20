@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Order {
 
- String get id; double get totalIdr; DateTime get createdAt; double get kasAmount; double get kasIdrRate; String get txId; List<OrderItem> get items;
+ String get id; double get totalIdr; DateTime get createdAt; double get kasAmount; double get kasIdrRate; String get txId; String get tableLabel; List<OrderItem> get items;
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $OrderCopyWith<Order> get copyWith => _$OrderCopyWithImpl<Order>(this as Order, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Order&&(identical(other.id, id) || other.id == id)&&(identical(other.totalIdr, totalIdr) || other.totalIdr == totalIdr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.kasAmount, kasAmount) || other.kasAmount == kasAmount)&&(identical(other.kasIdrRate, kasIdrRate) || other.kasIdrRate == kasIdrRate)&&(identical(other.txId, txId) || other.txId == txId)&&const DeepCollectionEquality().equals(other.items, items));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Order&&(identical(other.id, id) || other.id == id)&&(identical(other.totalIdr, totalIdr) || other.totalIdr == totalIdr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.kasAmount, kasAmount) || other.kasAmount == kasAmount)&&(identical(other.kasIdrRate, kasIdrRate) || other.kasIdrRate == kasIdrRate)&&(identical(other.txId, txId) || other.txId == txId)&&(identical(other.tableLabel, tableLabel) || other.tableLabel == tableLabel)&&const DeepCollectionEquality().equals(other.items, items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,totalIdr,createdAt,kasAmount,kasIdrRate,txId,const DeepCollectionEquality().hash(items));
+int get hashCode => Object.hash(runtimeType,id,totalIdr,createdAt,kasAmount,kasIdrRate,txId,tableLabel,const DeepCollectionEquality().hash(items));
 
 @override
 String toString() {
-  return 'Order(id: $id, totalIdr: $totalIdr, createdAt: $createdAt, kasAmount: $kasAmount, kasIdrRate: $kasIdrRate, txId: $txId, items: $items)';
+  return 'Order(id: $id, totalIdr: $totalIdr, createdAt: $createdAt, kasAmount: $kasAmount, kasIdrRate: $kasIdrRate, txId: $txId, tableLabel: $tableLabel, items: $items)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $OrderCopyWith<$Res>  {
   factory $OrderCopyWith(Order value, $Res Function(Order) _then) = _$OrderCopyWithImpl;
 @useResult
 $Res call({
- String id, double totalIdr, DateTime createdAt, double kasAmount, double kasIdrRate, String txId, List<OrderItem> items
+ String id, double totalIdr, DateTime createdAt, double kasAmount, double kasIdrRate, String txId, String tableLabel, List<OrderItem> items
 });
 
 
@@ -62,7 +62,7 @@ class _$OrderCopyWithImpl<$Res>
 
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? totalIdr = null,Object? createdAt = null,Object? kasAmount = null,Object? kasIdrRate = null,Object? txId = null,Object? items = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? totalIdr = null,Object? createdAt = null,Object? kasAmount = null,Object? kasIdrRate = null,Object? txId = null,Object? tableLabel = null,Object? items = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,totalIdr: null == totalIdr ? _self.totalIdr : totalIdr // ignore: cast_nullable_to_non_nullable
@@ -70,6 +70,7 @@ as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as DateTime,kasAmount: null == kasAmount ? _self.kasAmount : kasAmount // ignore: cast_nullable_to_non_nullable
 as double,kasIdrRate: null == kasIdrRate ? _self.kasIdrRate : kasIdrRate // ignore: cast_nullable_to_non_nullable
 as double,txId: null == txId ? _self.txId : txId // ignore: cast_nullable_to_non_nullable
+as String,tableLabel: null == tableLabel ? _self.tableLabel : tableLabel // ignore: cast_nullable_to_non_nullable
 as String,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<OrderItem>,
   ));
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  double totalIdr,  DateTime createdAt,  double kasAmount,  double kasIdrRate,  String txId,  List<OrderItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  double totalIdr,  DateTime createdAt,  double kasAmount,  double kasIdrRate,  String txId,  String tableLabel,  List<OrderItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Order() when $default != null:
-return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.kasIdrRate,_that.txId,_that.items);case _:
+return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.kasIdrRate,_that.txId,_that.tableLabel,_that.items);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.ka
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  double totalIdr,  DateTime createdAt,  double kasAmount,  double kasIdrRate,  String txId,  List<OrderItem> items)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  double totalIdr,  DateTime createdAt,  double kasAmount,  double kasIdrRate,  String txId,  String tableLabel,  List<OrderItem> items)  $default,) {final _that = this;
 switch (_that) {
 case _Order():
-return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.kasIdrRate,_that.txId,_that.items);case _:
+return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.kasIdrRate,_that.txId,_that.tableLabel,_that.items);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.ka
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  double totalIdr,  DateTime createdAt,  double kasAmount,  double kasIdrRate,  String txId,  List<OrderItem> items)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  double totalIdr,  DateTime createdAt,  double kasAmount,  double kasIdrRate,  String txId,  String tableLabel,  List<OrderItem> items)?  $default,) {final _that = this;
 switch (_that) {
 case _Order() when $default != null:
-return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.kasIdrRate,_that.txId,_that.items);case _:
+return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.kasIdrRate,_that.txId,_that.tableLabel,_that.items);case _:
   return null;
 
 }
@@ -212,7 +213,7 @@ return $default(_that.id,_that.totalIdr,_that.createdAt,_that.kasAmount,_that.ka
 
 
 class _Order implements Order {
-  const _Order({required this.id, required this.totalIdr, required this.createdAt, this.kasAmount = 0.0, this.kasIdrRate = 0.0, this.txId = '', final  List<OrderItem> items = const []}): _items = items;
+  const _Order({required this.id, required this.totalIdr, required this.createdAt, this.kasAmount = 0.0, this.kasIdrRate = 0.0, this.txId = '', this.tableLabel = '', final  List<OrderItem> items = const []}): _items = items;
   
 
 @override final  String id;
@@ -221,6 +222,7 @@ class _Order implements Order {
 @override@JsonKey() final  double kasAmount;
 @override@JsonKey() final  double kasIdrRate;
 @override@JsonKey() final  String txId;
+@override@JsonKey() final  String tableLabel;
  final  List<OrderItem> _items;
 @override@JsonKey() List<OrderItem> get items {
   if (_items is EqualUnmodifiableListView) return _items;
@@ -239,16 +241,16 @@ _$OrderCopyWith<_Order> get copyWith => __$OrderCopyWithImpl<_Order>(this, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Order&&(identical(other.id, id) || other.id == id)&&(identical(other.totalIdr, totalIdr) || other.totalIdr == totalIdr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.kasAmount, kasAmount) || other.kasAmount == kasAmount)&&(identical(other.kasIdrRate, kasIdrRate) || other.kasIdrRate == kasIdrRate)&&(identical(other.txId, txId) || other.txId == txId)&&const DeepCollectionEquality().equals(other._items, _items));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Order&&(identical(other.id, id) || other.id == id)&&(identical(other.totalIdr, totalIdr) || other.totalIdr == totalIdr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.kasAmount, kasAmount) || other.kasAmount == kasAmount)&&(identical(other.kasIdrRate, kasIdrRate) || other.kasIdrRate == kasIdrRate)&&(identical(other.txId, txId) || other.txId == txId)&&(identical(other.tableLabel, tableLabel) || other.tableLabel == tableLabel)&&const DeepCollectionEquality().equals(other._items, _items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,totalIdr,createdAt,kasAmount,kasIdrRate,txId,const DeepCollectionEquality().hash(_items));
+int get hashCode => Object.hash(runtimeType,id,totalIdr,createdAt,kasAmount,kasIdrRate,txId,tableLabel,const DeepCollectionEquality().hash(_items));
 
 @override
 String toString() {
-  return 'Order(id: $id, totalIdr: $totalIdr, createdAt: $createdAt, kasAmount: $kasAmount, kasIdrRate: $kasIdrRate, txId: $txId, items: $items)';
+  return 'Order(id: $id, totalIdr: $totalIdr, createdAt: $createdAt, kasAmount: $kasAmount, kasIdrRate: $kasIdrRate, txId: $txId, tableLabel: $tableLabel, items: $items)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$OrderCopyWith<$Res> implements $OrderCopyWith<$Res> {
   factory _$OrderCopyWith(_Order value, $Res Function(_Order) _then) = __$OrderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, double totalIdr, DateTime createdAt, double kasAmount, double kasIdrRate, String txId, List<OrderItem> items
+ String id, double totalIdr, DateTime createdAt, double kasAmount, double kasIdrRate, String txId, String tableLabel, List<OrderItem> items
 });
 
 
@@ -276,7 +278,7 @@ class __$OrderCopyWithImpl<$Res>
 
 /// Create a copy of Order
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? totalIdr = null,Object? createdAt = null,Object? kasAmount = null,Object? kasIdrRate = null,Object? txId = null,Object? items = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? totalIdr = null,Object? createdAt = null,Object? kasAmount = null,Object? kasIdrRate = null,Object? txId = null,Object? tableLabel = null,Object? items = null,}) {
   return _then(_Order(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,totalIdr: null == totalIdr ? _self.totalIdr : totalIdr // ignore: cast_nullable_to_non_nullable
@@ -284,6 +286,7 @@ as double,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: 
 as DateTime,kasAmount: null == kasAmount ? _self.kasAmount : kasAmount // ignore: cast_nullable_to_non_nullable
 as double,kasIdrRate: null == kasIdrRate ? _self.kasIdrRate : kasIdrRate // ignore: cast_nullable_to_non_nullable
 as double,txId: null == txId ? _self.txId : txId // ignore: cast_nullable_to_non_nullable
+as String,tableLabel: null == tableLabel ? _self.tableLabel : tableLabel // ignore: cast_nullable_to_non_nullable
 as String,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<OrderItem>,
   ));

@@ -6,6 +6,8 @@ import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
+import 'package:kasway/app/table/table_cubit.dart';
+import 'package:kasway/app/table/table_state.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -23,15 +25,19 @@ class MockCurrencyCubit extends MockCubit<CurrencyState>
 class MockNetworkCubit extends MockCubit<NetworkState>
     implements NetworkCubit {}
 
+class MockTableCubit extends MockCubit<TableState> implements TableCubit {}
+
 void main() {
   late MockHomeBloc homeBloc;
   late MockCurrencyCubit currencyCubit;
   late MockNetworkCubit networkCubit;
+  late MockTableCubit tableCubit;
 
   setUp(() {
     homeBloc = MockHomeBloc();
     currencyCubit = MockCurrencyCubit();
     networkCubit = MockNetworkCubit();
+    tableCubit = MockTableCubit();
 
     // IDR selected: formatPrice falls back to IDR directly (no exchange rate needed)
     when(() => currencyCubit.state).thenReturn(
@@ -44,6 +50,8 @@ void main() {
       ),
     );
     when(() => networkCubit.state).thenReturn(const NetworkState());
+    // Table layout disabled by default so it doesn't affect existing tests.
+    when(() => tableCubit.state).thenReturn(const TableState());
   });
 
   Widget buildTestableWidget() {
@@ -53,6 +61,7 @@ void main() {
           BlocProvider<HomeBloc>.value(value: homeBloc),
           BlocProvider<CurrencyCubit>.value(value: currencyCubit),
           BlocProvider<NetworkCubit>.value(value: networkCubit),
+          BlocProvider<TableCubit>.value(value: tableCubit),
         ],
         child: const Scaffold(body: OrderSideView(showAppBar: true)),
       ),

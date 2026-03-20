@@ -11,6 +11,7 @@ import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
@@ -138,6 +139,9 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     final kasIdr =
         context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
     final kasAmount = kasIdr > 0 ? widget.totalIdr / kasIdr : 0.0;
+    final tableCubit = context.read<TableCubit>();
+    final selectedTableId = tableCubit.state.selectedTableId;
+    final tableLabel = tableCubit.state.selectedTable?.label ?? '';
     context.read<HomeBloc>()
       ..add(HomeOrderCompleted(
         totalIdr: widget.totalIdr,
@@ -146,8 +150,10 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
         kasIdrRate: kasIdr,
         txId: widget.txId,
         network: network,
+        tableLabel: tableLabel,
       ))
       ..add(HomeCartCleared());
+    tableCubit.freeTable(selectedTableId);
     context.go('/payment-success');
   }
 

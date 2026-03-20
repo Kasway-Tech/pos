@@ -612,3 +612,40 @@ bool get _isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
 ### Auto-reconnect
 On `DisplayCubit` load, if `display_enabled == true` and `display_last_connected_id` is set, a 2-second `Timer` triggers `_tryAutoReconnect()`: scans for displays, then calls `connect()` if the last-known display is still visible.
+
+## Table Layout System
+
+Optional floor-plan feature for restaurants and cafés. When enabled, the cashier must select a table before payment. Empty tables show in primary color; occupied ones are greyed out.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/data/models/table_item.dart` | Freezed `TableItem` model (id, label, seats 1–8, x, y, rotation, isOccupied) |
+| `lib/data/repositories/table_repository.dart` | SQLite CRUD for `table_items`; `saveLayout` does full-replace in a single transaction |
+| `lib/app/table/table_state.dart` | Plain-class `TableState` (enabled, tables, selectedTableId) with `selectedTable` getter |
+| `lib/app/table/table_cubit.dart` | App-level cubit: toggle, saveLayout, selectTable, markOccupied, freeTable |
+| `lib/features/home/view/widgets/table_canvas.dart` | Shared canvas used in editor (editMode=true) and selection page (editMode=false) |
+| `lib/features/profile/view/table_layout_page.dart` | Canvas editor: drag/rotate tables, label editing, bottom sheet palette |
+| `lib/features/home/view/table_selection_page.dart` | Pre-payment table picker: canvas + chip list |
+
+### Routes
+- `/profile/table-layout` → `TableLayoutPage` (nested under `/profile`)
+- `/table-selection` → `TableSelectionPage` (top-level, pushed before `/kaspa-payment`)
+
+### DB Schema (added in v12)
+```sql
+table_items(id TEXT PK, label TEXT, seats INTEGER DEFAULT 4,
+            x REAL DEFAULT 0, y REAL DEFAULT 0,
+            rotation REAL DEFAULT 0, is_occupied INTEGER DEFAULT 0)
+-- orders also has: table_label TEXT NOT NULL DEFAULT ''
+```
+
+### Payment flow intercept
+`OrderSideView._proceedToPayment()` checks `TableCubit.state.enabled` and `selectedTableId`. If enabled and no table selected, pushes `/table-selection` first. After selection, pushes `/kaspa-payment`.
+
+### Table freed after payment
+In `KaspaConfirmationPage._onConfirmed()`, after `HomeOrderCompleted` and `HomeCartCleared`, calls `tableCubit.freeTable(selectedTableId)` to mark the table available again.
+
+### SharedPreferences key
+`table_layout_enabled` (bool) — defined in `PreferenceKeys.tableLayoutEnabled`.
+

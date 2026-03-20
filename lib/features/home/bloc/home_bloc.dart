@@ -356,6 +356,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         txId: event.txId,
         network: event.network,
         cartItems: event.cartItems,
+        tableLabel: event.tableLabel,
       );
     } catch (_) {
       // Silently ignore — revenue tracking should not block order flow.

@@ -15,7 +15,7 @@ class AppDatabase {
 
   Future<Database> _open() async {
     final path = join(await getDatabasesPath(), 'kasway.db');
-    return openDatabase(path, version: 11, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(path, version: 12, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -100,6 +100,21 @@ class AppDatabase {
       await db.execute('ALTER TABLE products ADD COLUMN kas_price REAL');
       await db.execute('ALTER TABLE additions ADD COLUMN kas_price REAL');
     }
+    if (oldVersion < 12) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS table_items (
+          id          TEXT PRIMARY KEY,
+          label       TEXT NOT NULL,
+          seats       INTEGER NOT NULL DEFAULT 4,
+          x           REAL NOT NULL DEFAULT 0,
+          y           REAL NOT NULL DEFAULT 0,
+          rotation    REAL NOT NULL DEFAULT 0,
+          is_occupied INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+      await db.execute(
+          "ALTER TABLE orders ADD COLUMN table_label TEXT NOT NULL DEFAULT ''");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -140,7 +155,20 @@ class AppDatabase {
         kas_idr_rate REAL NOT NULL DEFAULT 0,
         tx_id        TEXT NOT NULL DEFAULT '',
         network      TEXT NOT NULL DEFAULT 'testnet10',
+        table_label  TEXT NOT NULL DEFAULT '',
         created_at   INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE table_items (
+        id          TEXT PRIMARY KEY,
+        label       TEXT NOT NULL,
+        seats       INTEGER NOT NULL DEFAULT 4,
+        x           REAL NOT NULL DEFAULT 0,
+        y           REAL NOT NULL DEFAULT 0,
+        rotation    REAL NOT NULL DEFAULT 0,
+        is_occupied INTEGER NOT NULL DEFAULT 0
       )
     ''');
 

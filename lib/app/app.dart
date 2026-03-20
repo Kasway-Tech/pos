@@ -15,9 +15,11 @@ import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
+import 'package:kasway/data/repositories/table_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -81,6 +83,12 @@ class _AppState extends State<App> {
           create: (_) => DisplayCubit(prefs: widget.prefs),
         ),
         BlocProvider(
+          create: (_) => TableCubit(
+            prefs: widget.prefs,
+            repo: TableRepository(),
+          ),
+        ),
+        BlocProvider(
           create: (context) => WalletCubit(
             prefs: widget.prefs,
             networkCubit: context.read<NetworkCubit>(),
@@ -102,6 +110,7 @@ class _AppState extends State<App> {
               RepositoryProvider(create: (_) => OrderRepository()),
               RepositoryProvider(create: (_) => WithdrawalRepository()),
               RepositoryProvider(create: (_) => DonationRepository()),
+              RepositoryProvider(create: (_) => TableRepository()),
             ],
             child: BlocProvider(
               create: (context) => HomeBloc(
