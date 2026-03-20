@@ -455,7 +455,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Send $kasSymbol only, and exactly the amount shown above. Sending any other asset or incorrect amount cannot be refunded.',
+                                  'Send $kasSymbol only, and exactly the amount shown above. Sending any other asset or incorrect amount might result in funds being lost.',
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
