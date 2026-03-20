@@ -512,9 +512,9 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                 ),
                               ),
                             ),
-                            // Right — full-height card with scrollable list
-                            Expanded(
-                              flex: 3,
+                            // Right — fixed-width, full-height card with scrollable list
+                            SizedBox(
+                              width: 280,
                               child: Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                   8,
