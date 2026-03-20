@@ -4,19 +4,19 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/view/kaspa_confirmation_page.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class KaspaPaymentPage extends StatefulWidget {
   const KaspaPaymentPage({super.key});
@@ -53,7 +53,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
     final state = context.read<HomeBloc>().state;
     _cartItems = state.cartItems;
-    _totalIdr = _cartItems.fold<double>(0, (sum, item) => sum + item.totalPrice);
+    _totalIdr = _cartItems.fold<double>(
+      0,
+      (sum, item) => sum + item.totalPrice,
+    );
 
     _merchantAddress = context.read<WalletCubit>().state.address;
     Future.microtask(_connectWrpc);
@@ -84,17 +87,22 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         void send() {
           if (_wsDisposed || ws.readyState != WebSocket.open) return;
           try {
-            ws.add(jsonEncode({
-              'id': _reqId++,
-              'method': 'getUtxosByAddresses',
-              'params': {'addresses': [address]},
-            }));
+            ws.add(
+              jsonEncode({
+                'id': _reqId++,
+                'method': 'getUtxosByAddresses',
+                'params': {
+                  'addresses': [address],
+                },
+              }),
+            );
           } catch (_) {}
         }
 
         send();
-        _pollSub =
-            Stream.periodic(const Duration(seconds: 1)).listen((_) => send());
+        _pollSub = Stream.periodic(
+          const Duration(seconds: 1),
+        ).listen((_) => send());
 
         await for (final raw in ws) {
           if (_wsDisposed) break;
@@ -155,8 +163,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             int.tryParse(utxoEntry['blockDaaScore']?.toString() ?? '0') ?? 0;
         final txId =
             (entry['outpoint'] as Map<String, dynamic>?)?['transactionId']
-                    ?.toString() ??
-                '';
+                ?.toString() ??
+            '';
 
         _receivedSompi += amount;
         _lastDaaScore = daaScore;
@@ -165,7 +173,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         changed = true;
 
         debugPrint(
-            '[wRPC] UTXO +$amount sompi  total=$_receivedSompi/$invoiceSompi  txId=$txId');
+          '[wRPC] UTXO +$amount sompi  total=$_receivedSompi/$invoiceSompi  txId=$txId',
+        );
       }
 
       if (!changed) return;
@@ -177,14 +186,16 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         _ws?.close().catchError((_) {});
 
         if (mounted) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => KaspaConfirmationPage(
-              detectedDaaScore: _lastDaaScore,
-              totalIdr: _totalIdr,
-              cartItems: _cartItems,
-              txId: _lastTxId,
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => KaspaConfirmationPage(
+                detectedDaaScore: _lastDaaScore,
+                totalIdr: _totalIdr,
+                cartItems: _cartItems,
+                txId: _lastTxId,
+              ),
             ),
-          ));
+          );
         }
       } else {
         setState(() {}); // partial — update remaining amount in UI
@@ -211,11 +222,13 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   ) {
     final payload = jsonEncode({
       'items': items
-          .map((i) => {
-                'name': i.product.name,
-                'qty': i.quantity,
-                'price_idr': i.product.price,
-              })
+          .map(
+            (i) => {
+              'name': i.product.name,
+              'qty': i.quantity,
+              'price_idr': i.product.price,
+            },
+          )
           .toList(),
       'total_idr': totalIdr,
     });
@@ -229,7 +242,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: const Text('Kaspa Payment')),
+      appBar: BlurAppBar(title: const Text('Payment')),
       body: BlocListener<WalletCubit, WalletState>(
         listenWhen: (prev, curr) => prev.address != curr.address,
         listener: (context, walletState) {
@@ -264,7 +277,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                     'No wallet configured. Please set up your wallet first.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.error),
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               );
@@ -287,8 +301,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                       Text(
                         'Please wait a moment.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       TextButton.icon(
@@ -305,8 +319,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
             final totalKas = _totalIdr / kasIdr;
             final receivedKas = _receivedSompi / 1e8;
-            final remainingKas =
-                (totalKas - receivedKas).clamp(0.0, double.infinity);
+            final remainingKas = (totalKas - receivedKas).clamp(
+              0.0,
+              double.infinity,
+            );
             final hasPartial = _partialPayments.isNotEmpty;
 
             final qrData = _buildQrString(
@@ -342,9 +358,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         // --- Amount header ---
                         Text(
                           '$remainingStr $kasSymbol',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
@@ -354,12 +368,11 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                             padding: const EdgeInsets.only(top: 4),
                             child: PriceText(
                               _totalIdr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
+                              style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
                                   ),
                             ),
                           ),
@@ -376,21 +389,19 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                             curve: Curves.easeOut,
                             builder: (context, value, _) =>
                                 LinearProgressIndicator(
-                              value: value,
-                              minHeight: 5,
-                              borderRadius: BorderRadius.circular(4),
-                              color: Theme.of(context).colorScheme.primary,
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                            ),
+                                  value: value,
+                                  minHeight: 5,
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Theme.of(context).colorScheme.primary,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                                ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             '$receivedStr of $totalStr $kasSymbol received',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.outline,
                                 ),
@@ -414,24 +425,12 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         Text(
                           _merchantAddress,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,
                                 fontFeatures: const [
                                   FontFeature.tabularFigures(),
                                 ],
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Scan with your Kaspa wallet',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
                               ),
                         ),
                         const SizedBox(height: 20),
@@ -443,7 +442,9 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -456,9 +457,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                               Expanded(
                                 child: Text(
                                   'Send $kasSymbol only, and exactly the amount shown above. Sending any other asset or incorrect amount might result in funds being lost.',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(color: Colors.white),
                                 ),
                               ),
@@ -466,17 +465,31 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        ..._cartItems.map((item) => LineItemRow(
-                              productName: item.product.name,
-                              quantity: item.quantity,
-                              lineTotal: item.totalPrice,
-                              additions: item.selectedAdditions
-                                  .map((a) =>
-                                      (name: a.name, price: a.price))
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Column(
+                              children: _cartItems
+                                  .map(
+                                    (item) => LineItemRow(
+                                      productName: item.product.name,
+                                      quantity: item.quantity,
+                                      lineTotal: item.totalPrice,
+                                      additions: item.selectedAdditions
+                                          .map(
+                                            (a) =>
+                                                (name: a.name, price: a.price),
+                                          )
+                                          .toList(),
+                                    ),
+                                  )
                                   .toList(),
-                            )),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                       ],
                     ),
