@@ -54,15 +54,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 BlocBuilder<CurrencyCubit, CurrencyState>(
-                  builder: (context, state) => SwitchListTile(
-                    title: const Text('Dynamic Pricing'),
-                    subtitle: const Text(
-                      'Auto-update prices every 60 seconds',
-                    ),
-                    value: state.dynamicPricing,
-                    onChanged: (val) =>
-                        context.read<CurrencyCubit>().setDynamicPricing(val),
-                  ),
+                  builder: (context, state) {
+                    final isKas = state.selectedCurrency.isCrypto;
+                    return SwitchListTile(
+                      title: const Text('Dynamic Pricing'),
+                      subtitle: Text(
+                        isKas
+                            ? 'Not available for KAS display currency'
+                            : 'Auto-update prices every 60 seconds',
+                      ),
+                      value: state.dynamicPricing,
+                      onChanged: isKas
+                          ? null
+                          : (val) => context
+                              .read<CurrencyCubit>()
+                              .setDynamicPricing(val),
+                    );
+                  },
                 ),
                 const Divider(),
                 const Padding(

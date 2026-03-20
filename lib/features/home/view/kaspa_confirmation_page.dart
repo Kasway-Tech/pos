@@ -13,6 +13,7 @@ import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/models/cart_item.dart';
+import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -169,15 +170,40 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     }
     if (donationKas <= 0) return;
 
-    KaspaWalletService().sendTransaction(
+    // Capture repository before async gap to avoid stale context access.
+    final repo = context.read<DonationRepository>();
+    _doAutoDonate(
       mnemonic: walletState.mnemonic,
+      donationKas: donationKas,
+      hrp: hrp,
+      activeUrl: networkState.activeUrl,
+      repo: repo,
+    );
+  }
+
+  Future<void> _doAutoDonate({
+    required String mnemonic,
+    required double donationKas,
+    required String hrp,
+    required String activeUrl,
+    required DonationRepository repo,
+  }) async {
+    final result = await KaspaWalletService().sendTransaction(
+      mnemonic: mnemonic,
       toAddress: DonationConstants.address,
       amountSompi: (donationKas * 1e8).toInt(),
       payloadNote:
           'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',
       hrp: hrp,
-      activeUrl: networkState.activeUrl,
-    ); // fire-and-forget
+      activeUrl: activeUrl,
+    );
+    if (result.error.isEmpty) {
+      await repo.recordDonation(
+        txId: result.txId,
+        amountKas: donationKas,
+        isAuto: true,
+      );
+    }
   }
 
   @override

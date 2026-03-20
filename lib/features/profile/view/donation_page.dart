@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DonationPage extends StatelessWidget {
+class DonationPage extends StatefulWidget {
   const DonationPage({super.key});
+
+  @override
+  State<DonationPage> createState() => _DonationPageState();
+}
+
+class _DonationPageState extends State<DonationPage> {
+  int _historyKey = 0;
+
+  void _onDonated() => setState(() => _historyKey++);
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +32,12 @@ class DonationPage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 600),
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            children: const [
-              _OneTimeDonationSection(),
-              SizedBox(height: 24),
-              _AutoDonateSection(),
+            children: [
+              _OneTimeDonationSection(onDonated: _onDonated),
+              const SizedBox(height: 24),
+              const _AutoDonateSection(),
+              const SizedBox(height: 24),
+              _DonationHistorySection(key: ValueKey(_historyKey)),
             ],
           ),
         ),
@@ -38,7 +51,9 @@ class DonationPage extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _OneTimeDonationSection extends StatelessWidget {
-  const _OneTimeDonationSection();
+  const _OneTimeDonationSection({required this.onDonated});
+
+  final VoidCallback onDonated;
 
   static String _truncate(String addr) {
     if (addr.length <= 24) return addr;
@@ -138,7 +153,11 @@ class _OneTimeDonationSection extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => _OneTimeDonateSheet(hrp: hrp, balanceKas: balanceKas),
+      builder: (_) => _OneTimeDonateSheet(
+        hrp: hrp,
+        balanceKas: balanceKas,
+        onDonated: onDonated,
+      ),
     );
   }
 }
@@ -148,10 +167,15 @@ class _OneTimeDonationSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _OneTimeDonateSheet extends StatefulWidget {
-  const _OneTimeDonateSheet({required this.hrp, required this.balanceKas});
+  const _OneTimeDonateSheet({
+    required this.hrp,
+    required this.balanceKas,
+    required this.onDonated,
+  });
 
   final String hrp;
   final double balanceKas;
+  final VoidCallback onDonated;
 
   @override
   State<_OneTimeDonateSheet> createState() => _OneTimeDonateSheetState();
@@ -177,6 +201,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
     }
 
     final activeUrl = context.read<NetworkCubit>().state.activeUrl;
+    final donationRepo = context.read<DonationRepository>();
 
     final prefs = await SharedPreferences.getInstance();
     final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
@@ -206,6 +231,12 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
       setState(() => _submitting = false);
       _showError(result.error);
     } else {
+      await donationRepo.recordDonation(
+        txId: result.txId,
+        amountKas: kasAmount,
+        isAuto: false,
+      );
+      if (!mounted) return;
       setState(() => _submitting = false);
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,6 +245,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
           duration: const Duration(seconds: 6),
         ),
       );
+      widget.onDonated();
     }
   }
 
@@ -475,6 +507,184 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
       const SnackBar(
         content: Text('Auto-donate settings saved'),
         duration: Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Section C — Donation History
+// ---------------------------------------------------------------------------
+
+class _DonationHistorySection extends StatefulWidget {
+  const _DonationHistorySection({super.key});
+
+  @override
+  State<_DonationHistorySection> createState() =>
+      _DonationHistorySectionState();
+}
+
+class _DonationHistorySectionState extends State<_DonationHistorySection> {
+  late Future<List<DonationRecord>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = context.read<DonationRepository>().getDonations();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.history, color: colorScheme.primary, size: 22),
+                const SizedBox(width: 10),
+                Text(
+                  'Donation History',
+                  style: textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FutureBuilder<List<DonationRecord>>(
+              future: _future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                final records = snapshot.data ?? [];
+                if (records.isEmpty) {
+                  return Text(
+                    'No donations yet',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (int i = 0; i < records.length; i++) ...[
+                      _DonationRow(record: records[i]),
+                      if (i < records.length - 1) const Divider(height: 1),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DonationRow extends StatelessWidget {
+  const _DonationRow({required this.record});
+
+  final DonationRecord record;
+
+  static String _formatKas(double kas) {
+    final s = kas.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '');
+    return s.endsWith('.') ? '${s}00' : s;
+  }
+
+  static String _truncateTx(String tx) {
+    if (tx.length <= 20) return tx;
+    return '${tx.substring(0, 10)}…${tx.substring(tx.length - 8)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final kasSymbol = context.read<NetworkCubit>().state.kasSymbol;
+    final dateStr =
+        DateFormat('d MMM yyyy, HH:mm').format(record.createdAt);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${_formatKas(record.amountKas)} $kasSymbol',
+                      style: textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    if (record.isAuto) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'auto',
+                          style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(dateStr,
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.outline)),
+                const SizedBox(height: 4),
+                InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: record.txId));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('TX ID copied'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _truncateTx(record.txId),
+                        style: textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                          color: colorScheme.outline,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.copy_outlined,
+                          size: 12, color: colorScheme.outline),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

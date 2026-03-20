@@ -15,6 +15,7 @@ import 'package:kasway/app/theme/theme_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
+import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -95,6 +96,7 @@ class _AppState extends State<App> {
               RepositoryProvider(create: (_) => ProductRepository()),
               RepositoryProvider(create: (_) => OrderRepository()),
               RepositoryProvider(create: (_) => WithdrawalRepository()),
+              RepositoryProvider(create: (_) => DonationRepository()),
             ],
             child: BlocProvider(
               create: (context) => HomeBloc(
