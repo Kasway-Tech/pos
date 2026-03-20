@@ -9,6 +9,7 @@ import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/locale/locale_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/node_status_cubit.dart';
 import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
@@ -66,6 +67,10 @@ class _AppState extends State<App> {
         BlocProvider(create: (_) => CurrencyCubit()),
         BlocProvider(create: (_) => LocaleCubit()),
         BlocProvider(create: (_) => NetworkCubit()),
+        BlocProvider(
+          create: (context) =>
+              NodeStatusCubit(networkCubit: context.read<NetworkCubit>()),
+        ),
         BlocProvider(
           create: (_) => DonationCubit(prefs: widget.prefs),
         ),
