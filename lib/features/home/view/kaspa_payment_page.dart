@@ -176,8 +176,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         _pollSub?.cancel();
         _ws?.close().catchError((_) {});
 
-        final excessSompi = _receivedSompi - invoiceSompi;
-
         if (mounted) {
           Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => KaspaConfirmationPage(
@@ -185,7 +183,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               totalIdr: _totalIdr,
               cartItems: _cartItems,
               txId: _lastTxId,
-              excessSompi: excessSompi > 2600 ? excessSompi : 0,
             ),
           ));
         }
