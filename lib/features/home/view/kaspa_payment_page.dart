@@ -421,13 +421,13 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                             padding: const EdgeInsets.all(12),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 24),
                         Text(
                           _merchantAddress,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontFeatures: const [
                                   FontFeature.tabularFigures(),
                                 ],
@@ -464,12 +464,12 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 8),
                         Card(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 16,
+                              vertical: 16,
                             ),
                             child: Column(
                               children: _cartItems
