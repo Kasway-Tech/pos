@@ -1,3 +1,5 @@
+import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -454,36 +456,67 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
+  Widget _buildTestnetBanner() {
+    return BlocBuilder<NetworkCubit, NetworkState>(
+      buildWhen: (previous, current) => previous.network != current.network,
+      builder: (context, networkState) {
+        if (networkState.network != KaspaNetwork.testnet10) {
+          return const SizedBox.shrink();
+        }
+        return Container(
+          width: double.infinity,
+          color: Colors.amber,
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: const Text(
+            'Using the app in Testnet mode',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF1A1A1A),
+              fontWeight: FontWeight.w600,
+              fontSize: 13.0,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildProductsBody(
     HomeState state,
     TabController tabController, {
     double bottomPadding = 0.0,
   }) {
-    if (state.searchTerm.isNotEmpty) {
-      return ProductsView(
-        items: state.itemsByCategory.values.expand((items) => items).toList(),
-        onTap: (product) => _handleProductTap(product),
-        onLongPress: (product) {
-          context.read<HomeBloc>().add(HomeProductRemoved(product));
-        },
-        bottomPadding: bottomPadding,
-      );
-    } else {
-      return TabBarView(
-        dragStartBehavior: DragStartBehavior.down,
-        controller: tabController,
-        children: state.categories.map((category) {
-          return ProductsView(
-            items: state.itemsByCategory[category] ?? [],
+    final grid = state.searchTerm.isNotEmpty
+        ? ProductsView(
+            items:
+                state.itemsByCategory.values.expand((items) => items).toList(),
             onTap: (product) => _handleProductTap(product),
             onLongPress: (product) {
               context.read<HomeBloc>().add(HomeProductRemoved(product));
             },
             bottomPadding: bottomPadding,
+          )
+        : TabBarView(
+            dragStartBehavior: DragStartBehavior.down,
+            controller: tabController,
+            children: state.categories.map((category) {
+              return ProductsView(
+                items: state.itemsByCategory[category] ?? [],
+                onTap: (product) => _handleProductTap(product),
+                onLongPress: (product) {
+                  context.read<HomeBloc>().add(HomeProductRemoved(product));
+                },
+                bottomPadding: bottomPadding,
+              );
+            }).toList(),
           );
-        }).toList(),
-      );
-    }
+
+    return Column(
+      children: [
+        _buildTestnetBanner(),
+        Expanded(child: grid),
+      ],
+    );
   }
 
   void _handleProductTap(Product product) {
