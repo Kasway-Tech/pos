@@ -57,13 +57,14 @@ class _NodeStatusPageState extends State<NodeStatusPage>
 
         // Poll DAA score every second while the socket is open.
         void poll() {
-          if (!_disposed && ws.readyState == WebSocket.open) {
+          if (_disposed || ws.readyState != WebSocket.open) return;
+          try {
             ws.add(jsonEncode({
               'id': _reqId++,
               'method': 'getBlockDagInfo',
               'params': {},
             }));
-          }
+          } catch (_) {}
         }
         poll();
         final timer = Stream.periodic(const Duration(seconds: 1))
@@ -136,7 +137,7 @@ class _NodeStatusPageState extends State<NodeStatusPage>
   @override
   void dispose() {
     _disposed = true;
-    _socket?.close();
+    _socket?.close().catchError((_) {});
     _pulseController.dispose();
     super.dispose();
   }

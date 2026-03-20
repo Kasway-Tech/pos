@@ -76,13 +76,14 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         _ws = ws;
 
         void send() {
-          if (!_wsDisposed) {
+          if (_wsDisposed || ws.readyState != WebSocket.open) return;
+          try {
             ws.add(jsonEncode({
               'id': _reqId++,
               'method': 'getUtxosByAddresses',
               'params': {'addresses': [address]},
             }));
-          }
+          } catch (_) {}
         }
 
         send();
@@ -149,7 +150,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
           // Stop QR page polling before navigating
           _wsDisposed = true;
           _pollSub?.cancel();
-          _ws?.close();
+          _ws?.close().catchError((_) {});
 
           if (mounted) {
             Navigator.of(context).push(MaterialPageRoute(
@@ -237,7 +238,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
           _wsDisposed = true;
           _pollSub?.cancel();
           _pollSub = null;
-          _ws?.close().then((_) {
+          _ws?.close().catchError((_) {}).then((_) {
             if (!mounted) return;
             setState(() {
               _wsDisposed = false;
