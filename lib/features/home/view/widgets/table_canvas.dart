@@ -235,11 +235,14 @@ class _PositionedTableState extends State<_PositionedTable> {
                       _x + w / 2 + details.localPosition.dx,
                       _y + details.localPosition.dy,
                     );
-                    final angle =
+                    final raw =
                         atan2(pointer.dy - center.dy, pointer.dx - center.dx) +
                             pi / 2;
-                    setState(() => _rotation = angle);
-                    widget.onRotated(angle);
+                    // Snap to nearest 45°
+                    const snap = pi / 4;
+                    final snapped = (raw / snap).round() * snap;
+                    setState(() => _rotation = snapped);
+                    widget.onRotated(snapped);
                   },
                   child: Container(
                     width: handleSize,

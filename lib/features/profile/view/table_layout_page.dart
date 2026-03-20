@@ -41,13 +41,6 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
     });
   }
 
-  void _removeTable(String id) {
-    setState(() {
-      _tables = _tables.where((t) => t.id != id).toList();
-      _hasChanges = true;
-    });
-  }
-
   void _onTableMoved(String id, double x, double y) {
     setState(() {
       _tables = _tables
@@ -72,37 +65,20 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
   }
 
   Future<void> _showLabelDialog(TableItem table) async {
-    final controller = TextEditingController(text: table.label);
-    final result = await showDialog<String>(
+    final result = await showDialog<({String? label, bool deleted})>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Edit Table Label'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Label',
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (_) => Navigator.of(ctx).pop(controller.text.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(null),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+      builder: (ctx) => _LabelDialog(table: table),
     );
-    controller.dispose();
-    if (result != null && result.isNotEmpty) {
+    if (result == null) return;
+    if (result.deleted) {
+      setState(() {
+        _tables = _tables.where((t) => t.id != table.id).toList();
+        _hasChanges = true;
+      });
+    } else if (result.label != null && result.label!.isNotEmpty) {
       setState(() {
         _tables = _tables
-            .map((t) => t.id == table.id ? t.copyWith(label: result) : t)
+            .map((t) => t.id == table.id ? t.copyWith(label: result.label!) : t)
             .toList();
         _hasChanges = true;
       });
@@ -209,11 +185,7 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => _AddTableSheet(
-        onAdd: _addTable,
-        onDelete:
-            _tables.isNotEmpty ? () => _removeTable(_tables.last.id) : null,
-      ),
+      builder: (_) => _AddTableSheet(onAdd: _addTable),
     );
   }
 }
@@ -294,10 +266,9 @@ class _EmptyCanvasHint extends StatelessWidget {
 }
 
 class _AddTableSheet extends StatelessWidget {
-  const _AddTableSheet({required this.onAdd, this.onDelete});
+  const _AddTableSheet({required this.onAdd});
 
   final void Function(int seats) onAdd;
-  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -336,24 +307,79 @@ class _AddTableSheet extends StatelessWidget {
               );
             }).toList(),
           ),
-          if (onDelete != null) ...[
-            const SizedBox(height: 16),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text(
-                'Remove last table',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.of(context).pop();
-                onDelete!();
-              },
-            ),
-          ],
         ],
       ),
+    );
+  }
+}
+
+/// Dialog for editing a table's label or deleting it.
+/// Owns its own [TextEditingController] to avoid disposed-controller crashes.
+class _LabelDialog extends StatefulWidget {
+  const _LabelDialog({required this.table});
+  final TableItem table;
+
+  @override
+  State<_LabelDialog> createState() => _LabelDialogState();
+}
+
+class _LabelDialogState extends State<_LabelDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.table.label);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _save() =>
+      Navigator.of(context).pop((label: _controller.text.trim(), deleted: false));
+
+  void _delete() =>
+      Navigator.of(context).pop((label: null, deleted: true));
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit Table'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: const InputDecoration(
+          labelText: 'Label',
+          border: OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _save(),
+      ),
+      actionsAlignment: MainAxisAlignment.spaceBetween,
+      actions: [
+        TextButton(
+          onPressed: _delete,
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.error,
+          ),
+          child: const Text('Delete'),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: _save,
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
