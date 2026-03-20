@@ -156,23 +156,23 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
                 ),
                 // Canvas
                 Expanded(
-                  child: _tables.isEmpty
-                      ? _EmptyCanvasHint(onAdd: () => _showAddSheet(context))
-                      : TableCanvas(
-                          tables: _tables,
-                          editMode: true,
-                          onTableTap: _onTableTap,
-                          onTableMoved: _onTableMoved,
-                          onTableRotated: _onTableRotated,
-                        ),
+                  child: TableCanvas(
+                    tables: _tables,
+                    editMode: true,
+                    onTableTap: _onTableTap,
+                    onTableMoved: _onTableMoved,
+                    onTableRotated: _onTableRotated,
+                  ),
                 ),
               ],
             ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _showAddSheet(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Table'),
-            ),
+            floatingActionButton: _featureEnabled
+                ? FloatingActionButton.extended(
+                    onPressed: () => _showAddSheet(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Table'),
+                  )
+                : null,
           ),
         );
       },
@@ -217,48 +217,6 @@ class _FeatureToggleBanner extends StatelessWidget {
             ),
           ),
           Switch(value: enabled, onChanged: onChanged),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyCanvasHint extends StatelessWidget {
-  const _EmptyCanvasHint({required this.onAdd});
-  final VoidCallback onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.table_restaurant_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No tables yet',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap "Add Table" to start building your floor plan.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Table'),
-          ),
         ],
       ),
     );
