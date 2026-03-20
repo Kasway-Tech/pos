@@ -285,34 +285,55 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   }) async {
     // Fetch the paying transaction.
     final payingTx = await _fetchTransactionWrpc(txId: txId, activeUrl: activeUrl);
-    if (payingTx == null) return null;
+    if (payingTx == null) {
+      debugPrint('[refund] wRPC: paying tx null');
+      return null;
+    }
 
     final inputs = payingTx['inputs'] as List<dynamic>?;
+    debugPrint('[refund] wRPC: paying tx inputs=${inputs?.length ?? "null"}  keys=${payingTx.keys.join(",")}');
     if (inputs == null || inputs.isEmpty) return null;
 
-    final prevOutpoint =
-        (inputs[0] as Map<String, dynamic>?)?['previousOutpoint']
-            as Map<String, dynamic>?;
+    final input0 = inputs[0] as Map<String, dynamic>?;
+    debugPrint('[refund] wRPC: input[0] keys=${input0?.keys.join(",") ?? "null"}');
+
+    final prevOutpoint = input0?['previousOutpoint'] as Map<String, dynamic>?;
     if (prevOutpoint == null) return null;
 
     final prevTxId = prevOutpoint['transactionId']?.toString() ?? '';
     final prevIndex =
         int.tryParse(prevOutpoint['index']?.toString() ?? '0') ?? 0;
+    debugPrint('[refund] wRPC: prevTxId=${prevTxId.isEmpty ? "empty" : "ok"}  prevIndex=$prevIndex');
     if (prevTxId.isEmpty) return null;
 
     // Fetch the previous transaction to get its output's scriptPublicKey.
     final prevTx =
         await _fetchTransactionWrpc(txId: prevTxId, activeUrl: activeUrl);
-    if (prevTx == null) return null;
+    if (prevTx == null) {
+      debugPrint('[refund] wRPC: prev tx null');
+      return null;
+    }
 
     final outputs = prevTx['outputs'] as List<dynamic>?;
+    debugPrint('[refund] wRPC: prev tx outputs=${outputs?.length ?? "null"}');
     if (outputs == null || outputs.length <= prevIndex) return null;
 
     final output = outputs[prevIndex] as Map<String, dynamic>?;
     if (output == null) return null;
+    debugPrint('[refund] wRPC: output keys=${output.keys.join(",")}');
 
+    // Prefer address from verboseData if the node includes it.
+    final verboseData = output['verboseData'] as Map<String, dynamic>?;
+    final verboseAddress = verboseData?['scriptPublicKeyAddress']?.toString();
+    if (verboseAddress != null && verboseAddress.isNotEmpty) {
+      debugPrint('[refund] wRPC: resolved via verboseData');
+      return verboseAddress;
+    }
+
+    // Fall back to decoding scriptPublicKey.
     // Node may return a compact hex string or {"version": N, "scriptPublicKey": "<hex>"}.
     final spkRaw = output['scriptPublicKey'];
+    debugPrint('[refund] wRPC: scriptPublicKey type=${spkRaw.runtimeType}');
     final String compactSpkHex;
     if (spkRaw is String) {
       compactSpkHex = spkRaw;
@@ -323,10 +344,13 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       // Reconstruct compact format: LE u16 version + script bytes
       compactSpkHex = '${versionHex}00$scriptHex';
     } else {
+      debugPrint('[refund] wRPC: unrecognised scriptPublicKey shape');
       return null;
     }
 
-    return KaspaWalletService.scriptToAddress(compactSpkHex, hrp: hrp);
+    final addr = KaspaWalletService.scriptToAddress(compactSpkHex, hrp: hrp);
+    debugPrint('[refund] wRPC: scriptToAddress → ${addr ?? "null"}');
+    return addr;
   }
 
   /// Opens a dedicated wRPC WebSocket to fetch one transaction by ID.
@@ -397,39 +421,49 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     try {
       // Step 1: get inputs of the paying transaction.
       final r1 = await http
-          .get(Uri.parse('$base/transactions/$txId?inputs=true'))
+          .get(Uri.parse('$base/transactions/$txId?inputs=true&outputs=true'))
           .timeout(const Duration(seconds: 10));
-      if (r1.statusCode != 200) {
-        debugPrint('[refund] REST /transactions/$txId → ${r1.statusCode}');
-        return null;
-      }
+      debugPrint('[refund] REST step1 status=${r1.statusCode}');
+      if (r1.statusCode != 200) return null;
+
       final tx = jsonDecode(r1.body) as Map<String, dynamic>;
+      debugPrint('[refund] REST tx keys=${tx.keys.join(",")}');
       final inputs = tx['inputs'] as List<dynamic>?;
+      debugPrint('[refund] REST inputs=${inputs?.length ?? "null"}');
       if (inputs == null || inputs.isEmpty) return null;
 
       final input = inputs[0] as Map<String, dynamic>;
-      final prevHash =
-          input['previous_outpoint_hash']?.toString() ?? '';
+      debugPrint('[refund] REST input[0] keys=${input.keys.join(",")}');
+
+      // Some API versions include the address directly on the input.
+      final directAddress = input['script_public_key_address']?.toString();
+      if (directAddress != null && directAddress.isNotEmpty) {
+        debugPrint('[refund] REST: address on input directly');
+        return directAddress;
+      }
+
+      final prevHash = input['previous_outpoint_hash']?.toString() ?? '';
       final prevIndex =
           int.tryParse(input['previous_outpoint_index']?.toString() ?? '0') ?? 0;
+      debugPrint('[refund] REST prevHash=${prevHash.isEmpty ? "empty" : "ok"}  prevIndex=$prevIndex');
       if (prevHash.isEmpty) return null;
 
       // Step 2: get the previous transaction's output to find the address.
       final r2 = await http
-          .get(Uri.parse('$base/transactions/$prevHash'))
+          .get(Uri.parse('$base/transactions/$prevHash?outputs=true'))
           .timeout(const Duration(seconds: 10));
-      if (r2.statusCode != 200) {
-        debugPrint('[refund] REST /transactions/$prevHash → ${r2.statusCode}');
-        return null;
-      }
+      debugPrint('[refund] REST step2 status=${r2.statusCode}');
+      if (r2.statusCode != 200) return null;
+
       final prevTx = jsonDecode(r2.body) as Map<String, dynamic>;
       final outputs = prevTx['outputs'] as List<dynamic>?;
+      debugPrint('[refund] REST prevTx outputs=${outputs?.length ?? "null"}');
       if (outputs == null || outputs.length <= prevIndex) return null;
 
-      final address =
-          (outputs[prevIndex] as Map<String, dynamic>?)?['script_public_key_address']
-              ?.toString();
-      debugPrint('[refund] REST resolved sender: $address');
+      final output = outputs[prevIndex] as Map<String, dynamic>?;
+      debugPrint('[refund] REST output keys=${output?.keys.join(",") ?? "null"}');
+      final address = output?['script_public_key_address']?.toString();
+      debugPrint('[refund] REST resolved sender: ${address != null ? "ok" : "null"}');
       return address;
     } catch (e) {
       debugPrint('[refund] REST error: $e');
