@@ -496,7 +496,14 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                   horizontal: 32,
                                   vertical: 24,
                                 ),
-                                child: Column(children: leftChildren),
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 400,
+                                    ),
+                                    child: Column(children: leftChildren),
+                                  ),
+                                ),
                               ),
                             ),
                             Expanded(
