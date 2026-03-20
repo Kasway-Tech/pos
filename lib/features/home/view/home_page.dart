@@ -198,7 +198,13 @@ class _HomeViewState extends State<HomeView>
                 appBar: _buildAppBar(state, tabController, isLargeScreen),
                 body: Stack(
                   children: [
-                    _buildProductsBody(state, tabController),
+                    _buildProductsBody(
+                      state,
+                      tabController,
+                      bottomPadding: state.cartItems.isEmpty
+                          ? 0.0
+                          : kToolbarHeight + 16.0,
+                    ),
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 150),
                       curve: Curves.easeInOut,
@@ -448,7 +454,11 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  Widget _buildProductsBody(HomeState state, TabController tabController) {
+  Widget _buildProductsBody(
+    HomeState state,
+    TabController tabController, {
+    double bottomPadding = 0.0,
+  }) {
     if (state.searchTerm.isNotEmpty) {
       return ProductsView(
         items: state.itemsByCategory.values.expand((items) => items).toList(),
@@ -456,6 +466,7 @@ class _HomeViewState extends State<HomeView>
         onLongPress: (product) {
           context.read<HomeBloc>().add(HomeProductRemoved(product));
         },
+        bottomPadding: bottomPadding,
       );
     } else {
       return TabBarView(
@@ -468,6 +479,7 @@ class _HomeViewState extends State<HomeView>
             onLongPress: (product) {
               context.read<HomeBloc>().add(HomeProductRemoved(product));
             },
+            bottomPadding: bottomPadding,
           );
         }).toList(),
       );

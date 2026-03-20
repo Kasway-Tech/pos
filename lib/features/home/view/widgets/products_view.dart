@@ -8,11 +8,13 @@ class ProductsView extends StatelessWidget {
     required this.items,
     required this.onTap,
     required this.onLongPress,
+    this.bottomPadding = 0.0,
   });
 
   final List<Product> items;
   final ValueChanged<Product> onTap;
   final ValueChanged<Product> onLongPress;
+  final double bottomPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class ProductsView extends StatelessWidget {
             crossAxisSpacing: 8.0,
             childAspectRatio: 0.85,
           ),
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0 + bottomPadding),
           itemCount: items.length,
           itemBuilder: (context, index) {
             final product = items[index];
