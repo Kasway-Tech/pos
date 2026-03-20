@@ -14,6 +14,7 @@ import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
+import 'package:kasway/features/home/view/payment_successful_page.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -386,6 +387,8 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    final nav = Navigator.of(context); // capture before any async gap
+
     final prefs = await SharedPreferences.getInstance();
     final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
     if (mnemonic.isEmpty) {
@@ -430,13 +433,10 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
       if (!mounted) return;
       context.read<WalletCubit>().refreshBalance();
       setState(() => _submitting = false);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sent! TX: ${result.txId}'),
-          duration: const Duration(seconds: 6),
-        ),
-      );
+      nav.pop();
+      nav.push(MaterialPageRoute(
+        builder: (_) => const PaymentSuccessfulPage(),
+      ));
     }
   }
 
