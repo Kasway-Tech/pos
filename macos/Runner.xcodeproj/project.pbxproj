@@ -27,7 +27,6 @@
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
-		45C962948E65AAAF0A68EDAC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = EAB8C0243AB247F4517F7751 /* GoogleService-Info.plist */; };
 		5E98C960FB3A935DCE864779 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5488F79259D31205AD919515 /* Pods_Runner.framework */; };
 		C8E397339F2AFBAD485D63CA /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57E149F4A2CA436613531E1D /* Pods_RunnerTests.framework */; };
 /* End PBXBuildFile section */
@@ -89,7 +88,6 @@
 		95E8DC06015B283D40A0505D /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		C2AB5FEC2A847212530C9E6C /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
-		EAB8C0243AB247F4517F7751 /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,7 +138,6 @@
 				33CC10EE2044A3C60003C045 /* Products */,
 				D73912EC22F37F3D000D13A0 /* Frameworks */,
 				47C5AADDF2DB77C74CC40C17 /* Pods */,
-				EAB8C0243AB247F4517F7751 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -320,7 +317,6 @@
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
-				45C962948E65AAAF0A68EDAC /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
