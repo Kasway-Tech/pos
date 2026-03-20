@@ -249,7 +249,9 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
           _wsDisposed = true;
           _pollSub?.cancel();
           _pollSub = null;
-          _ws?.close().catchError((_) {}).then((_) {
+          // Use Future.value() fallback so .then() fires even when _ws is null
+          // (e.g. address derived before the WebSocket had time to connect).
+          (_ws?.close().catchError((_) {}) ?? Future<void>.value()).then((_) {
             if (!mounted) return;
             setState(() {
               _wsDisposed = false;
@@ -270,6 +272,11 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
 
             if (_merchantAddress.isEmpty) {
+              final addressReady =
+                  context.read<WalletCubit>().state.addressReady;
+              if (!addressReady) {
+                return const Center(child: CircularProgressIndicator());
+              }
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
