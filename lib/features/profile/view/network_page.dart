@@ -284,23 +284,26 @@ class _NetworkPageState extends State<NetworkPage>
                                 ),
                               ],
                               const SizedBox(height: 20),
-                              Center(
-                                child: _PulseDisplay(
-                                  controller: _pulseController,
-                                  child: Text(
-                                    _daaScore,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .displaySmall
-                                        ?.copyWith(
-                                          fontFeatures: const [
-                                            FontFeature.tabularFigures(),
-                                          ],
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                        ),
+                              SizedBox(
+                                height: 56,
+                                child: Center(
+                                  child: _PulseDisplay(
+                                    controller: _pulseController,
+                                    child: Text(
+                                      _daaScore,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .displaySmall
+                                          ?.copyWith(
+                                            fontFeatures: const [
+                                              FontFeature.tabularFigures(),
+                                            ],
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                    ),
                                   ),
                                 ),
                               ),
