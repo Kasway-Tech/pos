@@ -37,7 +37,7 @@ class KaspaConfirmationPage extends StatefulWidget {
 }
 
 class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
-  static const int _required = 100;
+  static const int _required = 50;
 
   WebSocket? _ws;
   bool _wsDisposed = false;
