@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -37,9 +41,13 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
   }
 
   Future<void> _continue() async {
+    final mnemonic = _words.join(' ');
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('wallet_mnemonic', _words.join(' '));
+    await prefs.setString('wallet_mnemonic', mnemonic);
     if (!mounted) return;
+    // Start derivation in background; user still has currency + onboarding
+    // pages ahead so it will be ready long before they reach the home screen.
+    unawaited(context.read<WalletCubit>().loadWallet(mnemonic));
     context.push('/auth/currency');
   }
 

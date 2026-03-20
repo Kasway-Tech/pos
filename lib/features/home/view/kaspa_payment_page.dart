@@ -272,11 +272,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
             final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
 
             if (_merchantAddress.isEmpty) {
-              final addressReady =
-                  context.read<WalletCubit>().state.addressReady;
-              if (!addressReady) {
-                return const Center(child: CircularProgressIndicator());
-              }
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),

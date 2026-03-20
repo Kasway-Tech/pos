@@ -161,6 +161,21 @@ class WalletCubit extends Cubit<WalletState> {
     _ws = null;
   }
 
+  /// Called after a new mnemonic is saved (onboarding / wallet import).
+  /// Derives the address and connects; resolves when address is ready.
+  Future<void> loadWallet(String mnemonic) async {
+    if (mnemonic.isEmpty) return;
+    await _disconnect();
+    emit(state.copyWith(mnemonic: mnemonic, address: '', addressReady: false));
+    final hrp = _networkCubit.state.addressHrp;
+    final address = await Future.microtask(
+      () => KaspaWalletService().deriveAddress(mnemonic, hrp: hrp),
+    );
+    if (isClosed) return;
+    emit(state.copyWith(address: address, addressReady: true));
+    unawaited(_connect(address));
+  }
+
   /// Immediately re-fetch balance. The persistent connection will also pick
   /// up the change within 1 second automatically.
   void refreshBalance() => _sendUtxoRequest(state.address);
