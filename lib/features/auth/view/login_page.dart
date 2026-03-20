@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
@@ -102,8 +103,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _onValidationSuccess(String phrase) async {
-    await widget.prefs.setString('wallet_mnemonic', phrase);
-    await widget.prefs.setBool('onboarding_complete', true);
+    await widget.prefs.setString(PreferenceKeys.walletMnemonic, phrase);
+    await widget.prefs.setBool(PreferenceKeys.onboardingComplete, true);
     if (!mounted) return;
     // Derive address before navigation so no page ever sees an empty address.
     await context.read<WalletCubit>().loadWallet(phrase);

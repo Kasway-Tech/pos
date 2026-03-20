@@ -5,6 +5,7 @@ import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/network/node_status_cubit.dart';
 import 'package:kasway/app/network/node_status_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:kasway/app/widgets/pulse_display.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
 class NetworkPage extends StatefulWidget {
@@ -194,7 +195,7 @@ class _NetworkPageState extends State<NetworkPage>
                                     SizedBox(
                                       height: 56,
                                       child: Center(
-                                        child: _PulseDisplay(
+                                        child: PulseDisplay(
                                           controller: _pulseController,
                                           child: Text(
                                             nodeState.daaScore,
@@ -420,48 +421,3 @@ class _ConnectionDot extends StatelessWidget {
   }
 }
 
-class _PulseDisplay extends StatelessWidget {
-  const _PulseDisplay({required this.controller, required this.child});
-
-  final AnimationController controller;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, innerChild) {
-        final opacity = (1.0 - controller.value).clamp(0.0, 1.0);
-        final scale = 1.0 + controller.value * 0.15;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            if (controller.value > 0)
-              Opacity(
-                opacity: opacity,
-                child: Transform.scale(
-                  scale: scale,
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withAlpha(80),
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            innerChild!,
-          ],
-        );
-      },
-      child: child,
-    );
-  }
-}

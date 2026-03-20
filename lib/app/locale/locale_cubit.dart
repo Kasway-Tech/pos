@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants/preference_keys.dart';
 import 'locale_state.dart';
 
 class LocaleCubit extends Cubit<LocaleState> {
@@ -8,11 +9,9 @@ class LocaleCubit extends Cubit<LocaleState> {
     _load();
   }
 
-  static const _key = 'app_language_code';
-
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString(_key);
+    final code = prefs.getString(PreferenceKeys.appLanguageCode);
     if (code == null) return;
     final language = LocaleState.supportedLanguages.firstWhere(
       (l) => l.code == code,
@@ -23,7 +22,7 @@ class LocaleCubit extends Cubit<LocaleState> {
 
   Future<void> setLanguage(AppLanguage language) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, language.code);
+    await prefs.setString(PreferenceKeys.appLanguageCode, language.code);
     emit(LocaleState(language: language));
   }
 }

@@ -62,6 +62,11 @@ void main() {
         'emits [loading, success] with categories and items when subscription succeeds',
         setUp: () {
           when(
+            () => productRepository.getCategories(),
+          ).thenAnswer(
+            (_) async => ['Promo', 'Makanan', 'Minuman', 'Paket', 'Lainnya'],
+          );
+          when(
             () => productRepository.getProductsByCategory(any()),
           ).thenAnswer((_) async => [product]);
         },
@@ -89,6 +94,11 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'emits [loading, failure] when subscription fails',
         setUp: () {
+          when(
+            () => productRepository.getCategories(),
+          ).thenAnswer(
+            (_) async => ['Promo', 'Makanan', 'Minuman', 'Paket', 'Lainnya'],
+          );
           when(
             () => productRepository.getProductsByCategory(any()),
           ).thenThrow(Exception('failure'));

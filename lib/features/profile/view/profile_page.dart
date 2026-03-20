@@ -16,14 +16,75 @@ import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:kasway/features/home/view/payment_successful_page.dart';
+import 'package:kasway/features/items/view/item_management_page.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
+import 'package:kasway/app/helpers/format_helpers.dart';
+import 'package:kasway/features/profile/view/data_transfer_page.dart';
+import 'package:kasway/features/profile/view/donation_page.dart';
+import 'package:kasway/features/profile/view/network_page.dart';
+import 'package:kasway/features/profile/view/order_history_page.dart';
+import 'package:kasway/features/profile/view/settings_page.dart';
+import 'package:kasway/features/profile/view/theme_settings_page.dart';
+import 'package:kasway/features/profile/view/withdrawal_history_page.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfilePage extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// Profile section enum
+// ---------------------------------------------------------------------------
+
+enum _ProfileSection {
+  orders,
+  items,
+  dataTransfer,
+  network,
+  theme,
+  settings,
+  donate,
+  withdrawals,
+}
+
+extension _ProfileSectionWidget on _ProfileSection {
+  Widget build() => switch (this) {
+        _ProfileSection.orders => const OrderHistoryPage(),
+        _ProfileSection.items => const ItemManagementPage(),
+        _ProfileSection.dataTransfer => const DataTransferPage(),
+        _ProfileSection.network => const NetworkPage(),
+        _ProfileSection.theme => const ThemeSettingsPage(),
+        _ProfileSection.settings => const SettingsPage(),
+        _ProfileSection.donate => const DonationPage(),
+        _ProfileSection.withdrawals => const WithdrawalHistoryPage(),
+      };
+}
+
+// ---------------------------------------------------------------------------
+// ProfilePage
+// ---------------------------------------------------------------------------
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  _ProfileSection? _activeSection;
+
+  bool _isWide(BuildContext context) =>
+      MediaQuery.sizeOf(context).width >= 720;
+
+  void _openSection(_ProfileSection section) =>
+      setState(() => _activeSection = section);
+
+  @override
   Widget build(BuildContext context) {
+    return _isWide(context) ? _buildWide(context) : _buildNarrow(context);
+  }
+
+  // ---- Narrow layout (mobile / portrait tablet) --------------------------
+
+  Widget _buildNarrow(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
         appBar: BlurAppBar(title: const Text('Profile'), centerTitle: true),
@@ -33,68 +94,144 @@ class ProfilePage extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
               children: [
-                // Wallet Card Section
                 const _WalletCard(),
                 const SizedBox(height: 32.0),
-
-                // Menus Section
-                _ProfileMenuItem(
-                  icon: Icons.history,
-                  title: 'Order History',
-                  onTap: () => context.push('/profile/orders'),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.inventory_2_outlined,
-                  title: 'Manage Item',
-                  onTap: () => context.push('/profile/items'),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.restore_outlined,
-                  title: 'Backup & Restore',
-                  onTap: () => context.push('/profile/data-transfer'),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.lan_outlined,
-                  title: 'Network & Node',
-                  onTap: () => context.push('/profile/network'),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.palette_outlined,
-                  title: 'Theme Settings',
-                  onTap: () => context.push('/profile/theme'),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.settings_outlined,
-                  title: 'Settings',
-                  onTap: () => context.push('/profile/settings'),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.favorite_outline,
-                  title: 'Donate',
-                  onTap: () => context.push('/profile/donate'),
-                ),
-                const Divider(height: 32.0),
-
-                // Actions Section
-                _ProfileMenuItem(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  textColor: Colors.red,
-                  iconColor: Colors.red,
-                  onTap: () => _showConfirmationDialog(
-                    context,
-                    title: 'Logout',
-                    content: 'Are you sure you want to log out?',
-                    confirmLabel: 'Logout',
-                    isDestructive: true,
-                  ),
-                ),
+                ..._menuItems(context, isWide: false),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  // ---- Wide layout (landscape tablet / desktop) --------------------------
+
+  Widget _buildWide(BuildContext context) {
+    return TitlebarSafeArea(
+      child: Scaffold(
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Left panel — 4 parts
+            Expanded(
+              flex: 4,
+              child: Scaffold(
+                appBar:
+                    BlurAppBar(title: const Text('Profile'), centerTitle: true),
+                body: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  children: [
+                    _WalletCard(
+                      onHistoryTap: () =>
+                          _openSection(_ProfileSection.withdrawals),
+                    ),
+                    const SizedBox(height: 32.0),
+                    ..._menuItems(context, isWide: true),
+                  ],
+                ),
+              ),
+            ),
+            const VerticalDivider(width: 1, thickness: 1),
+            // Right panel — 6 parts
+            Expanded(
+              flex: 6,
+              child: _buildDetail(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetail() {
+    if (_activeSection == null) return const _DetailPlaceholder();
+    // A nested Navigator whose only initial route is the sub-page.
+    // Because the stack has exactly one entry, Navigator.canPop() == false
+    // and automaticallyImplyLeading never renders a back button.
+    // The key ensures a fresh Navigator (and fresh sub-page state) each time
+    // the active section changes.
+    return Navigator(
+      key: ValueKey(_activeSection),
+      onGenerateRoute: (_) => MaterialPageRoute(
+        builder: (_) => _activeSection!.build(),
+      ),
+    );
+  }
+
+  // ---- Shared menu items -------------------------------------------------
+
+  List<Widget> _menuItems(BuildContext context, {required bool isWide}) {
+    void navigate(_ProfileSection section, String route) {
+      if (isWide) {
+        _openSection(section);
+      } else {
+        context.push(route);
+      }
+    }
+
+    bool isSelected(_ProfileSection section) =>
+        isWide && _activeSection == section;
+
+    return [
+      _ProfileMenuItem(
+        icon: Icons.history,
+        title: 'Order History',
+        isSelected: isSelected(_ProfileSection.orders),
+        onTap: () => navigate(_ProfileSection.orders, '/profile/orders'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.inventory_2_outlined,
+        title: 'Manage Item',
+        isSelected: isSelected(_ProfileSection.items),
+        onTap: () => navigate(_ProfileSection.items, '/profile/items'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.restore_outlined,
+        title: 'Backup & Restore',
+        isSelected: isSelected(_ProfileSection.dataTransfer),
+        onTap: () =>
+            navigate(_ProfileSection.dataTransfer, '/profile/data-transfer'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.lan_outlined,
+        title: 'Network & Node',
+        isSelected: isSelected(_ProfileSection.network),
+        onTap: () => navigate(_ProfileSection.network, '/profile/network'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.palette_outlined,
+        title: 'Theme Settings',
+        isSelected: isSelected(_ProfileSection.theme),
+        onTap: () => navigate(_ProfileSection.theme, '/profile/theme'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.settings_outlined,
+        title: 'Settings',
+        isSelected: isSelected(_ProfileSection.settings),
+        onTap: () => navigate(_ProfileSection.settings, '/profile/settings'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.favorite_outline,
+        title: 'Donate',
+        isSelected: isSelected(_ProfileSection.donate),
+        onTap: () => navigate(_ProfileSection.donate, '/profile/donate'),
+      ),
+      const Divider(height: 32.0),
+      _ProfileMenuItem(
+        icon: Icons.logout,
+        title: 'Logout',
+        textColor: Colors.red,
+        iconColor: Colors.red,
+        onTap: () => _showConfirmationDialog(
+          context,
+          title: 'Logout',
+          content: 'Are you sure you want to log out?',
+          confirmLabel: 'Logout',
+          isDestructive: true,
+        ),
+      ),
+    ];
   }
 
   Future<void> _showConfirmationDialog(
@@ -132,16 +269,45 @@ class ProfilePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Detail placeholder (shown when nothing is selected in wide layout)
+// ---------------------------------------------------------------------------
+
+class _DetailPlaceholder extends StatelessWidget {
+  const _DetailPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.touch_app_outlined,
+            size: 64,
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Select a section',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Wallet Card
 // ---------------------------------------------------------------------------
 
 class _WalletCard extends StatelessWidget {
-  const _WalletCard();
+  const _WalletCard({this.onHistoryTap});
 
-  static String _truncateAddress(String addr) {
-    if (addr.length <= 20) return addr;
-    return '${addr.substring(0, 14)}…${addr.substring(addr.length - 6)}';
-  }
+  /// If provided, used instead of `context.push('/profile/withdrawals')`.
+  final VoidCallback? onHistoryTap;
 
   void _showWithdrawSheet(BuildContext context, String address) {
     final withdrawalRepo = context.read<WithdrawalRepository>();
@@ -208,7 +374,7 @@ class _WalletCard extends StatelessWidget {
                               Text(
                                 address.isEmpty
                                     ? 'No wallet configured'
-                                    : _truncateAddress(address),
+                                    : truncateAddress(address),
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontFeatures: const [
                                     FontFeature.tabularFigures(),
@@ -270,8 +436,8 @@ class _WalletCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: FilledButton.tonal(
-                            onPressed: () =>
-                                context.push('/profile/withdrawals'),
+                            onPressed: onHistoryTap ??
+                                () => context.push('/profile/withdrawals'),
                             child: const Text('History'),
                           ),
                         ),
@@ -308,19 +474,13 @@ class _RevenuePriceDisplay extends StatelessWidget {
   /// Real on-chain KAS balance (sum of UTXOs, in KAS not sompi).
   final double kasBalance;
 
-  static String _formatKas(double kas) {
-    // toStringAsFixed(8) gives full sompi precision; strip trailing zeros.
-    final s = kas.toStringAsFixed(8);
-    final trimmed = s.replaceAll(RegExp(r'0+$'), '');
-    return trimmed.endsWith('.') ? '${trimmed}00' : trimmed;
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<NetworkCubit, NetworkState>(
       builder: (context, networkState) {
         return BlocBuilder<CurrencyCubit, CurrencyState>(
-          builder: (context, state) => _buildContent(context, state, networkState),
+          builder: (context, state) =>
+              _buildContent(context, state, networkState),
         );
       },
     );
@@ -332,7 +492,7 @@ class _RevenuePriceDisplay extends StatelessWidget {
     NetworkState networkState,
   ) {
     final kasSymbol = networkState.kasSymbol;
-    final kasStr = '$kasSymbol ${_formatKas(kasBalance)}';
+    final kasStr = '$kasSymbol ${formatKas(kasBalance)}';
 
     final textTheme = Theme.of(context).textTheme;
     final boldHeadline =
@@ -403,7 +563,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
     final nav = Navigator.of(context); // capture before any async gap
 
     final prefs = await SharedPreferences.getInstance();
-    final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
+    final mnemonic = prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
     if (mnemonic.isEmpty) {
       _showError('No wallet mnemonic found. Please set up your wallet first.');
       return;
@@ -575,6 +735,7 @@ class _ProfileMenuItem extends StatelessWidget {
     required this.onTap,
     this.textColor,
     this.iconColor,
+    this.isSelected = false,
   });
 
   final IconData icon;
@@ -582,10 +743,12 @@ class _ProfileMenuItem extends StatelessWidget {
   final VoidCallback onTap;
   final Color? textColor;
   final Color? iconColor;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      selected: isSelected,
       leading: Icon(icon, color: iconColor),
       title: Text(
         title,

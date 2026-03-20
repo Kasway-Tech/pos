@@ -1,19 +1,32 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:kasway/features/home/view/order_confirmation_page.dart';
-import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockHomeBloc extends MockBloc<HomeEvent, HomeState> implements HomeBloc {}
 
+class MockCurrencyCubit extends MockCubit<CurrencyState>
+    implements CurrencyCubit {}
+
+class MockNetworkCubit extends MockCubit<NetworkState>
+    implements NetworkCubit {}
+
 void main() {
-  late HomeBloc homeBloc;
+  late MockHomeBloc homeBloc;
+  late MockCurrencyCubit currencyCubit;
+  late MockNetworkCubit networkCubit;
+
   final product = Product(
     id: '1',
     name: 'Test Product',
@@ -23,12 +36,31 @@ void main() {
 
   setUp(() {
     homeBloc = MockHomeBloc();
+    currencyCubit = MockCurrencyCubit();
+    networkCubit = MockNetworkCubit();
+
+    // Default currency state: IDR selected, no exchange rates → falls back to IDR display
+    when(() => currencyCubit.state).thenReturn(
+      const CurrencyState(
+        selectedCurrency: Currency(
+          code: 'IDR',
+          name: 'Indonesian Rupiah',
+          flag: '🇮🇩',
+        ),
+      ),
+    );
+
+    when(() => networkCubit.state).thenReturn(const NetworkState());
   });
 
   Widget buildTestableWidget() {
     return MaterialApp(
-      home: BlocProvider.value(
-        value: homeBloc,
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider<HomeBloc>.value(value: homeBloc),
+          BlocProvider<CurrencyCubit>.value(value: currencyCubit),
+          BlocProvider<NetworkCubit>.value(value: networkCubit),
+        ],
         child: const OrderConfirmationPage(),
       ),
     );
@@ -55,7 +87,7 @@ void main() {
 
     await tester.pumpWidget(buildTestableWidget());
 
-    // Total should be 15000 * 2 = 30000
+    // Total should be 15000 * 2 = 30000, displayed as IDR 30.000
     expect(find.textContaining('30.000'), findsAtLeastNWidgets(1));
   });
 }

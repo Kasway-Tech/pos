@@ -12,6 +12,7 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/node_status_cubit.dart';
 import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
@@ -44,7 +45,7 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     _onboardingNotifier = ValueNotifier(
-      widget.prefs.getBool('onboarding_complete') ?? false,
+      widget.prefs.getBool(PreferenceKeys.onboardingComplete) ?? false,
     );
     // Create the router once. If it were created inside BlocBuilder<ThemeCubit>,
     // every theme state change would produce a new GoRouter instance, causing

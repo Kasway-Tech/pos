@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/auth/view/auth_page.dart';
@@ -40,7 +41,7 @@ class AppRouter {
         final loc = state.matchedLocation;
         // Splash handles its own navigation; never redirect away from it.
         if (loc.startsWith('/splash')) return null;
-        final done = prefs.getBool('onboarding_complete') ?? false;
+        final done = prefs.getBool(PreferenceKeys.onboardingComplete) ?? false;
         if (!done &&
             !loc.startsWith('/auth') &&
             !loc.startsWith('/onboarding')) {

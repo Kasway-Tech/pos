@@ -54,8 +54,9 @@ void main() {
           'description': '',
           'imageUrl': 'image.png',
           'additions': [
-            {'id': 'a1', 'name': 'Cheese', 'price': 500.0},
+            {'id': 'a1', 'name': 'Cheese', 'price': 500.0, 'kasPrice': null},
           ],
+          'kasPrice': null,
         }),
       );
     });

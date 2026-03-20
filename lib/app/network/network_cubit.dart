@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants/preference_keys.dart';
 import 'network_state.dart';
 
 class NetworkCubit extends Cubit<NetworkState> {
@@ -8,17 +9,13 @@ class NetworkCubit extends Cubit<NetworkState> {
     _load();
   }
 
-  static const _kNetworkKey = 'kaspa_network';
-  static const _kMainnetUrlKey = 'kaspa_mainnet_url';
-  static const _kTestnet10UrlKey = 'kaspa_testnet10_url';
-
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final networkStr = prefs.getString(_kNetworkKey);
+    final networkStr = prefs.getString(PreferenceKeys.kaspaNetwork);
     final mainnetUrl =
-        prefs.getString(_kMainnetUrlKey) ?? NetworkState.defaultMainnetUrl;
+        prefs.getString(PreferenceKeys.kaspaMainnetUrl) ?? NetworkState.defaultMainnetUrl;
     final testnet10Url =
-        prefs.getString(_kTestnet10UrlKey) ?? NetworkState.defaultTestnet10Url;
+        prefs.getString(PreferenceKeys.kaspaTestnet10Url) ?? NetworkState.defaultTestnet10Url;
     final network =
         networkStr == 'testnet10' ? KaspaNetwork.testnet10 : KaspaNetwork.mainnet;
     emit(NetworkState(
@@ -31,7 +28,7 @@ class NetworkCubit extends Cubit<NetworkState> {
   Future<void> setNetwork(KaspaNetwork network) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-      _kNetworkKey,
+      PreferenceKeys.kaspaNetwork,
       network == KaspaNetwork.mainnet ? 'mainnet' : 'testnet10',
     );
     emit(state.copyWith(network: network));
@@ -39,13 +36,13 @@ class NetworkCubit extends Cubit<NetworkState> {
 
   Future<void> setMainnetUrl(String url) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kMainnetUrlKey, url);
+    await prefs.setString(PreferenceKeys.kaspaMainnetUrl, url);
     emit(state.copyWith(mainnetUrl: url));
   }
 
   Future<void> setTestnet10Url(String url) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kTestnet10UrlKey, url);
+    await prefs.setString(PreferenceKeys.kaspaTestnet10Url, url);
     emit(state.copyWith(testnet10Url: url));
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
+import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
@@ -210,7 +212,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
     final donationRepo = context.read<DonationRepository>();
 
     final prefs = await SharedPreferences.getInstance();
-    final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
+    final mnemonic = prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
     if (mnemonic.isEmpty) {
       _showError('No wallet mnemonic found. Please set up your wallet first.');
       return;
@@ -298,14 +300,14 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Recipient: ${_truncateAddr(DonationConstants.address)}',
+              'Recipient: ${truncateAddress(DonationConstants.address, visibleEnd: 8)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Available: ${_formatKas(widget.balanceKas)} KAS',
+              'Available: ${formatKas(widget.balanceKas)} KAS',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -357,15 +359,6 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
     );
   }
 
-  static String _truncateAddr(String addr) {
-    if (addr.length <= 24) return addr;
-    return '${addr.substring(0, 14)}…${addr.substring(addr.length - 8)}';
-  }
-
-  static String _formatKas(double kas) {
-    final s = kas.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '');
-    return s.endsWith('.') ? '${s}00' : s;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -605,11 +598,6 @@ class _DonationRow extends StatelessWidget {
 
   final DonationRecord record;
 
-  static String _formatKas(double kas) {
-    final s = kas.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '');
-    return s.endsWith('.') ? '${s}00' : s;
-  }
-
   static String _truncateTx(String tx) {
     if (tx.length <= 20) return tx;
     return '${tx.substring(0, 10)}…${tx.substring(tx.length - 8)}';
@@ -635,7 +623,7 @@ class _DonationRow extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '${_formatKas(record.amountKas)} $kasSymbol',
+                      '${formatKas(record.amountKas)} $kasSymbol',
                       style: textTheme.bodyMedium
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),

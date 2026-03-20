@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants/preference_keys.dart';
 import '../network/network_cubit.dart';
 import '../network/network_state.dart';
 import '../../data/services/kaspa_wallet_service.dart';
@@ -39,7 +40,7 @@ class WalletCubit extends Cubit<WalletState> {
   static const _reconnectDelay = Duration(seconds: 3);
 
   Future<void> _init() async {
-    final mnemonic = _prefs.getString('wallet_mnemonic') ?? '';
+    final mnemonic = _prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
     if (mnemonic.isEmpty) {
       emit(state.copyWith(mnemonic: '', address: '', addressReady: true));
       return;

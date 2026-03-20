@@ -4,10 +4,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:kasway/app/widgets/pulse_display.dart';
+import 'package:macos_window_utils/macos_window_utils.dart';
 
 class NodeStatusPage extends StatefulWidget {
   const NodeStatusPage({super.key});
@@ -189,8 +190,10 @@ class _NodeStatusPageState extends State<NodeStatusPage>
                     error: _error,
                   ),
                   const SizedBox(height: 48),
-                  _PulseDisplay(
+                  PulseDisplay(
                     controller: _pulseController,
+                    scaleFactor: 0.2,
+                    size: 80,
                     child: Text(
                       _daaScore,
                       style: textTheme.displaySmall?.copyWith(
@@ -288,51 +291,3 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Pulse ring animation
-// ---------------------------------------------------------------------------
-
-class _PulseDisplay extends StatelessWidget {
-  const _PulseDisplay({required this.controller, required this.child});
-
-  final AnimationController controller;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, innerChild) {
-        final opacity = (1.0 - controller.value).clamp(0.0, 1.0);
-        final scale = 1.0 + controller.value * 0.2;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            if (controller.value > 0)
-              Opacity(
-                opacity: opacity,
-                child: Transform.scale(
-                  scale: scale,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: colorScheme.primary.withAlpha(100),
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            innerChild!,
-          ],
-        );
-      },
-      child: child,
-    );
-  }
-}

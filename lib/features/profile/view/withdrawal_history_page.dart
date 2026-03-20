@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
@@ -26,11 +27,6 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     final network = context.read<NetworkCubit>().state.network.name;
     _withdrawalsFuture =
         context.read<WithdrawalRepository>().getWithdrawals(network);
-  }
-
-  String _truncateAddress(String addr) {
-    if (addr.length <= 20) return addr;
-    return '${addr.substring(0, 14)}…${addr.substring(addr.length - 6)}';
   }
 
   @override
@@ -62,7 +58,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                     return ListTile(
                       title: Text('$kasSymbol ${w.amountKas.toStringAsFixed(4)}'),
                       subtitle: Text(
-                        '${_truncateAddress(w.toAddress)}  •  ${_dateFormat.format(w.createdAt.toLocal())}',
+                        '${truncateAddress(w.toAddress)}  •  ${_dateFormat.format(w.createdAt.toLocal())}',
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

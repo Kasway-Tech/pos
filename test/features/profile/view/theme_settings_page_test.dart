@@ -44,10 +44,11 @@ void main() {
 
       await tester.pumpWidget(buildTestableWidget());
 
-      final constrainedBox = tester.widget<ConstrainedBox>(
-        find.byType(ConstrainedBox).first,
+      final constrainedBoxFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is ConstrainedBox && widget.constraints.maxWidth == 600.0,
       );
-      expect(constrainedBox.constraints.maxWidth, 600);
+      expect(constrainedBoxFinder, findsAtLeastNWidgets(1));
 
       addTearDown(tester.view.resetPhysicalSize);
     },

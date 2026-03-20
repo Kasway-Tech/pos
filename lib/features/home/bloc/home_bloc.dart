@@ -7,6 +7,8 @@ import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:bloc/bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  static const int _maxQuantity = 99;
+
   HomeBloc({
     required ProductRepository productRepository,
     required OrderRepository orderRepository,
@@ -55,54 +57,54 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   void _onProductAdded(HomeProductAdded event, Emitter<HomeState> emit) {
-    final cartItems = List<CartItem>.from(state.cartItems);
-    final index = cartItems.indexWhere(
-      (item) =>
-          item.product.id == event.product.id && item.selectedAdditions.isEmpty,
+    _addToCart(
+      emit: emit,
+      matchIndex: (items) => items.indexWhere(
+        (item) =>
+            item.product.id == event.product.id &&
+            item.selectedAdditions.isEmpty,
+      ),
+      newItem: CartItem(product: event.product, quantity: 1),
     );
-
-    if (index >= 0) {
-      final newQuantity = cartItems[index].quantity + 1;
-      if (newQuantity <= 99) {
-        cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
-      } else {
-        return;
-      }
-    } else {
-      cartItems.add(CartItem(product: event.product, quantity: 1));
-    }
-
-    emit(state.copyWith(cartItems: cartItems));
   }
 
   void _onProductWithAdditionsAdded(
     HomeProductWithAdditionsAdded event,
     Emitter<HomeState> emit,
   ) {
-    final cartItems = List<CartItem>.from(state.cartItems);
-
-    final index = cartItems.indexWhere(
-      (item) =>
-          item.product.id == event.product.id &&
-          _compareAdditions(item.selectedAdditions, event.selectedAdditions),
+    _addToCart(
+      emit: emit,
+      matchIndex: (items) => items.indexWhere(
+        (item) =>
+            item.product.id == event.product.id &&
+            _compareAdditions(item.selectedAdditions, event.selectedAdditions),
+      ),
+      newItem: CartItem(
+        product: event.product,
+        quantity: 1,
+        selectedAdditions: event.selectedAdditions,
+      ),
     );
+  }
+
+  /// Increments an existing matching cart item by 1 (up to [_maxQuantity]),
+  /// or appends [newItem] if no match is found.
+  void _addToCart({
+    required Emitter<HomeState> emit,
+    required int Function(List<CartItem>) matchIndex,
+    required CartItem newItem,
+  }) {
+    final cartItems = List<CartItem>.from(state.cartItems);
+    final index = matchIndex(cartItems);
 
     if (index >= 0) {
       final newQuantity = cartItems[index].quantity + 1;
-      if (newQuantity <= 99) {
-        cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
-      } else {
-        return;
-      }
+      if (newQuantity > _maxQuantity) return;
+      cartItems[index] = cartItems[index].copyWith(quantity: newQuantity);
     } else {
-      cartItems.add(
-        CartItem(
-          product: event.product,
-          quantity: 1,
-          selectedAdditions: event.selectedAdditions,
-        ),
-      );
+      cartItems.add(newItem);
     }
+
     emit(state.copyWith(cartItems: cartItems));
   }
 
@@ -135,7 +137,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         cartItems.removeAt(index);
       } else {
         cartItems[index] = cartItems[index].copyWith(
-          quantity: event.quantity.clamp(1, 99),
+          quantity: event.quantity.clamp(1, _maxQuantity.toDouble()),
         );
       }
       emit(state.copyWith(cartItems: cartItems));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
@@ -29,7 +30,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   bool _loading = false;
 
   Future<void> _completeOnboarding() async {
-    await widget.prefs.setBool('onboarding_complete', true);
+    await widget.prefs.setBool(PreferenceKeys.onboardingComplete, true);
     widget.onboardingNotifier.value = true;
     if (mounted) context.go('/');
   }

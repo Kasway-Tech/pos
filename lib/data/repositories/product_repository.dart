@@ -20,36 +20,56 @@ class ProductRepository {
 
   Future<List<Product>> getProductsByCategory(String category) async {
     final db = await _db.database;
-    final productRows = await db.query(
-      'products',
-      where: 'category_name = ?',
-      whereArgs: [category],
-      orderBy: 'created_at ASC',
-    );
-    final products = <Product>[];
-    for (final row in productRows) {
-      final additionRows = await db.query(
-        'additions',
-        where: 'product_id = ?',
-        whereArgs: [row['id']],
-      );
-      products.add(Product(
-        id: row['id'] as String,
-        name: row['name'] as String,
-        price: row['price'] as double,
-        description: row['description'] as String? ?? '',
-        kasPrice: row['kas_price'] as double?,
-        additions: additionRows
-            .map((a) => Addition(
-                  id: a['id'] as String,
-                  name: a['name'] as String,
-                  price: a['price'] as double,
-                  kasPrice: a['kas_price'] as double?,
-                ))
-            .toList(),
-      ));
+    final rows = await db.rawQuery('''
+      SELECT p.id, p.name, p.price, p.description, p.kas_price,
+             a.id as add_id, a.name as add_name, a.price as add_price,
+             a.kas_price as add_kas_price
+      FROM products p
+      LEFT JOIN additions a ON a.product_id = p.id
+      WHERE p.category_name = ?
+      ORDER BY p.created_at ASC
+    ''', [category]);
+    return _groupProductRows(rows);
+  }
+
+  /// Groups flat JOIN rows (products LEFT JOIN additions) into [Product] objects,
+  /// preserving the row ordering for products and their additions.
+  List<Product> _groupProductRows(List<Map<String, Object?>> rows) {
+    final productMap = <String, Product>{};
+    final productOrder = <String>[];
+
+    for (final row in rows) {
+      final productId = row['id'] as String;
+      if (!productMap.containsKey(productId)) {
+        productMap[productId] = Product(
+          id: productId,
+          name: row['name'] as String,
+          price: row['price'] as double,
+          description: row['description'] as String? ?? '',
+          kasPrice: row['kas_price'] as double?,
+          additions: [],
+        );
+        productOrder.add(productId);
+      }
+
+      final addId = row['add_id'] as String?;
+      if (addId != null) {
+        final existing = productMap[productId]!;
+        productMap[productId] = existing.copyWith(
+          additions: [
+            ...existing.additions,
+            Addition(
+              id: addId,
+              name: row['add_name'] as String,
+              price: row['add_price'] as double,
+              kasPrice: row['add_kas_price'] as double?,
+            ),
+          ],
+        );
+      }
     }
-    return products;
+
+    return productOrder.map((id) => productMap[id]!).toList();
   }
 
   Future<void> insertProduct(Product p, String category) async {
@@ -151,44 +171,73 @@ class ProductRepository {
 
   Future<List<ProductWithCategory>> getAllProducts() async {
     final db = await _db.database;
-    final catRows =
-        await db.query('categories', orderBy: 'sort_order ASC');
-    final result = <ProductWithCategory>[];
-    for (final cat in catRows) {
-      final catName = cat['name'] as String;
-      final productRows = await db.query(
-        'products',
-        where: 'category_name = ?',
-        whereArgs: [catName],
-        orderBy: 'created_at ASC',
-      );
-      for (final row in productRows) {
-        final additionRows = await db.query(
-          'additions',
-          where: 'product_id = ?',
-          whereArgs: [row['id']],
+    // Fetch category order in one query, then all products+additions in one JOIN.
+    final catRows = await db.query('categories', orderBy: 'sort_order ASC');
+    final categoryOrder = {
+      for (var i = 0; i < catRows.length; i++)
+        catRows[i]['name'] as String: i,
+    };
+
+    final rows = await db.rawQuery('''
+      SELECT p.id, p.name, p.price, p.description, p.kas_price,
+             p.category_name,
+             a.id as add_id, a.name as add_name, a.price as add_price,
+             a.kas_price as add_kas_price
+      FROM products p
+      LEFT JOIN additions a ON a.product_id = p.id
+      ORDER BY p.category_name, p.created_at ASC
+    ''');
+
+    // Group rows into Product objects (preserving per-product addition order).
+    final productMap = <String, Product>{};
+    final productCategory = <String, String>{};
+    final productOrder = <String>[];
+
+    for (final row in rows) {
+      final productId = row['id'] as String;
+      if (!productMap.containsKey(productId)) {
+        productMap[productId] = Product(
+          id: productId,
+          name: row['name'] as String,
+          price: row['price'] as double,
+          description: row['description'] as String? ?? '',
+          kasPrice: row['kas_price'] as double?,
+          additions: [],
         );
-        result.add(ProductWithCategory(
-          category: catName,
-          product: Product(
-            id: row['id'] as String,
-            name: row['name'] as String,
-            price: row['price'] as double,
-            description: row['description'] as String? ?? '',
-            kasPrice: row['kas_price'] as double?,
-            additions: additionRows
-                .map((a) => Addition(
-                      id: a['id'] as String,
-                      name: a['name'] as String,
-                      price: a['price'] as double,
-                      kasPrice: a['kas_price'] as double?,
-                    ))
-                .toList(),
-          ),
-        ));
+        productCategory[productId] = row['category_name'] as String;
+        productOrder.add(productId);
+      }
+
+      final addId = row['add_id'] as String?;
+      if (addId != null) {
+        final existing = productMap[productId]!;
+        productMap[productId] = existing.copyWith(
+          additions: [
+            ...existing.additions,
+            Addition(
+              id: addId,
+              name: row['add_name'] as String,
+              price: row['add_price'] as double,
+              kasPrice: row['add_kas_price'] as double?,
+            ),
+          ],
+        );
       }
     }
-    return result;
+
+    // Sort products by category sort_order, then by their original created_at order.
+    productOrder.sort((a, b) {
+      final catA = categoryOrder[productCategory[a]] ?? 0;
+      final catB = categoryOrder[productCategory[b]] ?? 0;
+      return catA.compareTo(catB);
+    });
+
+    return productOrder
+        .map((id) => ProductWithCategory(
+              category: productCategory[id]!,
+              product: productMap[id]!,
+            ))
+        .toList();
   }
 
   Future<void> importProducts(List<Map<String, dynamic>> products) async {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/node_status_cubit.dart';
@@ -71,7 +72,7 @@ class _SplashPageState extends State<SplashPage> {
 
     if (homeReady && walletReady && ratesReady && nodeReady) {
       _navigated = true;
-      final done = widget.prefs.getBool('onboarding_complete') ?? false;
+      final done = widget.prefs.getBool(PreferenceKeys.onboardingComplete) ?? false;
       context.go(done ? '/' : '/auth');
     }
   }

@@ -3,15 +3,13 @@ import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/preference_keys.dart';
 import 'currency_state.dart';
 
 class CurrencyCubit extends Cubit<CurrencyState> {
   CurrencyCubit() : super(const CurrencyState()) {
     _init();
   }
-
-  static const _currencyKey = 'default_currency_code';
-  static const _dynamicKey = 'dynamic_pricing';
   static const _coingeckoUrl =
       'https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=idr,usd,eur,gbp,jpy,sgd,myr,aud,cny,hkd,krw';
 
@@ -19,8 +17,8 @@ class CurrencyCubit extends Cubit<CurrencyState> {
 
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString(_currencyKey);
-    final dynamic = prefs.getBool(_dynamicKey) ?? true;
+    final code = prefs.getString(PreferenceKeys.currencyCode);
+    final dynamic = prefs.getBool(PreferenceKeys.dynamicPricing) ?? true;
 
     Currency selected = CurrencyState.allCurrencies.first;
     if (code != null) {
@@ -75,13 +73,13 @@ class CurrencyCubit extends Cubit<CurrencyState> {
 
   Future<void> setCurrency(Currency currency) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_currencyKey, currency.code);
+    await prefs.setString(PreferenceKeys.currencyCode, currency.code);
     emit(state.copyWith(selectedCurrency: currency));
   }
 
   Future<void> setDynamicPricing(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_dynamicKey, value);
+    await prefs.setBool(PreferenceKeys.dynamicPricing, value);
     if (value) {
       emit(state.copyWith(dynamicPricing: true));
       await _fetchRates();
