@@ -326,112 +326,61 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         const SizedBox(height: 8),
 
                         // --- Amount header ---
-                        if (hasPartial) ...[
-                          Text(
-                            '$remainingStr $kasSymbol',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
+                        Text(
+                          '$remainingStr $kasSymbol',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (!hasPartial &&
+                            !currencyState.selectedCurrency.isCrypto)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: PriceText(
+                              _totalIdr,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                            ),
                           ),
-                          const SizedBox(height: 2),
+
+                        // --- Partial payment progress ---
+                        if (hasPartial) ...[
+                          const SizedBox(height: 12),
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(
+                              begin: 0,
+                              end: (receivedKas / totalKas).clamp(0.0, 1.0),
+                            ),
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.easeOut,
+                            builder: (context, value, _) =>
+                                LinearProgressIndicator(
+                              value: value,
+                              minHeight: 5,
+                              borderRadius: BorderRadius.circular(4),
+                              color: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
                           Text(
-                            'remaining of $totalStr $kasSymbol',
+                            '$receivedStr of $totalStr $kasSymbol received',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
                                 ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.outline,
+                                  color: Theme.of(context).colorScheme.outline,
                                 ),
                             textAlign: TextAlign.center,
-                          ),
-                        ] else ...[
-                          Text(
-                            '$remainingStr $kasSymbol',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                          if (!currencyState.selectedCurrency.isCrypto)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: PriceText(
-                                _totalIdr,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .outline,
-                                    ),
-                              ),
-                            ),
-                        ],
-
-                        // --- Partial payment banner ---
-                        if (hasPartial) ...[
-                          const SizedBox(height: 16),
-                          Card(
-                            color: Colors.amber.shade50,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.amber.shade300),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(Icons.info_outline_rounded,
-                                      color: Colors.amber.shade800, size: 20),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Partial payment received',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium
-                                              ?.copyWith(
-                                                color: Colors.amber.shade900,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '$receivedStr $kasSymbol received · $remainingStr $kasSymbol still needed',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                  color:
-                                                      Colors.amber.shade800),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Please scan the updated QR code to pay the remaining amount.',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                  color:
-                                                      Colors.amber.shade700),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                         ],
 
