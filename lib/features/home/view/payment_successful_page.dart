@@ -1,9 +1,29 @@
-import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
-class PaymentSuccessfulPage extends StatelessWidget {
+class PaymentSuccessfulPage extends StatefulWidget {
   const PaymentSuccessfulPage({super.key});
+
+  @override
+  State<PaymentSuccessfulPage> createState() => _PaymentSuccessfulPageState();
+}
+
+class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _lottieController;
+
+  @override
+  void initState() {
+    super.initState();
+    _lottieController = AnimationController(vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _lottieController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,17 +35,16 @@ class PaymentSuccessfulPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              Bounce(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.green,
-                    size: 80,
-                  ),
-                ),
+              Lottie.asset(
+                'assets/lottie/kw-complete.json',
+                controller: _lottieController,
+                width: 180,
+                height: 180,
+                onLoaded: (composition) {
+                  _lottieController
+                    ..duration = composition.duration
+                    ..forward();
+                },
               ),
               const SizedBox(height: 32),
               Text(

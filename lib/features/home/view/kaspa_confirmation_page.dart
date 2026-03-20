@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
@@ -243,8 +244,30 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            LinearProgressIndicator(value: value, minHeight: 8),
+            Lottie.asset(
+              'assets/lottie/kw-confirm.json',
+              width: 180,
+              height: 180,
+              repeat: true,
+            ),
             const SizedBox(height: 16),
+            Text(
+              'Confirming Payment',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please wait while we verify your transaction on the Kaspa network.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            LinearProgressIndicator(value: value, minHeight: 8),
+            const SizedBox(height: 12),
             Text(
               '$count / $_required confirmations',
               style: TextStyle(
