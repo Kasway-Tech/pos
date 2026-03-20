@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
@@ -12,6 +14,8 @@ class PaymentSuccessfulPage extends StatefulWidget {
 class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _lottieController;
+  int _countdown = 3;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -19,8 +23,24 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
     _lottieController = AnimationController(vsync: this);
   }
 
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_countdown <= 1) {
+        timer.cancel();
+        context.go('/');
+      } else {
+        setState(() => _countdown--);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
     _lottieController.dispose();
     super.dispose();
   }
@@ -43,43 +63,31 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
                 onLoaded: (composition) {
                   _lottieController
                     ..duration = composition.duration
-                    ..forward();
+                    ..forward().whenComplete(_startCountdown);
                 },
               ),
               const SizedBox(height: 32),
               Text(
                 'Payment Successful!',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
               const SizedBox(height: 16),
               Text(
-                'The transaction has been processed successfully. You can now return to the home screen or start a new order.',
+                'The transaction has been processed successfully.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
               ),
-              const SizedBox(height: 32),
-              TextButton(
-                onPressed: () {
-                  context.go('/');
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                ),
-                child: Text(
-                  'Back to Home',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              const SizedBox(height: 24),
+              Text(
+                'You will be redirected in $_countdown second${_countdown == 1 ? '' : 's'}...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
               ),
               const Spacer(),
             ],
