@@ -52,3 +52,7 @@ app.*.map.json
 /lib/src/bincode
 /lib/src/serde
 /lib/src/bindings
+
+# Claude Code local settings and personal data
+.claude/settings.local.json
+.claude/agent-memory/
