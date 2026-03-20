@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:macos_window_utils/macos_window_utils.dart';
 
 class ExplorerPage extends StatefulWidget {
   const ExplorerPage({super.key, required this.url});
@@ -15,7 +16,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TitlebarSafeArea(child: Scaffold(
       appBar: BlurAppBar(
         title: const Text('Explorer'),
         bottom: _progress < 1.0
@@ -33,6 +34,6 @@ class _ExplorerPageState extends State<ExplorerPage> {
         onProgressChanged: (_, progress) =>
             setState(() => _progress = progress / 100),
       ),
-    );
+    ));
   }
 }

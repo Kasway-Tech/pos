@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 
@@ -147,7 +148,7 @@ class _NodeStatusPageState extends State<NodeStatusPage>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return BlocListener<NetworkCubit, NetworkState>(
+    return TitlebarSafeArea(child: BlocListener<NetworkCubit, NetworkState>(
       listenWhen: (previous, current) =>
           previous.activeUrl != current.activeUrl,
       listener: (context, state) {
@@ -223,7 +224,7 @@ class _NodeStatusPageState extends State<NodeStatusPage>
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

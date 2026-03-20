@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
@@ -25,7 +26,7 @@ class _DonationPageState extends State<DonationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TitlebarSafeArea(child: Scaffold(
       appBar: BlurAppBar(title: const Text('Donate'), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
@@ -42,7 +43,7 @@ class _DonationPageState extends State<DonationPage> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 
