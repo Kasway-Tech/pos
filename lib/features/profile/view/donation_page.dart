@@ -175,13 +175,14 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
       return;
     }
 
+    final activeUrl = context.read<NetworkCubit>().state.activeUrl;
+
     final prefs = await SharedPreferences.getInstance();
     final mnemonic = prefs.getString('wallet_mnemonic') ?? '';
     if (mnemonic.isEmpty) {
       _showError('No wallet mnemonic found. Please set up your wallet first.');
       return;
     }
-
     final kasAmount = double.tryParse(_amountController.text.trim()) ?? 0;
     final amountSompi = (kasAmount * 1e8).toInt();
     final payloadNote =
@@ -195,6 +196,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
       amountSompi: amountSompi,
       payloadNote: payloadNote,
       hrp: widget.hrp,
+      activeUrl: activeUrl,
     );
 
     if (!mounted) return;

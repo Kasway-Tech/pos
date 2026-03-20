@@ -168,7 +168,9 @@ class _WalletCard extends StatelessWidget {
     final withdrawalRepo = context.read<WithdrawalRepository>();
     final kasIdrRate =
         context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
-    final hrp = context.read<NetworkCubit>().state.addressHrp;
+    final networkState = context.read<NetworkCubit>().state;
+    final hrp = networkState.addressHrp;
+    final activeUrl = networkState.activeUrl;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -180,6 +182,7 @@ class _WalletCard extends StatelessWidget {
         withdrawalRepository: withdrawalRepo,
         kasIdrRate: kasIdrRate,
         hrp: hrp,
+        activeUrl: activeUrl,
       ),
     );
   }
@@ -373,12 +376,14 @@ class _WithdrawSheet extends StatefulWidget {
     required this.withdrawalRepository,
     required this.kasIdrRate,
     required this.hrp,
+    required this.activeUrl,
   });
 
   final String fromAddress;
   final WithdrawalRepository withdrawalRepository;
   final double kasIdrRate;
   final String hrp;
+  final String activeUrl;
 
   @override
   State<_WithdrawSheet> createState() => _WithdrawSheetState();
@@ -422,6 +427,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
       amountSompi: amountSompi,
       payloadNote: payloadNote,
       hrp: widget.hrp,
+      activeUrl: widget.activeUrl,
     );
 
     if (!mounted) return;
@@ -440,6 +446,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
         createdAt: DateTime.now(),
       );
       if (!mounted) return;
+      context.read<WalletCubit>().refreshBalance();
       setState(() => _submitting = false);
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -513,6 +520,24 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                 labelText: 'Amount ($kasSymbol)',
                 hintText: '0.00',
                 border: const OutlineInputBorder(),
+                suffixIcon: TextButton(
+                  onPressed: () {
+                    // Read live balance — never use a stale snapshot.
+                    // Fee estimate: 0.001 KAS covers up to ~89 inputs for a
+                    // max-send (1 output), where storage mass ≈ 0.
+                    final liveBalance =
+                        context.read<WalletCubit>().state.balanceKas;
+                    const feeKas = 0.001;
+                    final max =
+                        (liveBalance - feeKas).clamp(0.0, double.infinity);
+                    final formatted = max
+                        .toStringAsFixed(8)
+                        .replaceAll(RegExp(r'0+$'), '')
+                        .replaceAll(RegExp(r'\.$'), '.00');
+                    _amountController.text = formatted;
+                  },
+                  child: const Text('Max'),
+                ),
               ),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),

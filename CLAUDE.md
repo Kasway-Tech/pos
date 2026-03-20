@@ -301,8 +301,17 @@ Kaspa uses a **cashaddr-style** encoding (NOT standard bech32): separator `:`, c
 ### P2PK script format
 `OP_DATA_32 (0x20)` + 32-byte x-only pubkey + `OP_CHECKSIG (0xac)` = 34-byte script hex (68 chars).
 
-### Transaction note (known limitation)
-`sendTransaction` submits **unsigned** transactions (`signatureScript: ""`). This replicates the former Rust behaviour and means withdrawals may not relay on mainnet. A future task would add Schnorr signing.
+### Transaction signing
+`sendTransaction` signs each input with BIP340 Schnorr (pure Dart, via `kaspa_signing.dart`). Signing is correct and transactions relay on both mainnet and testnet-10.
+
+### Fee / UTXO selection algorithm
+Mirrors `rusty-kaspa wallet/core/src/tx/generator/generator.rs calculate_mass()`:
+1. **Greedy UTXO selection** until `total >= amount + compute_mass(N, 2)`
+2. **Converge fee** (≤ 5 iterations): `changeEstimate = total_input − amount` (before fees, same as rusty-kaspa), then call `_massDisposition` to decide storage mass + absorb flag
+3. **Absorb-change logic**: if `C/changeEstimate − C/amount − input_deduction` > `changeEstimate` → drop change output, excess goes to miner fees
+4. **Dust threshold**: 600 sompi (from `is_transaction_output_dust` in mass.rs); absorbed silently
+5. **Storage mass formula** (wallet arithmetic-mean approximation): `max(0, Σ(C/out_i) − N²×C/total_input)` — conservative vs. consensus harmonic-sum but ensures fees never too low
+6. `total_mass = max(compute_mass, storage_mass)`, fee = total_mass sompi
 
 ## Splash Screen + WalletCubit (App-Level Preloading)
 

@@ -150,7 +150,8 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
   void _tryAutoDonate() {
     final donationState = context.read<DonationCubit>().state;
     if (!donationState.autoEnabled) return;
-    final hrp = context.read<NetworkCubit>().state.addressHrp;
+    final networkState = context.read<NetworkCubit>().state;
+    final hrp = networkState.addressHrp;
     if (hrp != 'kaspa') return; // mainnet only
     final walletState = context.read<WalletCubit>().state;
     if (walletState.mnemonic.isEmpty) return;
@@ -174,6 +175,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       payloadNote:
           'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',
       hrp: hrp,
+      activeUrl: networkState.activeUrl,
     ); // fire-and-forget
   }
 
