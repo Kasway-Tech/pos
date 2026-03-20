@@ -217,9 +217,12 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       canPop: false,
       child: Scaffold(
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(40),
-            child: _buildConfirming(),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: _buildConfirming(),
+            ),
           ),
         ),
       ),

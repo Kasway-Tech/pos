@@ -52,37 +52,42 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Lottie.asset(
-                  'assets/lottie/kw-complete.json',
-                  controller: _lottieController,
-                  width: 180,
-                  height: 180,
-                  onLoaded: (composition) {
-                    _lottieController
-                      ..duration = composition.duration
-                      ..forward().whenComplete(_startCountdown);
-                  },
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Lottie.asset(
+                      'assets/lottie/kw-complete.json',
+                      controller: _lottieController,
+                      width: 180,
+                      height: 180,
+                      onLoaded: (composition) {
+                        _lottieController
+                          ..duration = composition.duration
+                          ..forward().whenComplete(_startCountdown);
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    Text(
+                      'Payment Successful!',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'The transaction has been processed successfully.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
-                Text(
-                  'Payment Successful!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'The transaction has been processed successfully.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                ),
-              ],
+              ),
             ),
             Positioned(
               bottom: 16,
