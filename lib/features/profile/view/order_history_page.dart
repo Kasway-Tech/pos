@@ -5,9 +5,9 @@ import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
+import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/order.dart';
-import 'package:kasway/data/models/order_item.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
@@ -306,7 +306,19 @@ class _OrderCard extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                     child: Column(
                       children: [
-                        ...order.items.map((item) => _ItemRow(item: item)),
+                        ...order.items.map((item) {
+                          final additionTotal = item.additions.fold<double>(
+                              0, (sum, a) => sum + a.price);
+                          return LineItemRow(
+                            productName: item.productName,
+                            quantity: item.quantity,
+                            lineTotal:
+                                (item.unitPrice + additionTotal) * item.quantity,
+                            additions: item.additions
+                                .map((a) => (name: a.name, price: a.price))
+                                .toList(),
+                          );
+                        }),
                         const Divider(height: 20),
                         Row(
                           children: [
@@ -355,66 +367,4 @@ class _OrderCard extends StatelessWidget {
   }
 }
 
-class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.item});
-  final OrderItem item;
 
-  @override
-  Widget build(BuildContext context) {
-    final additionTotal =
-        item.additions.fold<double>(0, (sum, a) => sum + a.price);
-    final lineTotal = (item.unitPrice + additionTotal) * item.quantity;
-    final outlineStyle = Theme.of(context)
-        .textTheme
-        .bodySmall
-        ?.copyWith(color: Theme.of(context).colorScheme.outline);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left column: product name + additions
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${item.productName} × ${item.quantity}',
-                    style: Theme.of(context).textTheme.bodyMedium),
-                if (item.additions.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1),
-                    child: Text('No additions', style: outlineStyle),
-                  )
-                else
-                  ...item.additions.map(
-                    (a) => Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: Text(a.name, style: outlineStyle),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Right column: line total + per-addition prices
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              PriceText(lineTotal,
-                  style: Theme.of(context).textTheme.bodyMedium),
-              ...item.additions.map(
-                (a) => Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: a.price > 0
-                      ? PriceText(a.price, style: outlineStyle)
-                      : Text('FREE', style: outlineStyle),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -4,9 +4,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
@@ -202,32 +202,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     return '$address?amount=$kasStr&payload=$b64';
   }
 
-  String _formatSuffixed(
-    double idrPrice,
-    CurrencyState currencyState,
-    String kasSymbol,
-  ) {
-    final code = currencyState.selectedCurrency.code;
-    final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
-
-    if (code == 'IDR' || kasIdr <= 0) {
-      final amount = NumberFormat('#,###', 'id_ID').format(idrPrice);
-      return '$amount IDR';
-    }
-    if (currencyState.selectedCurrency.isCrypto) {
-      final kas = idrPrice / kasIdr;
-      return '${kas.toStringAsFixed(4)} $kasSymbol';
-    }
-    final kasTarget = currencyState.exchangeRates[code.toLowerCase()] ?? 0;
-    if (kasTarget <= 0) return '-- $code';
-    final converted = (idrPrice / kasIdr) * kasTarget;
-    final decimals = {'JPY', 'KRW'}.contains(code) ? 0 : 2;
-    final amount = NumberFormat(
-      decimals == 0 ? '#,###' : '#,##0.${'0' * decimals}',
-    ).format(converted);
-    return '$amount $code';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -388,92 +362,15 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         const SizedBox(height: 24),
                         const Divider(),
                         const SizedBox(height: 8),
-                        ..._cartItems.map((item) {
-                          final hasAdditions =
-                              item.selectedAdditions.isNotEmpty;
-                          final qtyStr = item.quantity % 1 == 0
-                              ? item.quantity.toInt().toString()
-                              : item.quantity.toString();
-                          return Padding(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 6),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '${item.product.name} × $qtyStr',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
-                                      ),
-                                    ),
-                                    Text(
-                                      _formatSuffixed(item.totalPrice,
-                                          currencyState, kasSymbol),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
-                                    ),
-                                  ],
-                                ),
-                                if (hasAdditions)
-                                  ...item.selectedAdditions.map(
-                                    (a) => Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 2, left: 12),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              '+ ${a.name}',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .outline,
-                                                  ),
-                                            ),
-                                          ),
-                                          a.price > 0
-                                              ? Text(
-                                                  _formatSuffixed(a.price,
-                                                      currencyState,
-                                                      kasSymbol),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: Theme.of(
-                                                                context)
-                                                            .colorScheme
-                                                            .outline,
-                                                      ),
-                                                )
-                                              : Text(
-                                                  'FREE',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: Theme.of(
-                                                                context)
-                                                            .colorScheme
-                                                            .outline,
-                                                      ),
-                                                ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
+                        ..._cartItems.map((item) => LineItemRow(
+                              productName: item.product.name,
+                              quantity: item.quantity,
+                              lineTotal: item.totalPrice,
+                              additions: item.selectedAdditions
+                                  .map((a) =>
+                                      (name: a.name, price: a.price))
+                                  .toList(),
+                            )),
                         const SizedBox(height: 16),
                       ],
                     ),
