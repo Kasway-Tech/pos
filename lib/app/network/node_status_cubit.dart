@@ -22,22 +22,30 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
   late String _currentUrl;
   StreamSubscription<NetworkState>? _networkSub;
   WebSocket? _socket;
-  bool _disposed = false;
+
+  // Incremented on every reconnect so stale _connect() loops self-terminate.
+  int _generation = 0;
+
   int _reqId = 1;
 
   Future<void> _connect() async {
-    while (!_disposed) {
+    final myGeneration = _generation;
+
+    while (!isClosed && _generation == myGeneration) {
       try {
         final ws = await WebSocket.connect(_currentUrl);
-        if (_disposed) {
-          await ws.close();
+
+        if (isClosed || _generation != myGeneration) {
+          ws.close().ignore();
           return;
         }
+
         _socket = ws;
         emit(state.copyWith(connected: true, error: ''));
 
         void poll() {
-          if (_disposed || ws.readyState != WebSocket.open) return;
+          if (isClosed || _generation != myGeneration) return;
+          if (ws.readyState != WebSocket.open) return;
           try {
             ws.add(jsonEncode(
                 {'id': _reqId++, 'method': 'getBlockDagInfo', 'params': {}}));
@@ -49,18 +57,18 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
             Stream.periodic(const Duration(seconds: 1)).listen((_) => poll());
 
         await for (final raw in ws) {
-          if (_disposed) break;
-          if (raw is String) _handleFrame(raw);
+          if (_generation != myGeneration) break;
+          if (raw is String) _handleFrame(raw, myGeneration);
         }
         await timer.cancel();
 
-        if (_disposed) return;
+        if (isClosed || _generation != myGeneration) return;
         emit(state.copyWith(connected: false, error: 'Connection closed'));
       } on WebSocketException catch (e) {
-        if (_disposed) return;
+        if (isClosed || _generation != myGeneration) return;
         emit(state.copyWith(connected: false, error: e.message));
       } catch (e) {
-        if (_disposed) return;
+        if (isClosed || _generation != myGeneration) return;
         emit(state.copyWith(connected: false, error: e.toString()));
       }
 
@@ -69,16 +77,16 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
   }
 
   Future<void> _reconnect(String newUrl) async {
-    _disposed = true;
-    await _socket?.close();
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    _generation++;          // invalidates all in-flight _connect() loops
     _currentUrl = newUrl;
-    _disposed = false;
+    await _socket?.close();
+    _socket = null;
     emit(const NodeStatusState());
     _connect();
   }
 
-  void _handleFrame(String text) {
+  void _handleFrame(String text, int generation) {
+    if (_generation != generation) return;
     try {
       final json = jsonDecode(text) as Map<String, dynamic>;
       final params = json['params'] as Map<String, dynamic>?;
@@ -92,7 +100,7 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
       emit(state.copyWith(
         connected: true,
         error: '',
-        daaScore: score.toString(),
+        daaScore: (score as num).toInt().toString(),
         lastUpdated: timeStr,
       ));
     } catch (_) {}
@@ -100,7 +108,7 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
 
   @override
   Future<void> close() async {
-    _disposed = true;
+    _generation++;
     _networkSub?.cancel();
     await _socket?.close();
     return super.close();
