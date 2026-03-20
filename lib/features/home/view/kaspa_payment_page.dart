@@ -416,7 +416,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                           child: QrImageView(
                             data: qrData,
                             version: QrVersions.auto,
-                            size: 220,
+                            size: 260,
                             backgroundColor: Colors.white,
                             padding: const EdgeInsets.all(12),
                           ),
