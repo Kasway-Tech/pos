@@ -314,7 +314,21 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                             padding: const EdgeInsets.all(16),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
+                        Text(
+                          _merchantAddress,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                        const SizedBox(height: 8),
                         Text(
                           'Scan with your Kaspa wallet',
                           style: Theme.of(context)
