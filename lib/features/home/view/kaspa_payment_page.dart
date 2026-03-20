@@ -487,8 +487,9 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                       // Two-panel layout: 70% left / 30% right
                       return SafeArea(
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            // Left — scrollable, content centered at 400px max
                             Expanded(
                               flex: 7,
                               child: SingleChildScrollView(
@@ -511,16 +512,68 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                 ),
                               ),
                             ),
+                            // Right — full-height card with scrollable list
                             Expanded(
                               flex: 3,
-                              child: SingleChildScrollView(
+                              child: Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                   8,
                                   24,
                                   24,
                                   24,
                                 ),
-                                child: itemsCard,
+                                child: Card(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          16,
+                                          16,
+                                          8,
+                                        ),
+                                        child: Text(
+                                          'Order List',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: ListView(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          children: _cartItems
+                                              .map(
+                                                (item) => LineItemRow(
+                                                  productName:
+                                                      item.product.name,
+                                                  quantity: item.quantity,
+                                                  lineTotal: item.totalPrice,
+                                                  additions: item
+                                                      .selectedAdditions
+                                                      .map(
+                                                        (a) => (
+                                                          name: a.name,
+                                                          price: a.price,
+                                                        ),
+                                                      )
+                                                      .toList(),
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ],
