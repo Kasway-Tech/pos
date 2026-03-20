@@ -47,8 +47,8 @@ class ProfilePage extends StatelessWidget {
                   onTap: () => context.push('/profile/items'),
                 ),
                 _ProfileMenuItem(
-                  icon: Icons.swap_horiz,
-                  title: 'Data Transfer',
+                  icon: Icons.restore_outlined,
+                  title: 'Backup & Restore',
                   onTap: () => context.push('/profile/data-transfer'),
                 ),
                 _ProfileMenuItem(
