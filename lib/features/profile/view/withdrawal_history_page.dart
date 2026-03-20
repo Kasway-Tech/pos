@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/data/models/withdrawal.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
@@ -61,18 +62,34 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                       subtitle: Text(
                         '${_truncateAddress(w.toAddress)}  •  ${_dateFormat.format(w.createdAt.toLocal())}',
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.copy_outlined),
-                        tooltip: 'Copy TX ID',
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: w.txId));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('TX ID copied'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.copy_outlined),
+                            tooltip: 'Copy TX ID',
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: w.txId));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('TX ID copied'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.open_in_browser_outlined),
+                            tooltip: 'View on Explorer',
+                            onPressed: () {
+                              final url =
+                                  '${context.read<NetworkCubit>().state.explorerBaseUrl}${w.txId}';
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => ExplorerPage(url: url),
+                              ));
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },

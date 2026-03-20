@@ -1,4 +1,5 @@
 import 'package:kasway/data/models/addition.dart';
+import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:equatable/equatable.dart';
 
@@ -126,9 +127,19 @@ class HomeCategoryDeleted extends HomeEvent {
 }
 
 class HomeOrderCompleted extends HomeEvent {
-  const HomeOrderCompleted({required this.totalIdr});
+  const HomeOrderCompleted({
+    required this.totalIdr,
+    required this.cartItems,
+    required this.kasAmount,
+    required this.kasIdrRate,
+    required this.txId,
+  });
   final double totalIdr;
+  final List<CartItem> cartItems;
+  final double kasAmount;
+  final double kasIdrRate;
+  final String txId;
 
   @override
-  List<Object?> get props => [totalIdr];
+  List<Object?> get props => [totalIdr, cartItems, kasAmount, kasIdrRate, txId];
 }

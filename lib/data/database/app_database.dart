@@ -15,7 +15,7 @@ class AppDatabase {
 
   Future<Database> _open() async {
     final path = join(await getDatabasesPath(), 'kasway.db');
-    return openDatabase(path, version: 6, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(path, version: 8, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -58,6 +58,26 @@ class AppDatabase {
       await db.execute(
           'ALTER TABLE withdrawals ADD COLUMN ref_fiat_amount REAL NOT NULL DEFAULT 0');
     }
+    if (oldVersion < 7) {
+      await db.execute(
+          'ALTER TABLE orders ADD COLUMN kas_amount REAL NOT NULL DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE orders ADD COLUMN kas_idr_rate REAL NOT NULL DEFAULT 0');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS order_items (
+          id           TEXT PRIMARY KEY,
+          order_id     TEXT NOT NULL,
+          product_name TEXT NOT NULL,
+          unit_price   REAL NOT NULL,
+          quantity     INTEGER NOT NULL,
+          additions    TEXT NOT NULL DEFAULT '[]'
+        )
+      ''');
+    }
+    if (oldVersion < 8) {
+      await db.execute(
+          "ALTER TABLE orders ADD COLUMN tx_id TEXT NOT NULL DEFAULT ''");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -90,9 +110,23 @@ class AppDatabase {
 
     await db.execute('''
       CREATE TABLE orders (
-        id         TEXT PRIMARY KEY,
-        total_idr  REAL NOT NULL,
-        created_at INTEGER NOT NULL
+        id           TEXT PRIMARY KEY,
+        total_idr    REAL NOT NULL,
+        kas_amount   REAL NOT NULL DEFAULT 0,
+        kas_idr_rate REAL NOT NULL DEFAULT 0,
+        tx_id        TEXT NOT NULL DEFAULT '',
+        created_at   INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE order_items (
+        id           TEXT PRIMARY KEY,
+        order_id     TEXT NOT NULL,
+        product_name TEXT NOT NULL,
+        unit_price   REAL NOT NULL,
+        quantity     INTEGER NOT NULL,
+        additions    TEXT NOT NULL DEFAULT '[]'
       )
     ''');
 

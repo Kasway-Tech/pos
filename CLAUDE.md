@@ -184,12 +184,15 @@ All 6 catalog events (`HomeCatalogProduct{Added,Updated,Deleted}`, `HomeCategory
 2. `await _productRepository.persistXxx()`
 3. On error: `emit(previous)` — silent rollback
 
-### Schema (kasway.db, version 6)
+### Schema (kasway.db, version 7)
 ```sql
 categories(name TEXT PK, sort_order INTEGER)
 products(id TEXT PK, name TEXT, price REAL, description TEXT, category_name TEXT, created_at INTEGER)
 additions(id TEXT PK, product_id TEXT, name TEXT, price REAL)
-orders(id TEXT PK, total_idr REAL, created_at INTEGER)  -- added in v4
+orders(id TEXT PK, total_idr REAL, kas_amount REAL, kas_idr_rate REAL,
+       created_at INTEGER)  -- kas_amount/kas_idr_rate added in v7
+order_items(id TEXT PK, order_id TEXT, product_name TEXT, unit_price REAL,
+            quantity INTEGER, additions TEXT)  -- added in v7; additions = JSON array
 withdrawals(tx_id TEXT PK, to_address TEXT, amount_kas REAL, amount_idr REAL,
             kas_idr_rate REAL, ref_fiat_code TEXT, ref_fiat_amount REAL,
             created_at INTEGER)  -- added in v5; rate snapshot columns added in v6
@@ -213,24 +216,45 @@ bloc.add(HomeCategoryRenamed(oldName: 'Old', newName: 'New'));
 bloc.add(HomeCategoryDeleted('Empty Category'));  // only when count == 0
 
 // Record completed order (fire-and-forget, no state change)
-bloc.add(HomeOrderCompleted(totalIdr: 25000.0));
+bloc.add(HomeOrderCompleted(
+  totalIdr: 25000.0,
+  cartItems: cartItems,
+  kasAmount: 42.5,
+  kasIdrRate: 588.0,
+));
 ```
 
 ## Orders System
 
-Completed orders are persisted in SQLite for today's revenue display on the Profile wallet card.
+Completed orders are persisted in SQLite. Line items and KAS snapshot data are stored per-order. History is viewable at `/profile/orders` with date grouping and expandable cards.
 
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/data/models/order.dart` | Freezed `Order` model (id, totalIdr, createdAt) |
-| `lib/data/repositories/order_repository.dart` | `createOrder(double)` + `getTodayRevenue()` |
+| `lib/data/models/order.dart` | Freezed `Order` model (id, totalIdr, kasAmount, kasIdrRate, createdAt, items) |
+| `lib/data/models/order_item.dart` | Freezed `OrderItem` + `OrderItemAddition` models |
+| `lib/data/repositories/order_repository.dart` | `createOrder(...)` (transactional) + `getTodayRevenue()` + `getOrders()` (LEFT JOIN) |
+| `lib/features/profile/view/order_history_page.dart` | Date-grouped list with expandable order cards showing line items |
+
+### createOrder signature
+```dart
+await orderRepository.createOrder(
+  totalIdr: 25000.0,
+  kasAmount: 42.5,
+  kasIdrRate: 588.0,
+  cartItems: cartItems,
+);
+```
+Inserts into `orders` + all `order_items` in a single DB transaction.
 
 ### Revenue query
 `getTodayRevenue()` sums `total_idr` for rows with `created_at >= midnight today` (millisecondsSinceEpoch). Returns 0.0 when no orders.
 
 ### When an order is completed
-`HomeOrderCompleted` is dispatched in `order_side_view.dart` before `HomeCartCleared`, so the cart total is captured first. The handler is fire-and-forget (no state emitted).
+`HomeOrderCompleted` is dispatched in `kaspa_confirmation_page.dart`'s `_onConfirmed()` before `HomeCartCleared`. `kasAmount` and `kasIdrRate` are read from `CurrencyCubit` at confirmation time. The handler is fire-and-forget (no state emitted).
+
+### getOrders — LEFT JOIN pattern
+Fetches orders with items in one SQL query (`LEFT JOIN order_items`), groups rows by `order_id` in Dart, returns `List<Order>` with `items` list populated. Orders with no items (pre-migration) return `items: []` and show "No item details recorded" in the UI.
 
 ## KaspaWalletService (Pure Dart)
 

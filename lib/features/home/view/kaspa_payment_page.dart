@@ -140,7 +140,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
           final daaScore = int.tryParse(
                   utxoEntry['blockDaaScore']?.toString() ?? '0') ??
               0;
-          debugPrint('[wRPC] UTXO detected! amount=$amount daaScore=$daaScore');
+          final txId = (entry['outpoint'] as Map<String, dynamic>?)?[
+                  'transactionId']?.toString() ??
+              '';
+          debugPrint('[wRPC] UTXO detected! amount=$amount daaScore=$daaScore txId=$txId');
 
           // Stop QR page polling before navigating
           _wsDisposed = true;
@@ -152,6 +155,8 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               builder: (_) => KaspaConfirmationPage(
                 detectedDaaScore: daaScore,
                 totalIdr: _totalIdr,
+                cartItems: _cartItems,
+                txId: txId,
               ),
             ));
           }

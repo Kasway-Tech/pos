@@ -345,9 +345,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeOrderCompleted event,
     Emitter<HomeState> emit,
   ) async {
-    // Fire-and-forget: persist the order total; no state change needed.
+    // Fire-and-forget: persist the order; no state change needed.
     try {
-      await _orderRepository.createOrder(event.totalIdr);
+      await _orderRepository.createOrder(
+        totalIdr: event.totalIdr,
+        kasAmount: event.kasAmount,
+        kasIdrRate: event.kasIdrRate,
+        txId: event.txId,
+        cartItems: event.cartItems,
+      );
     } catch (_) {
       // Silently ignore — revenue tracking should not block order flow.
     }

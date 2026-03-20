@@ -11,6 +11,7 @@ import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -20,10 +21,14 @@ class KaspaConfirmationPage extends StatefulWidget {
     super.key,
     required this.detectedDaaScore,
     required this.totalIdr,
+    required this.cartItems,
+    required this.txId,
   });
 
   final int detectedDaaScore;
   final double totalIdr;
+  final List<CartItem> cartItems;
+  final String txId;
 
   @override
   State<KaspaConfirmationPage> createState() => _KaspaConfirmationPageState();
@@ -127,8 +132,17 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     if (!mounted) return;
     _wsDisposed = true; // stop polling
     _tryAutoDonate();
+    final kasIdr =
+        context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+    final kasAmount = kasIdr > 0 ? widget.totalIdr / kasIdr : 0.0;
     context.read<HomeBloc>()
-      ..add(HomeOrderCompleted(totalIdr: widget.totalIdr))
+      ..add(HomeOrderCompleted(
+        totalIdr: widget.totalIdr,
+        cartItems: widget.cartItems,
+        kasAmount: kasAmount,
+        kasIdrRate: kasIdr,
+        txId: widget.txId,
+      ))
       ..add(HomeCartCleared());
     context.go('/payment-success');
   }

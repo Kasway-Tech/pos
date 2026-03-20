@@ -31,6 +31,10 @@ class NetworkState extends Equatable {
 
   String get activeBorshUrl => activeUrl.replaceFirst('/json', '/borsh');
 
+  String get explorerBaseUrl => network == KaspaNetwork.mainnet
+      ? 'https://kaspa.stream/transactions/'
+      : 'https://tn10.kaspa.stream/transactions/';
+
   NetworkState copyWith({
     KaspaNetwork? network,
     String? mainnetUrl,
