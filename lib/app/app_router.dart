@@ -20,8 +20,7 @@ import '../features/profile/view/theme_settings_page.dart';
 import '../features/items/view/item_management_page.dart';
 import '../features/profile/view/data_transfer_page.dart';
 import '../features/profile/view/withdrawal_history_page.dart';
-import '../features/profile/view/node_status_page.dart';
-import '../features/profile/view/network_settings_page.dart';
+import '../features/profile/view/network_page.dart';
 import '../features/auth/view/onboarding_currency_page.dart';
 import '../features/profile/view/donation_page.dart';
 import '../features/splash/view/splash_page.dart';
@@ -108,12 +107,8 @@ class AppRouter {
               builder: (context, state) => const WithdrawalHistoryPage(),
             ),
             GoRoute(
-              path: 'node-status',
-              builder: (context, state) => const NodeStatusPage(),
-            ),
-            GoRoute(
               path: 'network',
-              builder: (context, state) => const NetworkSettingsPage(),
+              builder: (context, state) => const NetworkPage(),
             ),
             GoRoute(
               path: 'donate',
