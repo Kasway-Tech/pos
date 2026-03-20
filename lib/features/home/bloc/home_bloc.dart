@@ -352,6 +352,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         kasAmount: event.kasAmount,
         kasIdrRate: event.kasIdrRate,
         txId: event.txId,
+        network: event.network,
         cartItems: event.cartItems,
       );
     } catch (_) {

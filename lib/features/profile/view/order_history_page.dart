@@ -24,7 +24,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   void initState() {
     super.initState();
-    _ordersFuture = context.read<OrderRepository>().getOrders();
+    final network = context.read<NetworkCubit>().state.network.name;
+    _ordersFuture = context.read<OrderRepository>().getOrders(network);
   }
 
   Map<String, List<Order>> _groupByDate(List<Order> orders) {

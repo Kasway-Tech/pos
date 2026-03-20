@@ -15,7 +15,7 @@ class AppDatabase {
 
   Future<Database> _open() async {
     final path = join(await getDatabasesPath(), 'kasway.db');
-    return openDatabase(path, version: 9, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(path, version: 10, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -88,6 +88,14 @@ class AppDatabase {
         )
       ''');
     }
+    if (oldVersion < 10) {
+      await db.execute(
+          "ALTER TABLE orders ADD COLUMN network TEXT NOT NULL DEFAULT 'testnet10'");
+      await db.execute(
+          "ALTER TABLE withdrawals ADD COLUMN network TEXT NOT NULL DEFAULT 'testnet10'");
+      await db.execute(
+          "ALTER TABLE donations ADD COLUMN network TEXT NOT NULL DEFAULT 'testnet10'");
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -125,6 +133,7 @@ class AppDatabase {
         kas_amount   REAL NOT NULL DEFAULT 0,
         kas_idr_rate REAL NOT NULL DEFAULT 0,
         tx_id        TEXT NOT NULL DEFAULT '',
+        network      TEXT NOT NULL DEFAULT 'testnet10',
         created_at   INTEGER NOT NULL
       )
     ''');
@@ -149,6 +158,7 @@ class AppDatabase {
         kas_idr_rate    REAL NOT NULL DEFAULT 0,
         ref_fiat_code   TEXT NOT NULL DEFAULT 'IDR',
         ref_fiat_amount REAL NOT NULL DEFAULT 0,
+        network         TEXT NOT NULL DEFAULT 'testnet10',
         created_at      INTEGER NOT NULL
       )
     ''');
@@ -158,6 +168,7 @@ class AppDatabase {
         tx_id      TEXT PRIMARY KEY,
         amount_kas REAL NOT NULL,
         is_auto    INTEGER NOT NULL DEFAULT 0,
+        network    TEXT NOT NULL DEFAULT 'testnet10',
         created_at INTEGER NOT NULL
       )
     ''');

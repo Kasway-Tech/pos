@@ -22,6 +22,7 @@ class DonationRepository {
     required String txId,
     required double amountKas,
     required bool isAuto,
+    required String network,
   }) async {
     final db = await _db.database;
     await db.insert(
@@ -30,15 +31,21 @@ class DonationRepository {
         'tx_id': txId,
         'amount_kas': amountKas,
         'is_auto': isAuto ? 1 : 0,
+        'network': network,
         'created_at': DateTime.now().millisecondsSinceEpoch,
       },
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
-  Future<List<DonationRecord>> getDonations() async {
+  Future<List<DonationRecord>> getDonations(String network) async {
     final db = await _db.database;
-    final rows = await db.query('donations', orderBy: 'created_at DESC');
+    final rows = await db.query(
+      'donations',
+      where: 'network = ?',
+      whereArgs: [network],
+      orderBy: 'created_at DESC',
+    );
     return rows
         .map((row) => DonationRecord(
               txId: row['tx_id'] as String,

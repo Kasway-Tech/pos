@@ -148,6 +148,7 @@ class _WalletCard extends StatelessWidget {
     final networkState = context.read<NetworkCubit>().state;
     final hrp = networkState.addressHrp;
     final activeUrl = networkState.activeUrl;
+    final network = networkState.network.name;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -160,6 +161,7 @@ class _WalletCard extends StatelessWidget {
         kasIdrRate: kasIdrRate,
         hrp: hrp,
         activeUrl: activeUrl,
+        network: network,
       ),
     );
   }
@@ -354,6 +356,7 @@ class _WithdrawSheet extends StatefulWidget {
     required this.kasIdrRate,
     required this.hrp,
     required this.activeUrl,
+    required this.network,
   });
 
   final String fromAddress;
@@ -361,6 +364,7 @@ class _WithdrawSheet extends StatefulWidget {
   final double kasIdrRate;
   final String hrp;
   final String activeUrl;
+  final String network;
 
   @override
   State<_WithdrawSheet> createState() => _WithdrawSheetState();
@@ -420,6 +424,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
         amountKas: kasAmount,
         amountIdr: amountIdr,
         kasIdrRate: widget.kasIdrRate,
+        network: widget.network,
         createdAt: DateTime.now(),
       );
       if (!mounted) return;

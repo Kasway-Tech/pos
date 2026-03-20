@@ -23,8 +23,9 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
   @override
   void initState() {
     super.initState();
+    final network = context.read<NetworkCubit>().state.network.name;
     _withdrawalsFuture =
-        context.read<WithdrawalRepository>().getWithdrawals();
+        context.read<WithdrawalRepository>().getWithdrawals(network);
   }
 
   String _truncateAddress(String addr) {

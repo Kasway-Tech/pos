@@ -145,7 +145,9 @@ class _OneTimeDonationSection extends StatelessWidget {
   }
 
   void _openDonateSheet(BuildContext context) {
-    final hrp = context.read<NetworkCubit>().state.addressHrp;
+    final networkState = context.read<NetworkCubit>().state;
+    final hrp = networkState.addressHrp;
+    final network = networkState.network.name;
     final balanceKas = context.read<WalletCubit>().state.balanceKas;
     showModalBottomSheet<void>(
       context: context,
@@ -155,6 +157,7 @@ class _OneTimeDonationSection extends StatelessWidget {
       ),
       builder: (_) => _OneTimeDonateSheet(
         hrp: hrp,
+        network: network,
         balanceKas: balanceKas,
         onDonated: onDonated,
       ),
@@ -169,11 +172,13 @@ class _OneTimeDonationSection extends StatelessWidget {
 class _OneTimeDonateSheet extends StatefulWidget {
   const _OneTimeDonateSheet({
     required this.hrp,
+    required this.network,
     required this.balanceKas,
     required this.onDonated,
   });
 
   final String hrp;
+  final String network;
   final double balanceKas;
   final VoidCallback onDonated;
 
@@ -235,6 +240,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
         txId: result.txId,
         amountKas: kasAmount,
         isAuto: false,
+        network: widget.network,
       );
       if (!mounted) return;
       setState(() => _submitting = false);
@@ -530,7 +536,8 @@ class _DonationHistorySectionState extends State<_DonationHistorySection> {
   @override
   void initState() {
     super.initState();
-    _future = context.read<DonationRepository>().getDonations();
+    final network = context.read<NetworkCubit>().state.network.name;
+    _future = context.read<DonationRepository>().getDonations(network);
   }
 
   @override

@@ -133,7 +133,8 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
   void _onConfirmed() {
     if (!mounted) return;
     _wsDisposed = true; // stop polling
-    _tryAutoDonate();
+    final network = context.read<NetworkCubit>().state.network.name;
+    _tryAutoDonate(network: network);
     final kasIdr =
         context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
     final kasAmount = kasIdr > 0 ? widget.totalIdr / kasIdr : 0.0;
@@ -144,12 +145,13 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
         kasAmount: kasAmount,
         kasIdrRate: kasIdr,
         txId: widget.txId,
+        network: network,
       ))
       ..add(HomeCartCleared());
     context.go('/payment-success');
   }
 
-  void _tryAutoDonate() {
+  void _tryAutoDonate({required String network}) {
     final donationState = context.read<DonationCubit>().state;
     if (!donationState.autoEnabled) return;
     final networkState = context.read<NetworkCubit>().state;
@@ -177,6 +179,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       donationKas: donationKas,
       hrp: hrp,
       activeUrl: networkState.activeUrl,
+      network: network,
       repo: repo,
     );
   }
@@ -186,6 +189,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     required double donationKas,
     required String hrp,
     required String activeUrl,
+    required String network,
     required DonationRepository repo,
   }) async {
     final result = await KaspaWalletService().sendTransaction(
@@ -202,6 +206,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
         txId: result.txId,
         amountKas: donationKas,
         isAuto: true,
+        network: network,
       );
     }
   }

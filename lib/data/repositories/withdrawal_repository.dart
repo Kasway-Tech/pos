@@ -11,6 +11,7 @@ class WithdrawalRepository {
     required double amountKas,
     required double amountIdr,
     required double kasIdrRate,
+    required String network,
     required DateTime createdAt,
   }) async {
     final db = await _db.database;
@@ -22,30 +23,35 @@ class WithdrawalRepository {
         'amount_kas': amountKas,
         'amount_idr': amountIdr,
         'kas_idr_rate': kasIdrRate,
+        'network': network,
         'created_at': createdAt.millisecondsSinceEpoch,
       },
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 
-  Future<List<Withdrawal>> getWithdrawals() async {
+  Future<List<Withdrawal>> getWithdrawals(String network) async {
     final db = await _db.database;
     final rows = await db.query(
       'withdrawals',
+      where: 'network = ?',
+      whereArgs: [network],
       orderBy: 'created_at DESC',
     );
     return rows.map(_fromRow).toList();
   }
 
-  Future<double> getTotalWithdrawn() async {
+  Future<double> getTotalWithdrawn(String network) async {
     final db = await _db.database;
     final result = await db.rawQuery(
-      'SELECT COALESCE(SUM(amount_idr), 0) as total FROM withdrawals',
+      'SELECT COALESCE(SUM(amount_idr), 0) as total FROM withdrawals WHERE network = ?',
+      [network],
     );
     return (result.first['total'] as num).toDouble();
   }
 
-  Future<List<Withdrawal>> getAllForExport() async => getWithdrawals();
+  Future<List<Withdrawal>> getAllForExport(String network) async =>
+      getWithdrawals(network);
 
   Withdrawal _fromRow(Map<String, dynamic> row) {
     return Withdrawal(

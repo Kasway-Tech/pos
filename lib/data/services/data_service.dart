@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/data/models/withdrawal.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
@@ -30,13 +32,14 @@ class DataService {
     final box = context.findRenderObject() as RenderBox?;
     final shareRect =
         box != null ? box.localToGlobal(Offset.zero) & box.size : Rect.zero;
+    final network = context.read<NetworkCubit>().state.network.name;
     final entries = await _repo.getAllProducts();
     final csv = _buildCsv(entries);
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/kasway_data.csv');
     await file.writeAsString(csv);
 
-    final withdrawals = await _withdrawalRepo.getAllForExport();
+    final withdrawals = await _withdrawalRepo.getAllForExport(network);
     final withdrawalCsv = _buildWithdrawalCsv(withdrawals);
     final withdrawalFile = File('${dir.path}/kasway_withdrawals.csv');
     await withdrawalFile.writeAsString(withdrawalCsv);

@@ -14,6 +14,7 @@ class OrderRepository {
     required double kasAmount,
     required double kasIdrRate,
     required String txId,
+    required String network,
     required List<CartItem> cartItems,
   }) async {
     final db = await _db.database;
@@ -25,6 +26,7 @@ class OrderRepository {
         'kas_amount': kasAmount,
         'kas_idr_rate': kasIdrRate,
         'tx_id': txId,
+        'network': network,
         'created_at': DateTime.now().millisecondsSinceEpoch,
       });
       for (final item in cartItems) {
@@ -43,26 +45,27 @@ class OrderRepository {
     });
   }
 
-  Future<double> getTodayRevenue() async {
+  Future<double> getTodayRevenue(String network) async {
     final db = await _db.database;
     final now = DateTime.now();
     final midnight = DateTime(now.year, now.month, now.day);
     final result = await db.rawQuery(
-      'SELECT COALESCE(SUM(total_idr), 0) as revenue FROM orders WHERE created_at >= ?',
-      [midnight.millisecondsSinceEpoch],
+      'SELECT COALESCE(SUM(total_idr), 0) as revenue FROM orders WHERE created_at >= ? AND network = ?',
+      [midnight.millisecondsSinceEpoch, network],
     );
     return (result.first['revenue'] as num).toDouble();
   }
 
-  Future<double> getTotalRevenue() async {
+  Future<double> getTotalRevenue(String network) async {
     final db = await _db.database;
     final result = await db.rawQuery(
-      'SELECT COALESCE(SUM(total_idr), 0) as revenue FROM orders',
+      'SELECT COALESCE(SUM(total_idr), 0) as revenue FROM orders WHERE network = ?',
+      [network],
     );
     return (result.first['revenue'] as num).toDouble();
   }
 
-  Future<List<Order>> getOrders() async {
+  Future<List<Order>> getOrders(String network) async {
     final db = await _db.database;
     final rows = await db.rawQuery('''
       SELECT o.id, o.total_idr, o.created_at, o.kas_amount, o.kas_idr_rate,
@@ -71,8 +74,9 @@ class OrderRepository {
              oi.quantity as item_quantity, oi.additions
       FROM orders o
       LEFT JOIN order_items oi ON oi.order_id = o.id
+      WHERE o.network = ?
       ORDER BY o.created_at DESC
-    ''');
+    ''', [network]);
 
     final Map<String, Order> ordersById = {};
     final Map<String, List<OrderItem>> itemsById = {};

@@ -24,7 +24,7 @@ void main() {
 
   setUp(() {
     orderRepo = MockOrderRepository();
-    when(() => orderRepo.getTodayRevenue()).thenAnswer((_) async => 0.0);
+    when(() => orderRepo.getTodayRevenue(any())).thenAnswer((_) async => 0.0);
     SharedPreferences.setMockInitialValues({});
   });
 

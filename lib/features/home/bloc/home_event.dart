@@ -133,13 +133,16 @@ class HomeOrderCompleted extends HomeEvent {
     required this.kasAmount,
     required this.kasIdrRate,
     required this.txId,
+    required this.network,
   });
   final double totalIdr;
   final List<CartItem> cartItems;
   final double kasAmount;
   final double kasIdrRate;
   final String txId;
+  final String network;
 
   @override
-  List<Object?> get props => [totalIdr, cartItems, kasAmount, kasIdrRate, txId];
+  List<Object?> get props =>
+      [totalIdr, cartItems, kasAmount, kasIdrRate, txId, network];
 }
