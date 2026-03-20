@@ -6,8 +6,9 @@ import '../network/network_cubit.dart';
 import '../network/network_state.dart';
 
 class PriceText extends StatelessWidget {
-  const PriceText(this.idrPrice, {super.key, this.style});
+  const PriceText(this.idrPrice, {super.key, this.kasPrice, this.style});
   final double idrPrice;
+  final double? kasPrice;
   final TextStyle? style;
 
   @override
@@ -16,7 +17,11 @@ class PriceText extends StatelessWidget {
       builder: (context, networkState) {
         return BlocBuilder<CurrencyCubit, CurrencyState>(
           builder: (context, state) => Text(
-            state.formatPrice(idrPrice, kasSymbol: networkState.kasSymbol),
+            state.formatPrice(
+              idrPrice,
+              kasPrice: kasPrice,
+              kasSymbol: networkState.kasSymbol,
+            ),
             style: style,
           ),
         );

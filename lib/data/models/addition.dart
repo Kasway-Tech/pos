@@ -9,6 +9,7 @@ abstract class Addition with _$Addition {
     required String id,
     required String name,
     required double price,
+    double? kasPrice,
   }) = _Addition;
 
   factory Addition.fromJson(Map<String, dynamic> json) =>

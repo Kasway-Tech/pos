@@ -244,7 +244,7 @@ class _ProductListTile extends StatelessWidget {
       ),
       subtitle: Row(
         children: [
-          PriceText(product.price),
+          PriceText(product.price, kasPrice: product.kasPrice),
           if (additionCount > 0)
             Text(
               ' · $additionCount addition${additionCount == 1 ? '' : 's'}',

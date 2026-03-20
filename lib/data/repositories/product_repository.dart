@@ -38,11 +38,13 @@ class ProductRepository {
         name: row['name'] as String,
         price: row['price'] as double,
         description: row['description'] as String? ?? '',
+        kasPrice: row['kas_price'] as double?,
         additions: additionRows
             .map((a) => Addition(
                   id: a['id'] as String,
                   name: a['name'] as String,
                   price: a['price'] as double,
+                  kasPrice: a['kas_price'] as double?,
                 ))
             .toList(),
       ));
@@ -60,6 +62,7 @@ class ProductRepository {
         'description': p.description,
         'category_name': category,
         'created_at': DateTime.now().millisecondsSinceEpoch,
+        'kas_price': p.kasPrice,
       });
       for (final a in p.additions) {
         await txn.insert('additions', {
@@ -67,6 +70,7 @@ class ProductRepository {
           'product_id': p.id,
           'name': a.name,
           'price': a.price,
+          'kas_price': a.kasPrice,
         });
       }
     });
@@ -82,6 +86,7 @@ class ProductRepository {
           'price': p.price,
           'description': p.description,
           'category_name': category,
+          'kas_price': p.kasPrice,
         },
         where: 'id = ?',
         whereArgs: [p.id],
@@ -93,6 +98,7 @@ class ProductRepository {
           'product_id': p.id,
           'name': a.name,
           'price': a.price,
+          'kas_price': a.kasPrice,
         });
       }
     });
@@ -169,11 +175,13 @@ class ProductRepository {
             name: row['name'] as String,
             price: row['price'] as double,
             description: row['description'] as String? ?? '',
+            kasPrice: row['kas_price'] as double?,
             additions: additionRows
                 .map((a) => Addition(
                       id: a['id'] as String,
                       name: a['name'] as String,
                       price: a['price'] as double,
+                      kasPrice: a['kas_price'] as double?,
                     ))
                 .toList(),
           ),

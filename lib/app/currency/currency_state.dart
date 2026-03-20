@@ -56,7 +56,9 @@ class CurrencyState extends Equatable {
   final DateTime? lastFetchedAt;
 
   /// Convert an IDR base price to the selected display currency.
-  String formatPrice(double idrPrice, {String kasSymbol = 'KAS'}) {
+  /// [kasPrice] — if provided and non-null, used directly for KAS/fiat display
+  /// instead of deriving from [idrPrice] via the live exchange rate.
+  String formatPrice(double idrPrice, {double? kasPrice, String kasSymbol = 'KAS'}) {
     final code = selectedCurrency.code.toLowerCase();
     final kasIdr = exchangeRates['idr'] ?? 0;
 
@@ -68,12 +70,14 @@ class CurrencyState extends Equatable {
       ).format(idrPrice);
     }
     if (selectedCurrency.isCrypto) {
-      final kas = idrPrice / kasIdr;
+      final kas = kasPrice ?? (idrPrice / kasIdr);
       return '$kasSymbol ${kas.toStringAsFixed(4)}';
     }
     final kasTarget = exchangeRates[code] ?? 0;
     if (kasTarget <= 0) return '-- ${selectedCurrency.code}';
-    final converted = (idrPrice / kasIdr) * kasTarget;
+    final converted = kasPrice != null
+        ? kasPrice * kasTarget
+        : (idrPrice / kasIdr) * kasTarget;
     final decimals = {'jpy', 'krw', 'idr'}.contains(code) ? 0 : 2;
     return NumberFormat.currency(
       symbol: '${selectedCurrency.code} ',
@@ -82,14 +86,27 @@ class CurrencyState extends Equatable {
   }
 
   /// Convert an IDR price to the selected display currency as a raw number.
-  double idrToDisplay(double idrPrice) {
+  /// [kasPrice] — if provided, used directly for KAS/fiat conversion.
+  double idrToDisplay(double idrPrice, {double? kasPrice}) {
     final code = selectedCurrency.code.toLowerCase();
     final kasIdr = exchangeRates['idr'] ?? 0;
     if (selectedCurrency.code == 'IDR' || kasIdr <= 0) return idrPrice;
-    if (selectedCurrency.isCrypto) return idrPrice / kasIdr;
+    if (selectedCurrency.isCrypto) return kasPrice ?? (idrPrice / kasIdr);
     final kasTarget = exchangeRates[code] ?? 0;
     if (kasTarget <= 0) return idrPrice;
-    return (idrPrice / kasIdr) * kasTarget;
+    return kasPrice != null ? kasPrice * kasTarget : (idrPrice / kasIdr) * kasTarget;
+  }
+
+  /// Convert a display-currency amount to KAS.
+  /// Returns null if the rate is unavailable for the current currency.
+  double? displayToKas(double displayAmount) {
+    if (selectedCurrency.isCrypto) return displayAmount;
+    if (selectedCurrency.code == 'IDR') {
+      final kasIdr = exchangeRates['idr'] ?? 0;
+      return kasIdr > 0 ? displayAmount / kasIdr : null;
+    }
+    final kasTarget = exchangeRates[selectedCurrency.code.toLowerCase()] ?? 0;
+    return kasTarget > 0 ? displayAmount / kasTarget : null;
   }
 
   /// Convert a display-currency amount back to IDR.

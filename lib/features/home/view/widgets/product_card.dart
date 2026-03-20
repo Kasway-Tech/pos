@@ -120,6 +120,7 @@ class _ProductCardState extends State<ProductCard> {
                               ),
                               PriceText(
                                 widget.product.price,
+                                kasPrice: widget.product.kasPrice,
                                 style: TextStyle(
                                   color: active
                                       ? Theme.of(context).colorScheme.onPrimary

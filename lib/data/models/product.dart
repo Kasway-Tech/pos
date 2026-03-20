@@ -14,6 +14,7 @@ abstract class Product with _$Product {
     @Default('') String description,
     @Default('') String imageUrl,
     @Default([]) List<Addition> additions,
+    double? kasPrice,
   }) = _Product;
 
   factory Product.fromJson(Map<String, dynamic> json) =>

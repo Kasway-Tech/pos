@@ -45,6 +45,24 @@ class _AdditionsSideViewState extends State<AdditionsSideView> {
 
   double get _total => widget.product.price + _additionsTotal;
 
+  double? get _additionsTotalKas {
+    double sum = 0;
+    for (final a in widget.product.additions
+        .where((a) => _selectedAdditionIds.contains(a.id))) {
+      if (a.kasPrice == null) return null;
+      sum += a.kasPrice!;
+    }
+    return sum;
+  }
+
+  double? get _totalKas {
+    final pk = widget.product.kasPrice;
+    if (pk == null) return null;
+    final addKas = _additionsTotalKas;
+    if (addKas == null) return null;
+    return pk + addKas;
+  }
+
   void _toggleAddition(Addition addition) {
     setState(() {
       if (_selectedAdditionIds.contains(addition.id)) {
@@ -176,6 +194,7 @@ class _AdditionsSideViewState extends State<AdditionsSideView> {
               ),
               PriceText(
                 _total,
+                kasPrice: _totalKas,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -290,6 +309,7 @@ class _AdditionCard extends StatelessWidget {
                     addition.price > 0
                         ? PriceText(
                             addition.price,
+                            kasPrice: addition.kasPrice,
                             style: TextStyle(
                               color: isSelected
                                   ? Theme.of(context).colorScheme.onPrimary

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Addition {
 
- String get id; String get name; double get price;
+ String get id; String get name; double get price; double? get kasPrice;
 /// Create a copy of Addition
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AdditionCopyWith<Addition> get copyWith => _$AdditionCopyWithImpl<Addition>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Addition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Addition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kasPrice, kasPrice) || other.kasPrice == kasPrice));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,price);
+int get hashCode => Object.hash(runtimeType,id,name,price,kasPrice);
 
 @override
 String toString() {
-  return 'Addition(id: $id, name: $name, price: $price)';
+  return 'Addition(id: $id, name: $name, price: $price, kasPrice: $kasPrice)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AdditionCopyWith<$Res>  {
   factory $AdditionCopyWith(Addition value, $Res Function(Addition) _then) = _$AdditionCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, double price
+ String id, String name, double price, double? kasPrice
 });
 
 
@@ -65,12 +65,13 @@ class _$AdditionCopyWithImpl<$Res>
 
 /// Create a copy of Addition
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? price = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? price = null,Object? kasPrice = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
-as double,
+as double,kasPrice: freezed == kasPrice ? _self.kasPrice : kasPrice // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double price)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double price,  double? kasPrice)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Addition() when $default != null:
-return $default(_that.id,_that.name,_that.price);case _:
+return $default(_that.id,_that.name,_that.price,_that.kasPrice);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.id,_that.name,_that.price);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double price)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double price,  double? kasPrice)  $default,) {final _that = this;
 switch (_that) {
 case _Addition():
-return $default(_that.id,_that.name,_that.price);case _:
+return $default(_that.id,_that.name,_that.price,_that.kasPrice);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.id,_that.name,_that.price);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double price)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double price,  double? kasPrice)?  $default,) {final _that = this;
 switch (_that) {
 case _Addition() when $default != null:
-return $default(_that.id,_that.name,_that.price);case _:
+return $default(_that.id,_that.name,_that.price,_that.kasPrice);case _:
   return null;
 
 }
@@ -211,12 +212,13 @@ return $default(_that.id,_that.name,_that.price);case _:
 @JsonSerializable()
 
 class _Addition implements Addition {
-  const _Addition({required this.id, required this.name, required this.price});
+  const _Addition({required this.id, required this.name, required this.price, this.kasPrice});
   factory _Addition.fromJson(Map<String, dynamic> json) => _$AdditionFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  double price;
+@override final  double? kasPrice;
 
 /// Create a copy of Addition
 /// with the given fields replaced by the non-null parameter values.
@@ -231,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Addition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Addition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kasPrice, kasPrice) || other.kasPrice == kasPrice));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,price);
+int get hashCode => Object.hash(runtimeType,id,name,price,kasPrice);
 
 @override
 String toString() {
-  return 'Addition(id: $id, name: $name, price: $price)';
+  return 'Addition(id: $id, name: $name, price: $price, kasPrice: $kasPrice)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$AdditionCopyWith<$Res> implements $AdditionCopyWith<$Res>
   factory _$AdditionCopyWith(_Addition value, $Res Function(_Addition) _then) = __$AdditionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, double price
+ String id, String name, double price, double? kasPrice
 });
 
 
@@ -268,12 +270,13 @@ class __$AdditionCopyWithImpl<$Res>
 
 /// Create a copy of Addition
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? price = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? price = null,Object? kasPrice = freezed,}) {
   return _then(_Addition(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
-as double,
+as double,kasPrice: freezed == kasPrice ? _self.kasPrice : kasPrice // ignore: cast_nullable_to_non_nullable
+as double?,
   ));
 }
 

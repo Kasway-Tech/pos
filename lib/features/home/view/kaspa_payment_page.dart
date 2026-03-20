@@ -31,6 +31,7 @@ class KaspaPaymentPage extends StatefulWidget {
 class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   List<CartItem> _cartItems = [];
   double _totalIdr = 0;
+  double? _storedTotalKas;
   bool _initialized = false;
   String _merchantAddress = '';
 
@@ -60,6 +61,18 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       0,
       (sum, item) => sum + item.totalPrice,
     );
+
+    double kasSum = 0;
+    bool allHaveKas = true;
+    for (final item in _cartItems) {
+      final k = item.totalKas;
+      if (k == null) {
+        allHaveKas = false;
+        break;
+      }
+      kasSum += k;
+    }
+    _storedTotalKas = allHaveKas && _cartItems.isNotEmpty ? kasSum : null;
 
     _merchantAddress = context.read<WalletCubit>().state.address;
     Future.microtask(_connectWrpc);
@@ -141,11 +154,16 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
         return;
       }
 
-      final kasIdr =
-          context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
-      if (kasIdr <= 0) return;
-
-      final invoiceSompi = (_totalIdr / kasIdr * 1e8).floor();
+      final double totalKasForInvoice;
+      if (_storedTotalKas != null) {
+        totalKasForInvoice = _storedTotalKas!;
+      } else {
+        final kasIdr =
+            context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+        if (kasIdr <= 0) return;
+        totalKasForInvoice = _totalIdr / kasIdr;
+      }
+      final invoiceSompi = (totalKasForInvoice * 1e8).floor();
 
       bool changed = false;
 
@@ -278,7 +296,10 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               );
             }
 
-            if (kasIdr <= 0) {
+            final effectiveTotalKas =
+                _storedTotalKas ?? (kasIdr > 0 ? _totalIdr / kasIdr : null);
+
+            if (effectiveTotalKas == null) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -311,7 +332,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               );
             }
 
-            final totalKas = _totalIdr / kasIdr;
+            final totalKas = effectiveTotalKas;
             final receivedKas = _receivedSompi / 1e8;
             final remainingKas = (totalKas - receivedKas).clamp(
               0.0,

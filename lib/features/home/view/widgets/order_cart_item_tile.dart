@@ -29,6 +29,17 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
       (widget.cartItem.product.price + _additionsTotal) *
       widget.cartItem.quantity;
 
+  double? get _additionsTotalKas {
+    double sum = 0;
+    for (final a in widget.cartItem.selectedAdditions) {
+      if (a.kasPrice == null) return null;
+      sum += a.kasPrice!;
+    }
+    return sum;
+  }
+
+  double? get _itemTotalKas => widget.cartItem.totalKas;
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -102,6 +113,7 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
                       const SizedBox(width: 8),
                       PriceText(
                         _itemTotal,
+                        kasPrice: _itemTotalKas,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -122,6 +134,7 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
                           _additionsTotal > 0
                               ? PriceText(
                                   _additionsTotal,
+                                  kasPrice: _additionsTotalKas,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: Theme.of(
@@ -163,6 +176,7 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
                                   addition.price > 0
                                       ? PriceText(
                                           addition.price,
+                                          kasPrice: addition.kasPrice,
                                           style: Theme.of(
                                             context,
                                           ).textTheme.bodySmall?.copyWith(

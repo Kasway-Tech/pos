@@ -43,7 +43,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
     final p = widget.product;
     _lastCurrencyState = context.read<CurrencyCubit>().state;
     final displayPrice = p != null
-        ? _lastCurrencyState.idrToDisplay(p.price)
+        ? _lastCurrencyState.idrToDisplay(p.price, kasPrice: p.kasPrice)
         : null;
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _priceCtrl = TextEditingController(
@@ -226,7 +226,10 @@ class _ItemFormPageState extends State<ItemFormPage> {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final priceCtrl = TextEditingController(
       text: existing != null
-          ? _rawPrice(currencyState.idrToDisplay(existing.price), currencyState)
+          ? _rawPrice(
+              currencyState.idrToDisplay(existing.price, kasPrice: existing.kasPrice),
+              currencyState,
+            )
           : '',
     );
     final formKey = GlobalKey<FormState>();
@@ -274,15 +277,15 @@ class _ItemFormPageState extends State<ItemFormPage> {
           TextButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
+                final enteredPrice = double.parse(priceCtrl.text);
                 Navigator.of(context).pop(
                   Addition(
                     id:
                         existing?.id ??
                         '${nameCtrl.text.trim().replaceAll(' ', '_').toLowerCase()}__${DateTime.now().millisecondsSinceEpoch}',
                     name: nameCtrl.text.trim(),
-                    price: currencyState.displayToIdr(
-                      double.parse(priceCtrl.text),
-                    ),
+                    price: currencyState.displayToIdr(enteredPrice),
+                    kasPrice: currencyState.displayToKas(enteredPrice),
                   ),
                 );
               }
@@ -307,13 +310,16 @@ class _ItemFormPageState extends State<ItemFormPage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     final currencyState = context.read<CurrencyCubit>().state;
-    final idrPrice = currencyState.displayToIdr(double.parse(_priceCtrl.text));
+    final enteredAmount = double.parse(_priceCtrl.text);
+    final idrPrice = currencyState.displayToIdr(enteredAmount);
+    final kasPrice = currencyState.displayToKas(enteredAmount);
     final product = Product(
       id:
           widget.product?.id ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameCtrl.text.trim(),
       price: idrPrice,
+      kasPrice: kasPrice,
       description: _descCtrl.text.trim(),
       additions: _additions,
     );
@@ -351,7 +357,7 @@ class _AdditionRow extends StatelessWidget {
     return ListTile(
       title: Text(addition.name),
       subtitle: addition.price > 0
-          ? PriceText(addition.price)
+          ? PriceText(addition.price, kasPrice: addition.kasPrice)
           : const Text('Free'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

@@ -227,21 +227,29 @@ class _OrderSideViewState extends State<OrderSideView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    BlocSelector<HomeBloc, HomeState, double>(
-                      selector: (state) =>
-                          state.cartItems.fold<double>(0, (sum, item) {
-                            final additionsTotal = item.selectedAdditions
-                                .fold<double>(
-                                  0,
-                                  (addSum, addition) => addSum + addition.price,
-                                );
-                            return sum +
-                                ((item.product.price + additionsTotal) *
-                                    item.quantity);
-                          }),
-                      builder: (context, grandTotal) {
+                    BlocSelector<HomeBloc, HomeState, (double, double?)>(
+                      selector: (state) {
+                        double idr = 0;
+                        double kas = 0;
+                        bool allHaveKas = true;
+                        for (final item in state.cartItems) {
+                          idr += item.totalPrice;
+                          final k = item.totalKas;
+                          if (k == null) {
+                            allHaveKas = false;
+                          } else {
+                            kas += k;
+                          }
+                        }
+                        return (
+                          idr,
+                          allHaveKas && state.cartItems.isNotEmpty ? kas : null,
+                        );
+                      },
+                      builder: (context, t) {
                         return PriceText(
-                          grandTotal,
+                          t.$1,
+                          kasPrice: t.$2,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         );

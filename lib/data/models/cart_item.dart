@@ -23,6 +23,19 @@ abstract class CartItem with _$CartItem {
     return (product.price + additionPrice) * quantity;
   }
 
+  /// Returns total in KAS only if all components have kasPrice set.
+  /// Returns null if any component is missing kasPrice (fall back to IDR).
+  double? get totalKas {
+    final pk = product.kasPrice;
+    if (pk == null) return null;
+    double addKas = 0;
+    for (final a in selectedAdditions) {
+      if (a.kasPrice == null) return null;
+      addKas += a.kasPrice!;
+    }
+    return (pk + addKas) * quantity;
+  }
+
   factory CartItem.fromJson(Map<String, dynamic> json) =>
       _$CartItemFromJson(json);
 }
