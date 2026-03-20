@@ -439,7 +439,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         // --- Warning ---
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7A2020),
+                            color: const Color(0xFF1A1A1A),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(
