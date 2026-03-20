@@ -8,6 +8,7 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -23,7 +24,7 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Profile'), centerTitle: true),
+        appBar: BlurAppBar(title: const Text('Profile'), centerTitle: true),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -71,11 +72,6 @@ class ProfilePage extends StatelessWidget {
                   onTap: () => context.push('/profile/settings'),
                 ),
                 _ProfileMenuItem(
-                  icon: Icons.help_outline,
-                  title: 'Help & Support',
-                  onTap: () => context.push('/profile/help'),
-                ),
-                _ProfileMenuItem(
                   icon: Icons.favorite_outline,
                   title: 'Donate',
                   onTap: () => context.push('/profile/donate'),
@@ -93,20 +89,6 @@ class ProfilePage extends StatelessWidget {
                     title: 'Logout',
                     content: 'Are you sure you want to log out?',
                     confirmLabel: 'Logout',
-                    isDestructive: true,
-                  ),
-                ),
-                _ProfileMenuItem(
-                  icon: Icons.delete_forever_outlined,
-                  title: 'Delete Account',
-                  textColor: Colors.red,
-                  iconColor: Colors.red,
-                  onTap: () => _showConfirmationDialog(
-                    context,
-                    title: 'Delete Account',
-                    content:
-                        'This action is permanent and cannot be undone. All your data will be removed.',
-                    confirmLabel: 'Delete',
                     isDestructive: true,
                   ),
                 ),

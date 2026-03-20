@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
@@ -229,7 +230,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kaspa Payment')),
+      appBar: BlurAppBar(title: const Text('Kaspa Payment')),
       body: BlocListener<WalletCubit, WalletState>(
         listenWhen: (prev, curr) => prev.address != curr.address,
         listener: (context, walletState) {

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
@@ -184,7 +185,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: const Text('Confirming Payment'),
           automaticallyImplyLeading: false,
         ),

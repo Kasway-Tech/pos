@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
@@ -71,7 +72,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
     final isEditing = widget.product != null;
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: Text(isEditing ? 'Edit Product' : 'Add Product'),
           centerTitle: true,
           actions: [TextButton(onPressed: _submit, child: const Text('Save'))],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/data/models/withdrawal.dart';
@@ -36,7 +37,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     final kasSymbol = context.watch<NetworkCubit>().state.kasSymbol;
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: const Text('Withdraw History'),
           centerTitle: true,
         ),

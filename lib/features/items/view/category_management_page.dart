@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
@@ -12,7 +13,7 @@ class CategoryManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: const Text('Categories'),
           centerTitle: true,
         ),

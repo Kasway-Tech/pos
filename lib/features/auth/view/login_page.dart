@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
@@ -115,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
 
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: Text(l10n.loginTitle),
           centerTitle: true,
         ),

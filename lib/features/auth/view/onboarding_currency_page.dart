@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
@@ -19,7 +20,7 @@ class OnboardingCurrencyPage extends StatelessWidget {
 
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: Text(l10n.currencyTitle),
           centerTitle: true,
           automaticallyImplyLeading: false,

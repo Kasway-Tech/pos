@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
 import '../../../app/theme/theme_cubit.dart';
@@ -33,7 +34,7 @@ class ThemeSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Theme Settings')),
+        appBar: BlurAppBar(title: const Text('Theme Settings')),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),

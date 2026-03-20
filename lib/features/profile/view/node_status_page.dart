@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 
@@ -152,7 +153,7 @@ class _NodeStatusPageState extends State<NodeStatusPage>
         _reconnect(state.activeUrl, state.networkLabel);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Node Status'), centerTitle: true),
+        appBar: BlurAppBar(title: const Text('Node Status'), centerTitle: true),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
 class HelpSupportPage extends StatelessWidget {
@@ -8,7 +9,7 @@ class HelpSupportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Help & Support')),
+        appBar: BlurAppBar(title: const Text('Help & Support')),
         body: Center(
           child: ConstrainedBox(
             key: const Key('content_constraint'),

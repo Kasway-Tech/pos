@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 
@@ -21,7 +22,7 @@ class _EulaPageState extends State<EulaPage> {
 
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: Text(l10n.eulaTitle),
           centerTitle: true,
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
@@ -52,7 +53,7 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
 
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Network'), centerTitle: true),
+        appBar: BlurAppBar(title: const Text('Network'), centerTitle: true),
         body: BlocBuilder<NetworkCubit, NetworkState>(
           builder: (context, state) {
             return Center(

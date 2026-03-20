@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/data_service.dart';
@@ -88,7 +89,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
   Widget build(BuildContext context) {
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Data Transfer'), centerTitle: true),
+        appBar: BlurAppBar(title: const Text('Data Transfer'), centerTitle: true),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
             : Center(

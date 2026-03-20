@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -66,7 +67,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
 
         return TitlebarSafeArea(
           child: Scaffold(
-            appBar: AppBar(
+            appBar: BlurAppBar(
               title: const Text('Manage Items'),
               centerTitle: true,
               bottom: categories.isEmpty

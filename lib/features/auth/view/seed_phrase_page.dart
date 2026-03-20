@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
@@ -56,7 +57,7 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
 
     return TitlebarSafeArea(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: BlurAppBar(
           title: Text(l10n.seedPhraseTitle),
           centerTitle: true,
           leading: IconButton(
