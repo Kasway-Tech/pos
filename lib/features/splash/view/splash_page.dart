@@ -6,6 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/network/node_status_cubit.dart';
+import 'package:kasway/app/network/node_status_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -58,13 +60,16 @@ class _SplashPageState extends State<SplashPage> {
     final walletState = context.read<WalletCubit>().state;
     final currencyState = context.read<CurrencyCubit>().state;
 
+    final nodeState = context.read<NodeStatusCubit>().state;
+
     final homeReady =
         homeState.status != HomeStatus.loading &&
         homeState.status != HomeStatus.initial;
     final walletReady = walletState.addressReady;
     final ratesReady = _ratesReady(currencyState);
+    final nodeReady = _ratesTimedOut || nodeState.connected;
 
-    if (homeReady && walletReady && ratesReady) {
+    if (homeReady && walletReady && ratesReady && nodeReady) {
       _navigated = true;
       final done = widget.prefs.getBool('onboarding_complete') ?? false;
       context.go(done ? '/' : '/auth');
@@ -87,6 +92,10 @@ class _SplashPageState extends State<SplashPage> {
           listenWhen: (prev, curr) =>
               prev.exchangeRates != curr.exchangeRates ||
               prev.isLoading != curr.isLoading,
+          listener: (context, _) => _maybeNavigate(),
+        ),
+        BlocListener<NodeStatusCubit, NodeStatusState>(
+          listenWhen: (prev, curr) => prev.connected != curr.connected,
           listener: (context, _) => _maybeNavigate(),
         ),
       ],
