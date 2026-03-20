@@ -112,19 +112,13 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     if (_wsDisposed) return;
     try {
       final msg = jsonDecode(raw) as Map<String, dynamic>;
-      debugPrint('[confirm] raw: $msg');
       final params = msg['params'] as Map<String, dynamic>?;
-      if (params == null) {
-        debugPrint('[confirm] no params');
-        return;
-      }
+      if (params == null) return;
       final scoreRaw = params['virtualDaaScore'];
-      debugPrint('[confirm] virtualDaaScore=$scoreRaw detectedDaaScore=${widget.detectedDaaScore}');
       if (scoreRaw == null) return;
       final score =
           scoreRaw is int ? scoreRaw : int.tryParse(scoreRaw.toString()) ?? 0;
       setState(() => _currentDaaScore = score);
-      debugPrint('[confirm] confirmations=$_confirmations/$_required');
       if (_confirmations >= _required) _onConfirmed();
     } catch (e) {
       debugPrint('[confirm] parse error: $e  raw=$raw');

@@ -23,21 +23,6 @@ class TableRepository {
     });
   }
 
-  Future<void> setOccupied(String id, bool occupied) async {
-    final db = await _db.database;
-    await db.update(
-      'table_items',
-      {'is_occupied': occupied ? 1 : 0},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<void> clearOccupied() async {
-    final db = await _db.database;
-    await db.update('table_items', {'is_occupied': 0});
-  }
-
   TableItem _rowToItem(Map<String, Object?> row) => TableItem(
         id: row['id'] as String,
         label: row['label'] as String,
@@ -45,7 +30,7 @@ class TableRepository {
         x: (row['x'] as num).toDouble(),
         y: (row['y'] as num).toDouble(),
         rotation: (row['rotation'] as num).toDouble(),
-        isOccupied: (row['is_occupied'] as int) == 1,
+        isOccupied: false, // managed in-memory only
       );
 
   Map<String, Object?> _itemToRow(TableItem t) => {

@@ -95,11 +95,13 @@ class _TableChipList extends StatelessWidget {
           final table = tables[index];
           return FilterChip(
             label: Text('Table ${table.label}'),
-            selected: !table.isOccupied,
-            onSelected: table.isOccupied ? null : (_) => onSelect(table.id),
-            selectedColor: Theme.of(context).colorScheme.primaryContainer,
+            selected: false,
+            backgroundColor: table.isOccupied
+                ? null
+                : Theme.of(context).colorScheme.primaryContainer,
             disabledColor:
                 Theme.of(context).colorScheme.surfaceContainerHighest,
+            onSelected: table.isOccupied ? null : (_) => onSelect(table.id),
           );
         },
       ),

@@ -69,13 +69,10 @@ class _OrderSideViewState extends State<OrderSideView> {
   Future<void> _proceedToPayment(BuildContext outerContext) async {
     final ts = outerContext.read<TableCubit>().state;
     if (ts.enabled && ts.selectedTableId == null) {
-      await outerContext.push<void>('/table-selection');
-      if (!mounted) return;
-      // Re-read from the widget's own context after returning from the push.
-      // ignore: use_build_context_synchronously
       final tableCubit = outerContext.read<TableCubit>();
+      await outerContext.push<void>('/table-selection');
+      if (!mounted || !outerContext.mounted) return;
       if (tableCubit.state.selectedTableId != null) {
-        // ignore: use_build_context_synchronously
         outerContext.push('/kaspa-payment');
       }
     } else {

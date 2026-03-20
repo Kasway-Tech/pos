@@ -200,10 +200,14 @@ class _PositionedTableState extends State<_PositionedTable> {
                 onPanUpdate: widget.editMode
                     ? (details) {
                         setState(() {
+                          final sinA = sin(_rotation).abs();
+                          final cosA = cos(_rotation).abs();
+                          final effectiveW = w * cosA + _tableHeight * sinA;
+                          final effectiveH = w * sinA + _tableHeight * cosA;
                           _x = (_startDragX + details.globalPosition.dx)
-                              .clamp(0.0, _canvasWidth - w);
+                              .clamp(0.0, _canvasWidth - effectiveW);
                           _y = (_startDragY + details.globalPosition.dy)
-                              .clamp(0.0, _canvasHeight - h);
+                              .clamp(0.0, _canvasHeight - effectiveH);
                         });
                       }
                     : null,

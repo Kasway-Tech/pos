@@ -27,7 +27,8 @@ class TableCubit extends Cubit<TableState> {
 
   Future<void> _loadTables() async {
     final tables = await _repo.getTables();
-    emit(state.copyWith(tables: tables));
+    final reset = tables.map((t) => t.copyWith(isOccupied: false)).toList();
+    if (!isClosed) emit(state.copyWith(tables: reset));
   }
 
   Future<void> setEnabled(bool value) async {
@@ -51,17 +52,18 @@ class TableCubit extends Cubit<TableState> {
     emit(state.copyWith(selectedTableId: null));
   }
 
-  Future<void> markOccupied(String id) async {
-    await _repo.setOccupied(id, true);
-    final updated = state.tables
-        .map((t) => t.id == id ? t.copyWith(isOccupied: true) : t)
-        .toList();
-    emit(state.copyWith(tables: updated));
+  TableItem buildNewTable({required int seats, required int existingCount}) {
+    return TableItem(
+      id: _repo.newId(),
+      label: (existingCount + 1).toString(),
+      seats: seats,
+      x: 100,
+      y: (100 + existingCount * 80.0).clamp(0.0, 1200.0),
+    );
   }
 
-  Future<void> freeTable(String? id) async {
+  void freeTable(String? id) {
     if (id == null) return;
-    await _repo.setOccupied(id, false);
     final updated = state.tables
         .map((t) => t.id == id ? t.copyWith(isOccupied: false) : t)
         .toList();

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/table/table_state.dart';
 import 'package:kasway/data/models/table_item.dart';
-import 'package:kasway/data/repositories/table_repository.dart';
 import 'package:kasway/features/home/view/widgets/table_canvas.dart';
 
 class TableLayoutPage extends StatefulWidget {
@@ -16,25 +15,17 @@ class TableLayoutPage extends StatefulWidget {
 class _TableLayoutPageState extends State<TableLayoutPage> {
   late List<TableItem> _tables;
   bool _hasChanges = false;
-  bool _featureEnabled = false;
 
   @override
   void initState() {
     super.initState();
     final tableState = context.read<TableCubit>().state;
     _tables = List.from(tableState.tables);
-    _featureEnabled = tableState.enabled;
   }
 
   void _addTable(int seats) {
-    final repo = context.read<TableRepository>();
-    final newTable = TableItem(
-      id: repo.newId(),
-      label: (_tables.length + 1).toString(),
-      seats: seats,
-      x: 100,
-      y: 100 + (_tables.length * 80.0).clamp(0.0, 1200.0),
-    );
+    final newTable = context.read<TableCubit>()
+        .buildNewTable(seats: seats, existingCount: _tables.length);
     setState(() {
       _tables = [..._tables, newTable];
       _hasChanges = true;
@@ -148,9 +139,8 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
               children: [
                 // Feature toggle banner
                 _FeatureToggleBanner(
-                  enabled: _featureEnabled,
+                  enabled: tableState.enabled,
                   onChanged: (value) async {
-                    setState(() => _featureEnabled = value);
                     await context.read<TableCubit>().setEnabled(value);
                   },
                 ),
@@ -166,7 +156,7 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
                 ),
               ],
             ),
-            floatingActionButton: _featureEnabled
+            floatingActionButton: tableState.enabled
                 ? FloatingActionButton.extended(
                     onPressed: () => _showAddSheet(context),
                     icon: const Icon(Icons.add),

@@ -83,12 +83,6 @@ class _AppState extends State<App> {
           create: (_) => DisplayCubit(prefs: widget.prefs),
         ),
         BlocProvider(
-          create: (_) => TableCubit(
-            prefs: widget.prefs,
-            repo: TableRepository(),
-          ),
-        ),
-        BlocProvider(
           create: (context) => WalletCubit(
             prefs: widget.prefs,
             networkCubit: context.read<NetworkCubit>(),
@@ -112,11 +106,21 @@ class _AppState extends State<App> {
               RepositoryProvider(create: (_) => DonationRepository()),
               RepositoryProvider(create: (_) => TableRepository()),
             ],
-            child: BlocProvider(
-              create: (context) => HomeBloc(
-                productRepository: context.read<ProductRepository>(),
-                orderRepository: context.read<OrderRepository>(),
-              )..add(HomeStarted()),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => TableCubit(
+                    prefs: widget.prefs,
+                    repo: context.read<TableRepository>(),
+                  ),
+                ),
+                BlocProvider(
+                  create: (context) => HomeBloc(
+                    productRepository: context.read<ProductRepository>(),
+                    orderRepository: context.read<OrderRepository>(),
+                  )..add(HomeStarted()),
+                ),
+              ],
               child: MaterialApp.router(
                 scrollBehavior: AppScrollBehavior(),
                 title: 'Kasway',
