@@ -23,6 +23,7 @@ class CurrencyState extends Equatable {
     this.exchangeRates = const {},
     this.dynamicPricing = true,
     this.isLoading = false,
+    this.lastFetchedAt,
   });
 
   static const Currency _kDefault = Currency(
@@ -52,6 +53,7 @@ class CurrencyState extends Equatable {
   final Map<String, double> exchangeRates;
   final bool dynamicPricing;
   final bool isLoading;
+  final DateTime? lastFetchedAt;
 
   /// Convert an IDR base price to the selected display currency.
   String formatPrice(double idrPrice, {String kasSymbol = 'KAS'}) {
@@ -106,11 +108,13 @@ class CurrencyState extends Equatable {
     Map<String, double>? exchangeRates,
     bool? dynamicPricing,
     bool? isLoading,
+    DateTime? lastFetchedAt,
   }) => CurrencyState(
     selectedCurrency: selectedCurrency ?? this.selectedCurrency,
     exchangeRates: exchangeRates ?? this.exchangeRates,
     dynamicPricing: dynamicPricing ?? this.dynamicPricing,
     isLoading: isLoading ?? this.isLoading,
+    lastFetchedAt: lastFetchedAt ?? this.lastFetchedAt,
   );
 
   @override
@@ -119,5 +123,6 @@ class CurrencyState extends Equatable {
     exchangeRates,
     dynamicPricing,
     isLoading,
+    lastFetchedAt,
   ];
 }

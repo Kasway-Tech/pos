@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -25,10 +29,39 @@ class _OrderSideViewState extends State<OrderSideView> {
   final ScrollController _scrollController = ScrollController();
   int _previousItemCount = 0;
 
+  Timer? _countdownTimer;
+  int _secondsUntilRefresh = 60;
+
+  static const _refreshInterval = 60;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown(
+      context.read<CurrencyCubit>().state.lastFetchedAt,
+    );
+  }
+
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _startCountdown(DateTime? lastFetchedAt) {
+    _countdownTimer?.cancel();
+    final elapsed = lastFetchedAt != null
+        ? DateTime.now().difference(lastFetchedAt).inSeconds.clamp(0, _refreshInterval)
+        : 0;
+    _secondsUntilRefresh = (_refreshInterval - elapsed).clamp(0, _refreshInterval);
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _secondsUntilRefresh =
+            (_secondsUntilRefresh - 1).clamp(0, _refreshInterval);
+      });
+    });
   }
 
   void _scrollToBottom() {
@@ -46,11 +79,17 @@ class _OrderSideViewState extends State<OrderSideView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    return BlocBuilder<HomeBloc, HomeState>(
-      buildWhen: (previous, current) =>
-          previous.status != current.status ||
-          previous.cartItems.length != current.cartItems.length,
-      builder: (context, state) {
+    return BlocListener<CurrencyCubit, CurrencyState>(
+      listenWhen: (previous, current) =>
+          previous.lastFetchedAt != current.lastFetchedAt,
+      listener: (context, currencyState) {
+        _startCountdown(currencyState.lastFetchedAt);
+      },
+      child: BlocBuilder<HomeBloc, HomeState>(
+        buildWhen: (previous, current) =>
+            previous.status != current.status ||
+            previous.cartItems.length != current.cartItems.length,
+        builder: (context, state) {
         // Auto-scroll when items are added
         if (state.cartItems.length > _previousItemCount) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,6 +142,64 @@ class _OrderSideViewState extends State<OrderSideView> {
                   },
                 ),
               ),
+            ),
+            BlocBuilder<CurrencyCubit, CurrencyState>(
+              buildWhen: (previous, current) =>
+                  previous.selectedCurrency.code !=
+                      current.selectedCurrency.code ||
+                  previous.dynamicPricing != current.dynamicPricing,
+              builder: (context, currencyState) {
+                final showCountdown = currencyState.dynamicPricing &&
+                    !currencyState.selectedCurrency.isCrypto;
+                if (!showCountdown) return const SizedBox.shrink();
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHigh,
+                      ),
+                    ),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 16.0 : 24.0,
+                    vertical: isTablet ? 8.0 : 10.0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'New price adjustment in',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${_secondsUntilRefresh}s',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             if (state.cartItems.isNotEmpty || screenWidth >= 800)
               Container(
@@ -249,6 +346,7 @@ class _OrderSideViewState extends State<OrderSideView> {
 
         return Scaffold(body: content);
       },
+    ),
     );
   }
 

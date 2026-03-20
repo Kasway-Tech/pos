@@ -50,7 +50,11 @@ class CurrencyCubit extends Cubit<CurrencyState> {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final rates = (data['kaspa'] as Map<String, dynamic>)
             .map((k, v) => MapEntry(k, (v as num).toDouble()));
-        emit(state.copyWith(exchangeRates: rates, isLoading: false));
+        emit(state.copyWith(
+          exchangeRates: rates,
+          isLoading: false,
+          lastFetchedAt: DateTime.now(),
+        ));
       } else {
         emit(state.copyWith(isLoading: false));
       }
