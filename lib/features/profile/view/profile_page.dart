@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -17,8 +20,6 @@ import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:kasway/features/home/view/payment_successful_page.dart';
 import 'package:kasway/features/items/view/item_management_page.dart';
-import 'package:kasway/app/constants/preference_keys.dart';
-import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/features/profile/view/data_transfer_page.dart';
 import 'package:kasway/features/profile/view/display_settings_page.dart';
 import 'package:kasway/features/profile/view/donation_page.dart';
@@ -28,7 +29,6 @@ import 'package:kasway/features/profile/view/settings_page.dart';
 import 'package:kasway/features/profile/view/table_layout_page.dart';
 import 'package:kasway/features/profile/view/theme_settings_page.dart';
 import 'package:kasway/features/profile/view/withdrawal_history_page.dart';
-import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
@@ -50,17 +50,17 @@ enum _ProfileSection {
 
 extension _ProfileSectionWidget on _ProfileSection {
   Widget build() => switch (this) {
-        _ProfileSection.orders => const OrderHistoryPage(),
-        _ProfileSection.items => const ItemManagementPage(),
-        _ProfileSection.tableLayout => const TableLayoutPage(),
-        _ProfileSection.dataTransfer => const DataTransferPage(),
-        _ProfileSection.network => const NetworkPage(),
-        _ProfileSection.display => const DisplaySettingsPage(),
-        _ProfileSection.theme => const ThemeSettingsPage(),
-        _ProfileSection.settings => const SettingsPage(),
-        _ProfileSection.donate => const DonationPage(),
-        _ProfileSection.withdrawals => const WithdrawalHistoryPage(),
-      };
+    _ProfileSection.orders => const OrderHistoryPage(),
+    _ProfileSection.items => const ItemManagementPage(),
+    _ProfileSection.tableLayout => const TableLayoutPage(),
+    _ProfileSection.dataTransfer => const DataTransferPage(),
+    _ProfileSection.network => const NetworkPage(),
+    _ProfileSection.display => const DisplaySettingsPage(),
+    _ProfileSection.theme => const ThemeSettingsPage(),
+    _ProfileSection.settings => const SettingsPage(),
+    _ProfileSection.donate => const DonationPage(),
+    _ProfileSection.withdrawals => const WithdrawalHistoryPage(),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -77,8 +77,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   _ProfileSection? _activeSection;
 
-  bool _isWide(BuildContext context) =>
-      MediaQuery.sizeOf(context).width >= 720;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width >= 720;
 
   void _openSection(_ProfileSection section) =>
       setState(() => _activeSection = section);
@@ -98,10 +97,10 @@ class _ProfilePageState extends State<ProfilePage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              padding: const EdgeInsets.symmetric(vertical: 32.0),
               children: [
                 const _WalletCard(),
-                const SizedBox(height: 32.0),
+                const Divider(height: 32.0),
                 ..._menuItems(context, isWide: false),
               ],
             ),
@@ -121,18 +120,20 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             // Left panel — 4 parts
             Expanded(
-              flex: 4,
+              flex: 3,
               child: Scaffold(
-                appBar:
-                    BlurAppBar(title: const Text('Profile'), centerTitle: true),
+                appBar: BlurAppBar(
+                  title: const Text('Profile'),
+                  centerTitle: true,
+                ),
                 body: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
                   children: [
                     _WalletCard(
                       onHistoryTap: () =>
                           _openSection(_ProfileSection.withdrawals),
                     ),
-                    const SizedBox(height: 32.0),
+                    const Divider(height: 32.0),
                     ..._menuItems(context, isWide: true),
                   ],
                 ),
@@ -140,10 +141,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const VerticalDivider(width: 1, thickness: 1),
             // Right panel — 6 parts
-            Expanded(
-              flex: 6,
-              child: _buildDetail(),
-            ),
+            Expanded(flex: 9, child: _buildDetail()),
           ],
         ),
       ),
@@ -159,9 +157,8 @@ class _ProfilePageState extends State<ProfilePage> {
     // the active section changes.
     return Navigator(
       key: ValueKey(_activeSection),
-      onGenerateRoute: (_) => MaterialPageRoute(
-        builder: (_) => _activeSection!.build(),
-      ),
+      onGenerateRoute: (_) =>
+          MaterialPageRoute(builder: (_) => _activeSection!.build()),
     );
   }
 
@@ -308,8 +305,8 @@ class _DetailPlaceholder extends StatelessWidget {
           Text(
             'Select a section',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
         ],
       ),
@@ -365,115 +362,112 @@ class _WalletCard extends StatelessWidget {
         builder: (context, walletState) {
           final address = walletState.address;
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 8.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Address row ---
+                Row(
                   children: [
-                    // --- Address row ---
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Kaspa Address',
-                                style: textTheme.labelMedium?.copyWith(
-                                  color: colorScheme.outline,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                address.isEmpty
-                                    ? 'No wallet configured'
-                                    : truncateAddress(address),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                  color: address.isEmpty
-                                      ? colorScheme.outline
-                                      : null,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Kaspa Address',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.outline,
+                              letterSpacing: 0.8,
+                            ),
                           ),
-                        ),
-                        if (address.isNotEmpty) ...[
-                          IconButton(
-                            icon: const Icon(Icons.copy_outlined),
-                            tooltip: 'Copy address',
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: address));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Address copied'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.open_in_browser_outlined),
-                            tooltip: 'View in explorer',
-                            onPressed: () {
-                              final url =
-                                  '${context.read<NetworkCubit>().state.explorerAddressBaseUrl}$address';
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (_) => ExplorerPage(url: url),
-                              ));
-                            },
+                          const SizedBox(height: 6),
+                          Text(
+                            address.isEmpty
+                                ? 'No wallet configured'
+                                : truncateAddress(address),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                              color: address.isEmpty
+                                  ? colorScheme.outline
+                                  : null,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
-                      ],
-                    ),
-
-                    const Divider(height: 28),
-
-                    // --- Balance ---
-                    Text(
-                      'Balance',
-                      style: textTheme.labelMedium?.copyWith(
-                        color: colorScheme.outline,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    _RevenuePriceDisplay(kasBalance: walletState.balanceKas),
+                    if (address.isNotEmpty) ...[
+                      IconButton(
+                        icon: const Icon(Icons.copy_outlined),
+                        tooltip: 'Copy address',
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: address));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Address copied'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.open_in_browser_outlined),
+                        tooltip: 'View in explorer',
+                        onPressed: () {
+                          final url =
+                              '${context.read<NetworkCubit>().state.explorerAddressBaseUrl}$address';
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ExplorerPage(url: url),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
 
-                    const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                    // --- History + Withdraw buttons ---
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.tonal(
-                            onPressed: onHistoryTap ??
-                                () => context.push('/profile/withdrawals'),
-                            child: const Text('History'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: address.isEmpty
-                                ? null
-                                : () => _showWithdrawSheet(context, address),
-                            icon: const Icon(Icons.send_outlined),
-                            label: const Text('Withdraw'),
-                          ),
-                        ),
-                      ],
+                // --- Balance ---
+                Text(
+                  'Balance',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.outline,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _RevenuePriceDisplay(kasBalance: walletState.balanceKas),
+
+                const SizedBox(height: 24),
+
+                // --- History + Withdraw buttons ---
+                Row(
+                  children: [
+                    FilledButton.tonal(
+                      onPressed:
+                          onHistoryTap ??
+                          () => context.push('/profile/withdrawals'),
+                      child: const Icon(Icons.history),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: address.isEmpty
+                            ? null
+                            : () => _showWithdrawSheet(context, address),
+                        child: const Text('Withdraw'),
+                      ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
           );
         },
@@ -513,10 +507,12 @@ class _RevenuePriceDisplay extends StatelessWidget {
     final kasStr = '$kasSymbol ${formatKas(kasBalance)}';
 
     final textTheme = Theme.of(context).textTheme;
-    final boldHeadline =
-        textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold);
-    final subStyle = textTheme.bodySmall
-        ?.copyWith(color: Theme.of(context).colorScheme.outline);
+    final boldHeadline = textTheme.headlineSmall?.copyWith(
+      fontWeight: FontWeight.bold,
+    );
+    final subStyle = textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.outline,
+    );
 
     if (state.selectedCurrency.isCrypto) {
       return Text(kasStr, style: boldHeadline);
@@ -625,12 +621,14 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
       context.read<WalletCubit>().refreshBalance();
       setState(() => _submitting = false);
       nav.pop();
-      nav.push(MaterialPageRoute(
-        builder: (_) => const PaymentSuccessfulPage(
-        title: 'Withdrawal Successful!',
-        subtitle: 'Your KAS has been sent successfully.',
-      ),
-      ));
+      nav.push(
+        MaterialPageRoute(
+          builder: (_) => const PaymentSuccessfulPage(
+            title: 'Withdrawal Successful!',
+            subtitle: 'Your KAS has been sent successfully.',
+          ),
+        ),
+      );
     }
   }
 
@@ -669,9 +667,9 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
           children: [
             Text(
               'Withdraw $kasSymbol',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             TextFormField(
@@ -701,11 +699,15 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                     // Read live balance — never use a stale snapshot.
                     // Fee estimate: 0.001 KAS covers up to ~89 inputs for a
                     // max-send (1 output), where storage mass ≈ 0.
-                    final liveBalance =
-                        context.read<WalletCubit>().state.balanceKas;
+                    final liveBalance = context
+                        .read<WalletCubit>()
+                        .state
+                        .balanceKas;
                     const feeKas = 0.001;
-                    final max =
-                        (liveBalance - feeKas).clamp(0.0, double.infinity);
+                    final max = (liveBalance - feeKas).clamp(
+                      0.0,
+                      double.infinity,
+                    );
                     final formatted = max
                         .toStringAsFixed(8)
                         .replaceAll(RegExp(r'0+$'), '')
@@ -715,8 +717,9 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                   child: const Text('Max'),
                 ),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Amount is required';
                 final n = double.tryParse(v.trim());
