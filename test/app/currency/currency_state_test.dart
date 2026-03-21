@@ -35,8 +35,8 @@ void main() {
   // allCurrencies
   // ──────────────────────────────────────────────────────────────
   group('allCurrencies', () {
-    test('contains 12 currencies', () {
-      expect(CurrencyState.allCurrencies.length, 12);
+    test('contains expected number of currencies', () {
+      expect(CurrencyState.allCurrencies.length, 26);
     });
 
     test('first currency is KAS', () {

@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
@@ -20,6 +21,7 @@ void main() {
 
   Widget buildTestableWidget() {
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: BlocProvider.value(value: homeBloc, child: const HomePage()),
     );
   }
