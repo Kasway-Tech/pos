@@ -9,6 +9,7 @@ import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
@@ -68,82 +69,87 @@ class _OneTimeDonationSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return BlocBuilder<NetworkCubit, NetworkState>(
+      builder: (context, networkState) {
+        final devAddress =
+            DonationConstants.addressForHrp(networkState.addressHrp);
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.favorite, color: colorScheme.primary, size: 22),
-                const SizedBox(width: 10),
+                Row(
+                  children: [
+                    Icon(Icons.favorite, color: colorScheme.primary, size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Support the Developer',
+                      style: textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 Text(
-                  'Support the Developer',
-                  style: textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  'Kasway is free and open source. If you find it useful, consider sending a one-time KAS donation directly to the developer.',
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _truncate(devAddress),
+                          style: textTheme.bodySmall?.copyWith(
+                            fontFamily: 'monospace',
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(4),
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: devAddress));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Address copied'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(Icons.copy_outlined, size: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => _openDonateSheet(context),
+                    icon: const Icon(Icons.send_outlined),
+                    label: const Text('Donate Now'),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Kasway is free and open source. If you find it useful, consider sending a one-time KAS donation directly to the developer.',
-              style: textTheme.bodyMedium
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _truncate(DonationConstants.address),
-                      style: textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(4),
-                    onTap: () {
-                      Clipboard.setData(
-                          const ClipboardData(text: DonationConstants.address));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Address copied'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.copy_outlined, size: 18),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _openDonateSheet(context),
-                icon: const Icon(Icons.send_outlined),
-                label: const Text('Donate Now'),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -203,11 +209,6 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    if (widget.hrp != 'kaspa') {
-      _showError('Donations are only available on mainnet.');
-      return;
-    }
-
     final activeUrl = context.read<NetworkCubit>().state.activeUrl;
     final donationRepo = context.read<DonationRepository>();
 
@@ -226,7 +227,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
 
     final result = await KaspaWalletService().sendTransaction(
       mnemonic: mnemonic,
-      toAddress: DonationConstants.address,
+      toAddress: DonationConstants.addressForHrp(widget.hrp),
       amountSompi: amountSompi,
       payloadNote: payloadNote,
       hrp: widget.hrp,
@@ -277,7 +278,6 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isMainnet = widget.hrp == 'kaspa';
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -300,7 +300,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Recipient: ${truncateAddress(DonationConstants.address, visibleEnd: 8)}',
+              'Recipient: ${truncateAddress(DonationConstants.addressForHrp(widget.hrp), visibleEnd: 8)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -313,18 +313,8 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
                   ),
             ),
             const SizedBox(height: 20),
-            if (!isMainnet)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Donations are only available on mainnet.',
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.error),
-                ),
-              ),
             TextFormField(
               controller: _amountController,
-              enabled: isMainnet,
               decoration: const InputDecoration(
                 labelText: 'Amount (KAS)',
                 hintText: '0.00',
@@ -341,7 +331,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: (_submitting || !isMainnet) ? null : _submit,
+              onPressed: _submitting ? null : _submit,
               child: _submitting
                   ? const SizedBox(
                       height: 20,

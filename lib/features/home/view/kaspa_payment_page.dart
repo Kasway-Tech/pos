@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:kasway/app/display/display_cubit.dart';
+import 'package:kasway/app/donation/donation_cubit.dart';
+import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/data/services/payload_codec.dart';
 
 import 'package:flutter/material.dart';
@@ -530,6 +532,60 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         ),
                       ],
                     ),
+                  ),
+
+                  // Auto-donation notice
+                  BlocBuilder<DonationCubit, DonationState>(
+                    builder: (context, donationState) {
+                      if (!donationState.autoEnabled) {
+                        return const SizedBox.shrink();
+                      }
+                      final donationKas =
+                          donationState.mode == DonationMode.percentage
+                              ? totalKas * (donationState.percentageValue / 100)
+                              : donationState.fixedKasAmount;
+                      final donationStr = kasFormat(donationKas);
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.volunteer_activism_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Auto-donation active — $donationStr $kasSymbol will be sent to the developer after payment confirmation.',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ];
 

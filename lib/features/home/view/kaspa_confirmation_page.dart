@@ -161,7 +161,6 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     if (!donationState.autoEnabled) return;
     final networkState = context.read<NetworkCubit>().state;
     final hrp = networkState.addressHrp;
-    if (hrp != 'kaspa') return; // mainnet only
     final walletState = context.read<WalletCubit>().state;
     if (walletState.mnemonic.isEmpty) return;
     final kasIdr =
@@ -199,7 +198,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
   }) async {
     final result = await KaspaWalletService().sendTransaction(
       mnemonic: mnemonic,
-      toAddress: DonationConstants.address,
+      toAddress: DonationConstants.addressForHrp(hrp),
       amountSompi: (donationKas * 1e8).toInt(),
       payloadNote:
           'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',

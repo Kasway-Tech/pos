@@ -3,6 +3,11 @@ enum DonationMode { percentage, fixedAmount }
 class DonationConstants {
   static const String address =
       'kaspa:qypr7ayn2g55fccyv9n6gf9zgrcnpepkfgjf9d8mtfp68ezv3mgqnggxqs902q4';
+  static const String testnetAddress =
+      'kaspatest:qqpszxcffsw766keg4lj0raq30ac2y0ul9u89luu00xwzrsymcr0xe9m06qlp';
+
+  static String addressForHrp(String hrp) =>
+      hrp == 'kaspa' ? address : testnetAddress;
 }
 
 class DonationState {
