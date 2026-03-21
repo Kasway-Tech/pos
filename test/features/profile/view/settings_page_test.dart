@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/locale/locale_state.dart';
 import 'package:kasway/features/profile/view/settings_page.dart';
@@ -40,7 +41,10 @@ void main() {
         BlocProvider<CurrencyCubit>.value(value: currencyCubit),
         BlocProvider<LocaleCubit>.value(value: localeCubit),
       ],
-      child: const MaterialApp(home: SettingsPage()),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: const SettingsPage(),
+      ),
     );
   }
 

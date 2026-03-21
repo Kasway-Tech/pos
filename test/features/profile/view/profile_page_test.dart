@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
@@ -52,7 +53,10 @@ Widget _wrap(
         BlocProvider<NetworkCubit>.value(value: networkCubit),
         BlocProvider<WalletCubit>.value(value: walletCubit),
       ],
-      child: MaterialApp(home: child),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: child,
+      ),
     ),
   );
 }

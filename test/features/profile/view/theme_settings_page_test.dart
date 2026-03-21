@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/theme/theme_cubit.dart';
 import 'package:kasway/app/theme/theme_state.dart';
 import 'package:kasway/features/profile/view/theme_settings_page.dart';
@@ -21,6 +22,7 @@ void main() {
 
   Widget buildTestableWidget() {
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: BlocProvider.value(
         value: themeCubit,
         child: const ThemeSettingsPage(),
