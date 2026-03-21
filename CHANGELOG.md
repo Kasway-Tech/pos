@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/furatamasensei/pos/compare/kasway-v1.1.2...kasway-v1.1.3) (2026-03-21)
+
+
+### Bug Fixes
+
+* enforce JVM 17 for all Android subprojects via root build.gradle.kts ([a3ee7f6](https://github.com/furatamasensei/pos/commit/a3ee7f62be7d6474a281162956b09c9900120a6a))
+
 ## [1.1.2](https://github.com/furatamasensei/pos/compare/kasway-v1.1.1...kasway-v1.1.2) (2026-03-21)
 
 
