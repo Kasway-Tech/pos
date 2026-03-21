@@ -48,6 +48,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Patch presentation_displays namespace
+        run: |
+          FILE="$HOME/.pub-cache/hosted/pub.dev/presentation_displays-1.0.0/android/build.gradle"
+          if ! grep -q "namespace" "$FILE"; then
+            sed -i 's/android {/android {\n    namespace "com.namit.presentation_displays"/' "$FILE"
+          fi
+
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs
 
@@ -111,9 +118,11 @@ jobs:
         run: flutter gen-l10n
 
       - name: Build macOS release
-        run: |
-          flutter build macos --release \
-            -- CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+        run: flutter build macos --release
+        env:
+          CODE_SIGN_IDENTITY: ""
+          CODE_SIGNING_REQUIRED: "NO"
+          CODE_SIGNING_ALLOWED: "NO"
 
       - name: Create DMG
         run: |
