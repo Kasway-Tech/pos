@@ -31,6 +31,8 @@ class TableRepository {
         y: (row['y'] as num).toDouble(),
         rotation: (row['rotation'] as num).toDouble(),
         isOccupied: false, // managed in-memory only
+        isServed: false, // managed in-memory only
+        groupId: row['group_id'] as String?,
       );
 
   Map<String, Object?> _itemToRow(TableItem t) => {
@@ -41,6 +43,8 @@ class TableRepository {
         'y': t.y,
         'rotation': t.rotation,
         'is_occupied': t.isOccupied ? 1 : 0,
+        'is_served': t.isServed ? 1 : 0,
+        'group_id': t.groupId,
       };
 
   String newId() {

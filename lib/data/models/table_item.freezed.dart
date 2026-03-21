@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TableItem {
 
- String get id; String get label; int get seats; double get x; double get y; double get rotation; bool get isOccupied;
+ String get id; String get label; int get seats; double get x; double get y; double get rotation; bool get isOccupied; bool get isServed; String? get groupId;
 /// Create a copy of TableItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $TableItemCopyWith<TableItem> get copyWith => _$TableItemCopyWithImpl<TableItem>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TableItem&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.seats, seats) || other.seats == seats)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.rotation, rotation) || other.rotation == rotation)&&(identical(other.isOccupied, isOccupied) || other.isOccupied == isOccupied));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TableItem&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.seats, seats) || other.seats == seats)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.rotation, rotation) || other.rotation == rotation)&&(identical(other.isOccupied, isOccupied) || other.isOccupied == isOccupied)&&(identical(other.isServed, isServed) || other.isServed == isServed)&&(identical(other.groupId, groupId) || other.groupId == groupId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,label,seats,x,y,rotation,isOccupied);
+int get hashCode => Object.hash(runtimeType,id,label,seats,x,y,rotation,isOccupied,isServed,groupId);
 
 @override
 String toString() {
-  return 'TableItem(id: $id, label: $label, seats: $seats, x: $x, y: $y, rotation: $rotation, isOccupied: $isOccupied)';
+  return 'TableItem(id: $id, label: $label, seats: $seats, x: $x, y: $y, rotation: $rotation, isOccupied: $isOccupied, isServed: $isServed, groupId: $groupId)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $TableItemCopyWith<$Res>  {
   factory $TableItemCopyWith(TableItem value, $Res Function(TableItem) _then) = _$TableItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String label, int seats, double x, double y, double rotation, bool isOccupied
+ String id, String label, int seats, double x, double y, double rotation, bool isOccupied, bool isServed, String? groupId
 });
 
 
@@ -62,7 +62,7 @@ class _$TableItemCopyWithImpl<$Res>
 
 /// Create a copy of TableItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? seats = null,Object? x = null,Object? y = null,Object? rotation = null,Object? isOccupied = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? seats = null,Object? x = null,Object? y = null,Object? rotation = null,Object? isOccupied = null,Object? isServed = null,Object? groupId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -71,7 +71,9 @@ as int,x: null == x ? _self.x : x // ignore: cast_nullable_to_non_nullable
 as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
 as double,rotation: null == rotation ? _self.rotation : rotation // ignore: cast_nullable_to_non_nullable
 as double,isOccupied: null == isOccupied ? _self.isOccupied : isOccupied // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,isServed: null == isServed ? _self.isServed : isServed // ignore: cast_nullable_to_non_nullable
+as bool,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -156,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  int seats,  double x,  double y,  double rotation,  bool isOccupied)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String label,  int seats,  double x,  double y,  double rotation,  bool isOccupied,  bool isServed,  String? groupId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TableItem() when $default != null:
-return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,_that.isOccupied);case _:
+return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,_that.isOccupied,_that.isServed,_that.groupId);case _:
   return orElse();
 
 }
@@ -177,10 +179,10 @@ return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  int seats,  double x,  double y,  double rotation,  bool isOccupied)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String label,  int seats,  double x,  double y,  double rotation,  bool isOccupied,  bool isServed,  String? groupId)  $default,) {final _that = this;
 switch (_that) {
 case _TableItem():
-return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,_that.isOccupied);case _:
+return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,_that.isOccupied,_that.isServed,_that.groupId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +199,10 @@ return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  int seats,  double x,  double y,  double rotation,  bool isOccupied)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String label,  int seats,  double x,  double y,  double rotation,  bool isOccupied,  bool isServed,  String? groupId)?  $default,) {final _that = this;
 switch (_that) {
 case _TableItem() when $default != null:
-return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,_that.isOccupied);case _:
+return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,_that.isOccupied,_that.isServed,_that.groupId);case _:
   return null;
 
 }
@@ -212,7 +214,7 @@ return $default(_that.id,_that.label,_that.seats,_that.x,_that.y,_that.rotation,
 
 
 class _TableItem extends TableItem {
-  const _TableItem({required this.id, required this.label, required this.seats, required this.x, required this.y, this.rotation = 0.0, this.isOccupied = false}): super._();
+  const _TableItem({required this.id, required this.label, required this.seats, required this.x, required this.y, this.rotation = 0.0, this.isOccupied = false, this.isServed = false, this.groupId}): super._();
   
 
 @override final  String id;
@@ -222,6 +224,8 @@ class _TableItem extends TableItem {
 @override final  double y;
 @override@JsonKey() final  double rotation;
 @override@JsonKey() final  bool isOccupied;
+@override@JsonKey() final  bool isServed;
+@override final  String? groupId;
 
 /// Create a copy of TableItem
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +237,16 @@ _$TableItemCopyWith<_TableItem> get copyWith => __$TableItemCopyWithImpl<_TableI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TableItem&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.seats, seats) || other.seats == seats)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.rotation, rotation) || other.rotation == rotation)&&(identical(other.isOccupied, isOccupied) || other.isOccupied == isOccupied));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TableItem&&(identical(other.id, id) || other.id == id)&&(identical(other.label, label) || other.label == label)&&(identical(other.seats, seats) || other.seats == seats)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.rotation, rotation) || other.rotation == rotation)&&(identical(other.isOccupied, isOccupied) || other.isOccupied == isOccupied)&&(identical(other.isServed, isServed) || other.isServed == isServed)&&(identical(other.groupId, groupId) || other.groupId == groupId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,label,seats,x,y,rotation,isOccupied);
+int get hashCode => Object.hash(runtimeType,id,label,seats,x,y,rotation,isOccupied,isServed,groupId);
 
 @override
 String toString() {
-  return 'TableItem(id: $id, label: $label, seats: $seats, x: $x, y: $y, rotation: $rotation, isOccupied: $isOccupied)';
+  return 'TableItem(id: $id, label: $label, seats: $seats, x: $x, y: $y, rotation: $rotation, isOccupied: $isOccupied, isServed: $isServed, groupId: $groupId)';
 }
 
 
@@ -253,7 +257,7 @@ abstract mixin class _$TableItemCopyWith<$Res> implements $TableItemCopyWith<$Re
   factory _$TableItemCopyWith(_TableItem value, $Res Function(_TableItem) _then) = __$TableItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String label, int seats, double x, double y, double rotation, bool isOccupied
+ String id, String label, int seats, double x, double y, double rotation, bool isOccupied, bool isServed, String? groupId
 });
 
 
@@ -270,7 +274,7 @@ class __$TableItemCopyWithImpl<$Res>
 
 /// Create a copy of TableItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? seats = null,Object? x = null,Object? y = null,Object? rotation = null,Object? isOccupied = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? label = null,Object? seats = null,Object? x = null,Object? y = null,Object? rotation = null,Object? isOccupied = null,Object? isServed = null,Object? groupId = freezed,}) {
   return _then(_TableItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
@@ -279,7 +283,9 @@ as int,x: null == x ? _self.x : x // ignore: cast_nullable_to_non_nullable
 as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
 as double,rotation: null == rotation ? _self.rotation : rotation // ignore: cast_nullable_to_non_nullable
 as double,isOccupied: null == isOccupied ? _self.isOccupied : isOccupied // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,isServed: null == isServed ? _self.isServed : isServed // ignore: cast_nullable_to_non_nullable
+as bool,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

@@ -69,6 +69,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     if (!mounted) return;
     final jsonUrl = context.read<NetworkCubit>().state.activeUrl;
 
+    await runZonedGuarded(() async {
     while (!_wsDisposed) {
       try {
         final ws = await WebSocket.connect(jsonUrl);
@@ -106,6 +107,11 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       if (_wsDisposed) return;
       await Future<void>.delayed(const Duration(seconds: 3));
     }
+    }, (e, _) {
+      // SocketException thrown by dart:io internals after socket close;
+      // not catchable by regular try/catch — silently swallow.
+      if (e is! SocketException) debugPrint('[confirm] zone: $e');
+    });
   }
 
   void _handleResponse(String raw) {
@@ -134,7 +140,6 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
         context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
     final kasAmount = kasIdr > 0 ? widget.totalIdr / kasIdr : 0.0;
     final tableCubit = context.read<TableCubit>();
-    final selectedTableId = tableCubit.state.selectedTableId;
     final tableLabel = tableCubit.state.selectedTable?.label ?? '';
     context.read<HomeBloc>()
       ..add(HomeOrderCompleted(
@@ -147,7 +152,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
         tableLabel: tableLabel,
       ))
       ..add(HomeCartCleared());
-    tableCubit.freeTable(selectedTableId);
+    tableCubit.clearSelection();
     context.go('/payment-success');
   }
 

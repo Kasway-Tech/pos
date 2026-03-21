@@ -3,14 +3,20 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:kasway/data/models/table_item.dart';
 
+const double _snapGrid = 40.0;
+double _snap(double v) => (v / _snapGrid).round() * _snapGrid;
+
 /// Returns the logical width for a table with [seats] seats.
 double tableWidth(int seats) {
   return switch (seats) {
     1 => 64,
     2 => 80,
     3 => 96,
+    5 => 128,
     6 => 144,
     8 => 176,
+    10 => 208,
+    12 => 240,
     _ => 112, // 4 seats default
   };
 }
@@ -18,6 +24,11 @@ double tableWidth(int seats) {
 const double _tableHeight = 64;
 const double _canvasWidth = 2000;
 const double _canvasHeight = 1500;
+
+// Seat-circle geometry constants
+const double _seatR = 6.0;
+const double _seatGap = 3.5;
+const double _seatPad = _seatR + _seatGap; // extra space on each side for seats
 
 /// Shared canvas widget used in both the editor (edit mode) and the table
 /// selection page (read-only mode).
@@ -28,7 +39,9 @@ class TableCanvas extends StatefulWidget {
     required this.editMode,
     this.selectedTableId,
     this.onTableTap,
+    this.onTableLongPress,
     this.onTableMoved,
+    this.onTableDragUpdate,
     this.onTableRotated,
   });
 
@@ -36,7 +49,12 @@ class TableCanvas extends StatefulWidget {
   final bool editMode;
   final String? selectedTableId;
   final void Function(String id)? onTableTap;
+
+  /// Called with the table id when a table is long-pressed.
+  /// Only active when [editMode] is false.
+  final void Function(String id)? onTableLongPress;
   final void Function(String id, double x, double y)? onTableMoved;
+  final void Function(String id, double x, double y)? onTableDragUpdate;
   final void Function(String id, double rotation)? onTableRotated;
 
   @override
@@ -67,14 +85,17 @@ class _TableCanvasState extends State<TableCanvas> {
                   onTap: widget.onTableTap != null
                       ? () => widget.onTableTap!(table.id)
                       : null,
+                  onLongPress: !widget.editMode && widget.onTableLongPress != null
+                      ? () => widget.onTableLongPress!(table.id)
+                      : null,
                   onDragStart: () =>
                       setState(() => _isDraggingTable = true),
                   onDragEnd: (x, y) {
                     setState(() => _isDraggingTable = false);
                     widget.onTableMoved?.call(table.id, x, y);
                   },
-                  onRotated: (rotation) =>
-                      widget.onTableRotated?.call(table.id, rotation),
+                  onDragUpdate: (x, y) =>
+                      widget.onTableDragUpdate?.call(table.id, x, y),
                 )),
           ],
         ),
@@ -124,18 +145,20 @@ class _PositionedTable extends StatefulWidget {
     required this.editMode,
     required this.isSelected,
     this.onTap,
+    this.onLongPress,
     required this.onDragStart,
     required this.onDragEnd,
-    required this.onRotated,
+    this.onDragUpdate,
   });
 
   final TableItem table;
   final bool editMode;
   final bool isSelected;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final VoidCallback onDragStart;
   final void Function(double x, double y) onDragEnd;
-  final void Function(double rotation) onRotated;
+  final void Function(double x, double y)? onDragUpdate;
 
   @override
   State<_PositionedTable> createState() => _PositionedTableState();
@@ -147,6 +170,7 @@ class _PositionedTableState extends State<_PositionedTable> {
   late double _rotation;
   double _startDragX = 0;
   double _startDragY = 0;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -159,7 +183,8 @@ class _PositionedTableState extends State<_PositionedTable> {
   @override
   void didUpdateWidget(_PositionedTable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.table != widget.table) {
+    // Only sync from parent when NOT dragging, to avoid fighting local drag state
+    if (!_isDragging && oldWidget.table != widget.table) {
       _x = widget.table.x;
       _y = widget.table.y;
       _rotation = widget.table.rotation;
@@ -170,100 +195,57 @@ class _PositionedTableState extends State<_PositionedTable> {
   Widget build(BuildContext context) {
     final w = tableWidth(widget.table.seats);
     const h = _tableHeight;
-    // Rotation handle sits 24dp above the top of the table.
-    const handleSize = 16.0;
-    const handleOffset = 24.0;
 
     return Positioned(
-      left: _x,
-      top: _y,
-      child: SizedBox(
-        // Extra space above for the rotation handle
-        width: w + handleSize,
-        height: h + handleOffset + handleSize,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Main table shape
-            Positioned(
-              left: 0,
-              top: handleOffset + handleSize,
-              child: GestureDetector(
-                onTap: widget.onTap,
-                onPanStart: widget.editMode
-                    ? (details) {
-                        _startDragX = _x - details.globalPosition.dx;
-                        _startDragY = _y - details.globalPosition.dy;
-                        widget.onDragStart();
-                      }
-                    : null,
-                onPanUpdate: widget.editMode
-                    ? (details) {
-                        setState(() {
-                          final sinA = sin(_rotation).abs();
-                          final cosA = cos(_rotation).abs();
-                          final effectiveW = w * cosA + _tableHeight * sinA;
-                          final effectiveH = w * sinA + _tableHeight * cosA;
-                          _x = (_startDragX + details.globalPosition.dx)
-                              .clamp(0.0, _canvasWidth - effectiveW);
-                          _y = (_startDragY + details.globalPosition.dy)
-                              .clamp(0.0, _canvasHeight - effectiveH);
-                        });
-                      }
-                    : null,
-                onPanEnd: widget.editMode
-                    ? (_) => widget.onDragEnd(_x, _y)
-                    : null,
-                child: Transform.rotate(
-                  angle: _rotation,
-                  alignment: Alignment.center,
-                  child: _TableShape(
-                    table: widget.table,
-                    width: w,
-                    height: h,
-                    isSelected: widget.isSelected,
-                  ),
-                ),
-              ),
-            ),
-
-            // Rotation handle — only in edit mode
-            if (widget.editMode)
-              Positioned(
-                left: w / 2 - handleSize / 2,
-                top: 0,
-                child: GestureDetector(
-                  onPanUpdate: (details) {
-                    final center = Offset(_x + w / 2, _y + h / 2);
-                    final pointer = Offset(
-                      _x + w / 2 + details.localPosition.dx,
-                      _y + details.localPosition.dy,
-                    );
-                    final raw =
-                        atan2(pointer.dy - center.dy, pointer.dx - center.dx) +
-                            pi / 2;
-                    // Snap to nearest 45°
-                    const snap = pi / 4;
-                    final snapped = (raw / snap).round() * snap;
-                    setState(() => _rotation = snapped);
-                    widget.onRotated(snapped);
-                  },
-                  child: Container(
-                    width: handleSize,
-                    height: handleSize,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.rotate_right,
-                      size: 10,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+      left: _x - _seatPad,
+      top: _y - _seatPad,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        onSecondaryTap: widget.onLongPress,
+        onPanStart: widget.editMode
+            ? (details) {
+                _startDragX =
+                    (_x - _seatPad) - details.globalPosition.dx;
+                _startDragY =
+                    (_y - _seatPad) - details.globalPosition.dy;
+                _isDragging = true;
+                widget.onDragStart();
+              }
+            : null,
+        onPanUpdate: widget.editMode
+            ? (details) {
+                setState(() {
+                  final sinA = sin(_rotation).abs();
+                  final cosA = cos(_rotation).abs();
+                  final effectiveW = w * cosA + h * sinA;
+                  final effectiveH = w * sinA + h * cosA;
+                  final rawX =
+                      (_startDragX + details.globalPosition.dx) + _seatPad;
+                  final rawY =
+                      (_startDragY + details.globalPosition.dy) + _seatPad;
+                  _x = _snap(rawX).clamp(0.0, _canvasWidth - effectiveW);
+                  _y = _snap(rawY).clamp(0.0, _canvasHeight - effectiveH);
+                });
+                widget.onDragUpdate?.call(_x, _y);
+              }
+            : null,
+        onPanEnd: widget.editMode
+            ? (_) {
+                _isDragging = false;
+                widget.onDragEnd(_x, _y);
+              }
+            : null,
+        child: Transform.rotate(
+          angle: _rotation,
+          alignment: Alignment.center,
+          child: _TableShape(
+            table: widget.table,
+            width: w,
+            height: h,
+            isSelected: widget.isSelected,
+            rotation: _rotation,
+          ),
         ),
       ),
     );
@@ -276,60 +258,186 @@ class _TableShape extends StatelessWidget {
     required this.width,
     required this.height,
     required this.isSelected,
+    required this.rotation,
   });
 
   final TableItem table;
   final double width;
   final double height;
   final bool isSelected;
+  final double rotation;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final Color bgColor = table.isOccupied
-        ? colorScheme.surfaceContainerHighest
-        : isSelected
-            ? colorScheme.primaryContainer
-            : colorScheme.primary;
-    final Color textColor = table.isOccupied
-        ? colorScheme.onSurface.withAlpha(100)
-        : isSelected
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onPrimary;
+    final cs = Theme.of(context).colorScheme;
 
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: isSelected
-            ? Border.all(
-                color: colorScheme.primary,
-                width: 2,
-              )
-            : null,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    final Color bgColor;
+    final Color textColor;
+    final Color seatColor;
+
+    if (table.isOccupied && table.isServed) {
+      // Served — green
+      bgColor = Colors.green.shade400;
+      textColor = Colors.white;
+      seatColor = Colors.green.shade200;
+    } else if (table.isOccupied) {
+      // Occupied / waiting — amber
+      bgColor = Colors.amber.shade600;
+      textColor = Colors.white;
+      seatColor = Colors.amber.shade300;
+    } else if (isSelected) {
+      bgColor = cs.primaryContainer;
+      textColor = cs.onPrimaryContainer;
+      seatColor = cs.primary.withAlpha(180);
+    } else {
+      bgColor = cs.primary;
+      textColor = cs.onPrimary;
+      seatColor = cs.primaryContainer;
+    }
+
+    return SizedBox(
+      width: width + 2 * _seatPad,
+      height: height + 2 * _seatPad,
+      child: Stack(
         children: [
-          Text(
-            table.label,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+          // Seat circles + table body via CustomPaint
+          CustomPaint(
+            size: Size(width + 2 * _seatPad, height + 2 * _seatPad),
+            painter: _TableWithSeatsPainter(
+              tableW: width,
+              tableH: height,
+              seats: table.seats,
+              bgColor: bgColor,
+              seatColor: seatColor,
+              borderColor: isSelected ? cs.primary : null,
             ),
           ),
-          Text(
-            '${table.seats} seats',
-            style: TextStyle(
-              color: textColor.withAlpha(180),
-              fontSize: 10,
+          // Counter-rotated label — always stays horizontal
+          Positioned(
+            left: _seatPad,
+            top: _seatPad,
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: Center(
+                child: Transform.rotate(
+                  angle: -rotation,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        table.label,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        '${table.seats} seats',
+                        style: TextStyle(
+                          color: textColor.withAlpha(180),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _TableWithSeatsPainter extends CustomPainter {
+  const _TableWithSeatsPainter({
+    required this.tableW,
+    required this.tableH,
+    required this.seats,
+    required this.bgColor,
+    required this.seatColor,
+    this.borderColor,
+  });
+
+  final double tableW;
+  final double tableH;
+  final int seats;
+  final Color bgColor;
+  final Color seatColor;
+  final Color? borderColor;
+
+  // Returns (topSeats, bottomSeats, leftSeats, rightSeats)
+  (int, int, int, int) get _layout => switch (seats) {
+        1 => (1, 0, 0, 0),
+        2 => (1, 1, 0, 0),
+        3 => (2, 1, 0, 0),
+        4 => (2, 2, 0, 0),
+        5 => (2, 2, 0, 1),
+        6 => (2, 2, 1, 1),
+        8 => (3, 3, 1, 1),
+        10 => (4, 4, 1, 1),
+        12 => (5, 5, 1, 1),
+        _ => (2, 2, 0, 0),
+      };
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Table rect starts at (_seatPad, _seatPad) within this canvas
+    const left = _seatPad;
+    const top = _seatPad;
+
+    // --- Draw seat circles first (behind table) ---
+    final seatPaint = Paint()..color = seatColor;
+    final (topS, bottomS, leftS, rightS) = _layout;
+
+    for (int i = 0; i < topS; i++) {
+      final cx = left + tableW * (i + 1) / (topS + 1);
+      const cy = top - _seatGap - _seatR;
+      canvas.drawCircle(Offset(cx, cy), _seatR, seatPaint);
+    }
+    for (int i = 0; i < bottomS; i++) {
+      final cx = left + tableW * (i + 1) / (bottomS + 1);
+      final cy = top + tableH + _seatGap + _seatR;
+      canvas.drawCircle(Offset(cx, cy), _seatR, seatPaint);
+    }
+    for (int i = 0; i < leftS; i++) {
+      const cx = left - _seatGap - _seatR;
+      final cy = top + tableH / 2;
+      canvas.drawCircle(Offset(cx, cy), _seatR, seatPaint);
+    }
+    for (int i = 0; i < rightS; i++) {
+      final cx = left + tableW + _seatGap + _seatR;
+      final cy = top + tableH / 2;
+      canvas.drawCircle(Offset(cx, cy), _seatR, seatPaint);
+    }
+
+    // --- Draw table rectangle ---
+    final tablePaint = Paint()..color = bgColor;
+    final tableRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(left, top, tableW, tableH),
+      const Radius.circular(12),
+    );
+    canvas.drawRRect(tableRect, tablePaint);
+
+    // --- Draw selection border ---
+    if (borderColor != null) {
+      final borderPaint = Paint()
+        ..color = borderColor!
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5;
+      canvas.drawRRect(tableRect, borderPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TableWithSeatsPainter old) =>
+      old.tableW != tableW ||
+      old.tableH != tableH ||
+      old.seats != seats ||
+      old.bgColor != bgColor ||
+      old.seatColor != seatColor ||
+      old.borderColor != borderColor;
 }

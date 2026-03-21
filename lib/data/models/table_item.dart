@@ -13,5 +13,7 @@ abstract class TableItem with _$TableItem {
     required double y,
     @Default(0.0) double rotation,
     @Default(false) bool isOccupied,
+    @Default(false) bool isServed,
+    String? groupId,
   }) = _TableItem;
 }

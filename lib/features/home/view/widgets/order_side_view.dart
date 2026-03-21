@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/table/table_cubit.dart';
-import 'package:kasway/app/table/table_state.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -67,9 +66,11 @@ class _OrderSideViewState extends State<OrderSideView> {
   }
 
   Future<void> _proceedToPayment(BuildContext outerContext) async {
-    final ts = outerContext.read<TableCubit>().state;
-    if (ts.enabled && ts.selectedTableId == null) {
-      final tableCubit = outerContext.read<TableCubit>();
+    final tableCubit = outerContext.read<TableCubit>();
+    if (tableCubit.state.enabled) {
+      // Always route through table selection when the feature is on.
+      // Free any stale selection first so the table appears available.
+      tableCubit.freeTable(tableCubit.state.selectedTableId);
       await outerContext.push<void>('/table-selection');
       if (!mounted || !outerContext.mounted) return;
       if (tableCubit.state.selectedTableId != null) {
@@ -211,54 +212,6 @@ class _OrderSideViewState extends State<OrderSideView> {
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            // Table chip — shown only when table feature is enabled
-            BlocBuilder<TableCubit, TableState>(
-              builder: (context, tableState) {
-                if (!tableState.enabled) return const SizedBox.shrink();
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    border: Border(
-                      top: BorderSide(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 16.0 : 24.0,
-                    vertical: isTablet ? 8.0 : 10.0,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.table_restaurant_outlined, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          tableState.selectedTable != null
-                              ? 'Table ${tableState.selectedTable!.label}'
-                              : 'No table selected',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.push('/table-selection'),
-                        child: Text(
-                          tableState.selectedTable != null ? 'Change' : 'Select',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -447,6 +400,7 @@ class _OrderSideViewState extends State<OrderSideView> {
     if (confirmed == true) {
       if (context.mounted) {
         context.read<HomeBloc>().add(HomeCartCleared());
+        context.read<TableCubit>().clearSelection();
       }
     }
   }

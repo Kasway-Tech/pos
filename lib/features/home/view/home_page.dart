@@ -1,5 +1,6 @@
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
+import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -182,12 +183,9 @@ class _HomeViewState extends State<HomeView>
                                     });
                                   },
                                 )
-                              : OrderSideView(
-                                  key: const ValueKey('order'),
+                              : const OrderSideView(
+                                  key: ValueKey('order'),
                                   showAppBar: true,
-                                  onProceedToPayment: () {
-                                    context.push('/kaspa-payment');
-                                  },
                                 ),
                         ),
                       ),
@@ -439,18 +437,16 @@ class _HomeViewState extends State<HomeView>
           ? null
           : PreferredSize(
               preferredSize: const Size.fromHeight(kTextTabBarHeight),
-              child: Stack(
-                children: [
-                  TabBar(
-                    controller: tabController,
-                    tabs: state.categories.map((c) => Tab(text: c)).toList(),
-                    isScrollable: state.categories.length >= 5,
-                    tabAlignment: TabAlignment.start,
-                    dividerColor: isLargeScreen
-                        ? Theme.of(context).colorScheme.surfaceContainerHigh
-                        : null,
-                  ),
-                ],
+              child: TabBar(
+                controller: tabController,
+                tabs: state.categories.map((c) => Tab(text: c)).toList(),
+                isScrollable: state.categories.length >= 5,
+                tabAlignment: state.categories.length >= 5
+                    ? TabAlignment.start
+                    : TabAlignment.fill,
+                dividerColor: isLargeScreen
+                    ? Theme.of(context).colorScheme.surfaceContainerHigh
+                    : null,
               ),
             ),
     );
@@ -581,6 +577,9 @@ class _HomeViewState extends State<HomeView>
 
     if (confirmed == true) {
       bloc.add(HomeCartCleared());
+      if (context.mounted) {
+        context.read<TableCubit>().clearSelection();
+      }
     }
   }
 

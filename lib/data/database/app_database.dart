@@ -15,7 +15,7 @@ class AppDatabase {
 
   Future<Database> _open() async {
     final path = join(await getDatabasesPath(), 'kasway.db');
-    return openDatabase(path, version: 12, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(path, version: 14, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -115,6 +115,14 @@ class AppDatabase {
       await db.execute(
           "ALTER TABLE orders ADD COLUMN table_label TEXT NOT NULL DEFAULT ''");
     }
+    if (oldVersion < 13) {
+      await db.execute(
+          'ALTER TABLE table_items ADD COLUMN group_id TEXT');
+    }
+    if (oldVersion < 14) {
+      await db.execute(
+          'ALTER TABLE table_items ADD COLUMN is_served INTEGER NOT NULL DEFAULT 0');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -168,7 +176,9 @@ class AppDatabase {
         x           REAL NOT NULL DEFAULT 0,
         y           REAL NOT NULL DEFAULT 0,
         rotation    REAL NOT NULL DEFAULT 0,
-        is_occupied INTEGER NOT NULL DEFAULT 0
+        is_occupied INTEGER NOT NULL DEFAULT 0,
+        is_served   INTEGER NOT NULL DEFAULT 0,
+        group_id    TEXT
       )
     ''');
 

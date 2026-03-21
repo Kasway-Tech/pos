@@ -234,10 +234,40 @@ class _OrderCard extends StatelessWidget {
                           .textTheme
                           .bodyMedium
                           ?.copyWith(fontWeight: FontWeight.bold)),
-                  Text(timeStr,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          )),
+                  Row(
+                    children: [
+                      Text(timeStr,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  )),
+                      if (order.tableLabel.isNotEmpty) ...[
+                        Text(
+                          ' · ',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                        ),
+                        Icon(
+                          Icons.table_restaurant_outlined,
+                          size: 11,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'Table ${order.tableLabel}',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),

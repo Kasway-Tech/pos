@@ -27,7 +27,9 @@ class TableCubit extends Cubit<TableState> {
 
   Future<void> _loadTables() async {
     final tables = await _repo.getTables();
-    final reset = tables.map((t) => t.copyWith(isOccupied: false)).toList();
+    final reset = tables
+        .map((t) => t.copyWith(isOccupied: false, isServed: false))
+        .toList();
     if (!isClosed) emit(state.copyWith(tables: reset));
   }
 
@@ -45,27 +47,48 @@ class TableCubit extends Cubit<TableState> {
   }
 
   void selectTable(String? id) {
-    emit(state.copyWith(selectedTableId: id));
+    if (id == null) {
+      emit(state.copyWith(selectedTableId: null));
+      return;
+    }
+    final updated = state.tables
+        .map((t) =>
+            t.id == id ? t.copyWith(isOccupied: true, isServed: false) : t)
+        .toList();
+    emit(state.copyWith(tables: updated, selectedTableId: id));
   }
 
   void clearSelection() {
     emit(state.copyWith(selectedTableId: null));
   }
 
-  TableItem buildNewTable({required int seats, required int existingCount}) {
+  TableItem buildNewTable({
+    required int seats,
+    required int existingCount,
+    String? groupId,
+  }) {
     return TableItem(
       id: _repo.newId(),
       label: (existingCount + 1).toString(),
       seats: seats,
       x: 100,
       y: (100 + existingCount * 80.0).clamp(0.0, 1200.0),
+      groupId: groupId,
     );
+  }
+
+  void markServed(String id) {
+    final updated = state.tables
+        .map((t) => t.id == id ? t.copyWith(isServed: true) : t)
+        .toList();
+    emit(state.copyWith(tables: updated));
   }
 
   void freeTable(String? id) {
     if (id == null) return;
     final updated = state.tables
-        .map((t) => t.id == id ? t.copyWith(isOccupied: false) : t)
+        .map((t) =>
+            t.id == id ? t.copyWith(isOccupied: false, isServed: false) : t)
         .toList();
     emit(state.copyWith(tables: updated, selectedTableId: null));
   }

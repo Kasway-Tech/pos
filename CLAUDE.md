@@ -620,7 +620,7 @@ Optional floor-plan feature for restaurants and cafés. When enabled, the cashie
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/data/models/table_item.dart` | Freezed `TableItem` model (id, label, seats 1–8, x, y, rotation, isOccupied) |
+| `lib/data/models/table_item.dart` | Freezed `TableItem` model (id, label, seats 1–8, x, y, rotation, isOccupied, groupId?) |
 | `lib/data/repositories/table_repository.dart` | SQLite CRUD for `table_items`; `saveLayout` does full-replace in a single transaction |
 | `lib/app/table/table_state.dart` | Plain-class `TableState` (enabled, tables, selectedTableId) with `selectedTable` getter |
 | `lib/app/table/table_cubit.dart` | App-level cubit: toggle, saveLayout, selectTable, markOccupied, freeTable |
@@ -632,13 +632,35 @@ Optional floor-plan feature for restaurants and cafés. When enabled, the cashie
 - `/profile/table-layout` → `TableLayoutPage` (nested under `/profile`)
 - `/table-selection` → `TableSelectionPage` (top-level, pushed before `/kaspa-payment`)
 
-### DB Schema (added in v12)
+### Table states
+Each table has three visual states managed entirely in-memory (not persisted across restarts):
+- **Available** — `isOccupied: false` → primary color. Tapping selects it.
+- **Occupied / Waiting** — `isOccupied: true, isServed: false` → amber. Set by `selectTable(id)`.
+- **Served** — `isOccupied: true, isServed: true` → green. Set by `markServed(id)` from the long-press menu in `TableSelectionPage`.
+
+Long-pressing an occupied table on `TableSelectionPage` (canvas or chip) shows a bottom sheet with:
+- "Mark as Served" (only when not yet served) → `tableCubit.markServed(id)`
+- "Free Table" → confirmation dialog → `tableCubit.freeTable(id)`
+
+After payment confirmation (`KaspaConfirmationPage._onConfirmed`), `tableCubit.clearSelection()` is called so the table remains occupied (customer still seated) but is deselected for the next order. The table is freed only when the cashier explicitly taps "Free Table" from the long-press menu.
+
+### DB Schema (v12 + v13 + v14)
 ```sql
 table_items(id TEXT PK, label TEXT, seats INTEGER DEFAULT 4,
             x REAL DEFAULT 0, y REAL DEFAULT 0,
-            rotation REAL DEFAULT 0, is_occupied INTEGER DEFAULT 0)
+            rotation REAL DEFAULT 0, is_occupied INTEGER DEFAULT 0,
+            is_served INTEGER DEFAULT 0,  -- added in v14
+            group_id TEXT)           -- added in v13; NULL = ungrouped
 -- orders also has: table_label TEXT NOT NULL DEFAULT ''
 ```
+
+### Table groups
+Tables added as a group share a `groupId` (set to the first table's id in the group). Dragging or rotating any member in `TableLayoutPage` moves/rotates all other members with the same `groupId` in real-time via `_onTableDragUpdate` (live) and `_onTableMoved` (on drag end). Rotation snap is 90° (`pi/2`). Group gap is 20 dp.
+
+### Canvas visual details
+- Seat circles are drawn around each table body using `_TableWithSeatsPainter` (a `CustomPainter` in `table_canvas.dart`). Constants: `_seatR = 6`, `_seatGap = 3.5`, `_seatPad = _seatR + _seatGap`.
+- The label/seat-count text is counter-rotated (`Transform.rotate(angle: -rotation)`) so it stays horizontal regardless of table rotation.
+- `_PositionedTable` is offset by `-_seatPad` on both axes to keep the logical `(x, y)` at the table body top-left.
 
 ### Payment flow intercept
 `OrderSideView._proceedToPayment()` checks `TableCubit.state.enabled` and `selectedTableId`. If enabled and no table selected, pushes `/table-selection` first. After selection, pushes `/kaspa-payment`.
