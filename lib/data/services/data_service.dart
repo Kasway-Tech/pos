@@ -77,13 +77,18 @@ class DataService {
 
   String _buildCsv(List<ProductWithCategory> entries) {
     final buf = StringBuffer();
-    buf.writeln('id,category,name,price,description,additions');
+    buf.writeln('id,category,name,price,description,additions,kas_price');
     for (final entry in entries) {
       final p = entry.product;
       final additionsStr = p.additions.isEmpty
           ? ''
           : p.additions
-              .map((a) => '${a.name}:${_formatPrice(a.price)}')
+              .map((a) {
+                final base = '${a.name}:${_formatPrice(a.price)}';
+                return a.kasPrice != null
+                    ? '$base:${_formatPrice(a.kasPrice!)}'
+                    : base;
+              })
               .join('|');
       buf.write(_csvField(p.id));
       buf.write(',');
@@ -96,6 +101,8 @@ class DataService {
       buf.write(_csvField(p.description));
       buf.write(',');
       buf.write(additionsStr.isEmpty ? '' : '"$additionsStr"');
+      buf.write(',');
+      buf.write(p.kasPrice != null ? _formatPrice(p.kasPrice!) : '');
       buf.writeln();
     }
     return buf.toString();
@@ -120,6 +127,9 @@ class DataService {
       final price = double.tryParse(fields[3].trim()) ?? 0.0;
       final description = fields[4].trim();
       final additionsStr = fields[5].trim();
+      final kasPrice = fields.length > 6
+          ? double.tryParse(fields[6].trim())
+          : null;
 
       if (id.isEmpty || category.isEmpty || name.isEmpty) continue;
 
@@ -130,6 +140,7 @@ class DataService {
         'category': category,
         'name': name,
         'price': price,
+        'kas_price': kasPrice,
         'description': description,
         'additions': additions,
       });
@@ -174,12 +185,13 @@ class DataService {
   List<Map<String, dynamic>> _parseAdditions(String additionsStr) {
     if (additionsStr.isEmpty) return [];
     return additionsStr.split('|').map((a) {
-      final colonIdx = a.lastIndexOf(':');
-      if (colonIdx < 0) return <String, dynamic>{'name': a, 'price': 0.0};
-      return <String, dynamic>{
-        'name': a.substring(0, colonIdx),
-        'price': double.tryParse(a.substring(colonIdx + 1)) ?? 0.0,
-      };
+      // Format: "Name:idr_price" or "Name:idr_price:kas_price"
+      final parts = a.split(':');
+      if (parts.length < 2) return <String, dynamic>{'name': a, 'price': 0.0};
+      final name = parts.sublist(0, parts.length >= 3 ? parts.length - 2 : parts.length - 1).join(':');
+      final price = double.tryParse(parts[parts.length >= 3 ? parts.length - 2 : parts.length - 1]) ?? 0.0;
+      final kasPrice = parts.length >= 3 ? double.tryParse(parts.last) : null;
+      return <String, dynamic>{'name': name, 'price': price, 'kas_price': kasPrice};
     }).toList();
   }
 

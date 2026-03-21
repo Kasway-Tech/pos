@@ -280,6 +280,7 @@ class ProductRepository {
             'id': productId,
             'name': p['name'],
             'price': p['price'],
+            'kas_price': p['kas_price'],
             'description': p['description'] ?? '',
             'category_name': category,
             'created_at': now,
@@ -290,6 +291,7 @@ class ProductRepository {
             {
               'name': p['name'],
               'price': p['price'],
+              'kas_price': p['kas_price'],
               'description': p['description'] ?? '',
               'category_name': category,
             },
@@ -309,6 +311,7 @@ class ProductRepository {
             'product_id': productId,
             'name': a['name'],
             'price': a['price'],
+            'kas_price': a['kas_price'],
           });
         }
       }

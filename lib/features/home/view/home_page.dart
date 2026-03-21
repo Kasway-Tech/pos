@@ -33,7 +33,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   TabController? _tabController;
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
