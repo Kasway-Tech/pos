@@ -59,10 +59,10 @@ class DisplayCubit extends Cubit<DisplayState> {
     emit(state.copyWith(status: DisplayStatus.scanning));
     try {
       final all = await _manager()
-          .getDisplays(category: DISPLAY_CATEGORY_PRESENTATION);
+          .getDisplays(category: displayCategoryPresentation);
       if (isClosed) return;
       final secondary = (all ?? [])
-          .where((d) => d.displayId != null && d.displayId != DEFAULT_DISPLAY)
+          .where((d) => d.displayId != null && d.displayId != defaultDisplay)
           .map((d) => (id: d.displayId!, name: d.name ?? 'Display ${d.displayId}'))
           .toList();
 

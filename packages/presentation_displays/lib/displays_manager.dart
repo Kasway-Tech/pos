@@ -28,7 +28,7 @@ const _transferDataToPresentation = "transferDataToPresentation";
 ///
 /// [DisplayManager.getDisplays]
 ///
-const String DISPLAY_CATEGORY_PRESENTATION =
+const String displayCategoryPresentation =
     "android.hardware.display.category.PRESENTATION";
 
 /// Provide you with the method for you to work with [SecondaryDisplay].
@@ -48,7 +48,7 @@ class DisplayManager {
   /// <p>
   /// When there are multiple displays in a category the returned displays are sorted
   /// of preference.  For example, if the requested category is
-  /// [DISPLAY_CATEGORY_PRESENTATION] and there are multiple secondary display
+  /// [displayCategoryPresentation] and there are multiple secondary display
   /// then the displays are sorted so that the first display in the returned array
   /// is the most preferred secondary display.  The application may simply
   /// use the first display or allow the user to choose.
@@ -57,7 +57,7 @@ class DisplayManager {
   /// [category] The requested display category or null to return all displays.
   /// @return An array containing all displays sorted by order of preference.
   ///
-  /// See [DISPLAY_CATEGORY_PRESENTATION]
+  /// See [displayCategoryPresentation]
   Future<List<Display>?> getDisplays({String? category}) async {
     List<dynamic> origins = await jsonDecode((await _displayMethodChannel
             ?.invokeMethod(_listDisplay, category))) ??
@@ -76,7 +76,7 @@ class DisplayManager {
   /// <p>
   /// Note that some displays may be renamed by the user.
   /// [category] The requested display category or null to return all displays.
-  /// See [DISPLAY_CATEGORY_PRESENTATION]
+  /// See [displayCategoryPresentation]
   /// </p>
   ///
   /// @return The display's name.
@@ -95,7 +95,7 @@ class DisplayManager {
   /// <p>
   /// Note that some displays may be renamed by the user.
   /// [category] The requested display category or null to return all displays.
-  /// see [DISPLAY_CATEGORY_PRESENTATION]
+  /// see [displayCategoryPresentation]
   /// </p>
   ///
   /// @return The display's name
