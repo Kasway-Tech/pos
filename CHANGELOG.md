@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/furatamasensei/pos/compare/kasway-v1.1.3...kasway-v1.1.4) (2026-03-21)
+
+
+### Bug Fixes
+
+* inject missing namespace for Android library plugins lacking one ([f1ebee3](https://github.com/furatamasensei/pos/commit/f1ebee355c11c4d2c8ac5c61fadba2e823b44e5c))
+
 ## [1.1.3](https://github.com/furatamasensei/pos/compare/kasway-v1.1.2...kasway-v1.1.3) (2026-03-21)
 
 
