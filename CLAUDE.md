@@ -46,7 +46,49 @@ flutter analyze
 # Code generation (freezed models, json serializable)
 dart run build_runner build --delete-conflicting-outputs
 dart run build_runner watch          # watch mode during development
+
+# Localization (ARB → Dart; runs automatically on flutter pub get too)
+flutter gen-l10n
 ```
+
+## Localization (l10n)
+
+All user-visible strings use `AppLocalizations` via the `context.l10n` extension (`lib/app/l10n.dart`). Never hardcode English strings in widgets.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/l10n/app_en.arb` | English template — add new keys here first |
+| `lib/l10n/app_<locale>.arb` | Translations for id, ja, ko, ms, zh |
+| `.dart_tool/flutter_gen/gen_l10n/` | Auto-generated `AppLocalizations` class |
+
+### Usage
+```dart
+import 'package:kasway/app/l10n.dart';
+
+// In build():
+Text(context.l10n.someKey)
+// Parameterized:
+Text(context.l10n.someKey(param1, param2))
+// Capture before async gaps to avoid use_build_context_synchronously:
+final msg = context.l10n.someKey;
+await someAsyncOperation();
+showSnackBar(msg);
+```
+
+### Key naming convention
+`camelCase`, prefixed by feature: `helpXxx`, `dataXxx`, `settingsXxx`, `themeXxx`, `networkXxx`, `donateXxx`, `displayXxx`, `tableLayoutXxx`, `tableSelectXxx`, `orderHistoryXxx`, `withdrawalHistoryXxx`, `profileXxx`, `homeXxx`, `paymentXxx`, `paymentSuccessXxx`, `itemXxx`, `itemFormXxx`, `categoryXxx`
+
+### ARB placeholder syntax (parameterized strings)
+```json
+"someKey": "Hello {name}",
+"@someKey": {
+  "placeholders": { "name": { "type": "String" } }
+}
+```
+
+### After adding/editing ARB keys
+Run `flutter gen-l10n` to regenerate the Dart class (separate from build_runner).
 
 ## Architecture
 
@@ -134,13 +176,16 @@ price_in_idr    =  price_in_idr  (shown directly, no conversion)
 
 ### CoinGecko endpoint (no API key)
 ```
-GET https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=idr,usd,eur,gbp,jpy,sgd,myr,aud,cny,hkd,krw
+GET https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=idr,usd,eur,gbp,jpy,sgd,myr,aud,cny,hkd,krw,thb,vnd,php,brl,mxn,cad,chf,nzd,zar,inr,aed,sar,ngn,pkr
 Response: {"kaspa": {"idr": 1234.5, "usd": 0.075, ...}}
 ```
 Rates are stored in `CurrencyState.exchangeRates` as `Map<String, double>` keyed by lowercase currency code.
 
 ### Supported currencies
-KAS (default), IDR, USD, EUR, GBP, JPY, SGD, MYR, AUD, CNY, HKD, KRW. Defined in `CurrencyState.allCurrencies`.
+KAS (default), IDR, USD, EUR, GBP, JPY, SGD, MYR, AUD, CNY, HKD, KRW, THB, VND, PHP, BRL, MXN, CAD, CHF, NZD, ZAR, INR, AED, SAR, NGN, PKR. Defined in `CurrencyState.allCurrencies`.
+
+### Zero-decimal currencies
+JPY, KRW, IDR, VND, PKR, NGN — no decimal places in price display and raw input. Handled in `_rawPrice()` in `item_form_page.dart` and `formatPrice()` in `currency_state.dart`.
 
 ### Settings integration
 - **Currency Settings** tile → navigates to `/profile/currency`

@@ -6,6 +6,7 @@ import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/helpers/format_helpers.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
@@ -92,7 +93,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildNarrow(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(title: const Text('Profile'), centerTitle: true),
+        appBar: BlurAppBar(title: Text(context.l10n.profileTitle), centerTitle: true),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -123,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
               flex: 3,
               child: Scaffold(
                 appBar: BlurAppBar(
-                  title: const Text('Profile'),
+                  title: Text(context.l10n.profileTitle),
                   centerTitle: true,
                 ),
                 body: ListView(
@@ -176,73 +177,74 @@ class _ProfilePageState extends State<ProfilePage> {
     bool isSelected(_ProfileSection section) =>
         isWide && _activeSection == section;
 
+    final l10n = context.l10n;
     return [
       _ProfileMenuItem(
         icon: Icons.history,
-        title: 'Order History',
+        title: l10n.profileOrderHistory,
         isSelected: isSelected(_ProfileSection.orders),
         onTap: () => navigate(_ProfileSection.orders, '/profile/orders'),
       ),
       _ProfileMenuItem(
         icon: Icons.inventory_2_outlined,
-        title: 'Manage Item',
+        title: l10n.profileManageItem,
         isSelected: isSelected(_ProfileSection.items),
         onTap: () => navigate(_ProfileSection.items, '/profile/items'),
       ),
       _ProfileMenuItem(
         icon: Icons.table_restaurant_outlined,
-        title: 'Table Layout',
+        title: l10n.profileTableLayout,
         isSelected: isSelected(_ProfileSection.tableLayout),
         onTap: () => context.push('/profile/table-layout'),
       ),
       _ProfileMenuItem(
         icon: Icons.restore_outlined,
-        title: 'Backup & Restore',
+        title: l10n.profileBackupRestore,
         isSelected: isSelected(_ProfileSection.dataTransfer),
         onTap: () =>
             navigate(_ProfileSection.dataTransfer, '/profile/data-transfer'),
       ),
       _ProfileMenuItem(
         icon: Icons.lan_outlined,
-        title: 'Network & Node',
+        title: l10n.profileNetworkNode,
         isSelected: isSelected(_ProfileSection.network),
         onTap: () => navigate(_ProfileSection.network, '/profile/network'),
       ),
       _ProfileMenuItem(
         icon: Icons.tv_outlined,
-        title: 'Display',
+        title: l10n.profileDisplay,
         isSelected: isSelected(_ProfileSection.display),
         onTap: () => navigate(_ProfileSection.display, '/profile/display'),
       ),
       _ProfileMenuItem(
         icon: Icons.palette_outlined,
-        title: 'Theme Settings',
+        title: l10n.profileThemeSettings,
         isSelected: isSelected(_ProfileSection.theme),
         onTap: () => navigate(_ProfileSection.theme, '/profile/theme'),
       ),
       _ProfileMenuItem(
         icon: Icons.settings_outlined,
-        title: 'Settings',
+        title: l10n.profileSettings,
         isSelected: isSelected(_ProfileSection.settings),
         onTap: () => navigate(_ProfileSection.settings, '/profile/settings'),
       ),
       _ProfileMenuItem(
         icon: Icons.favorite_outline,
-        title: 'Donate',
+        title: l10n.profileDonate,
         isSelected: isSelected(_ProfileSection.donate),
         onTap: () => navigate(_ProfileSection.donate, '/profile/donate'),
       ),
       const Divider(height: 32.0),
       _ProfileMenuItem(
         icon: Icons.logout,
-        title: 'Logout',
+        title: l10n.profileLogout,
         textColor: Colors.red,
         iconColor: Colors.red,
         onTap: () => _showConfirmationDialog(
           context,
-          title: 'Logout',
-          content: 'Are you sure you want to log out?',
-          confirmLabel: 'Logout',
+          title: l10n.profileLogout,
+          content: l10n.profileLogoutContent,
+          confirmLabel: l10n.profileLogout,
           isDestructive: true,
         ),
       ),
@@ -264,7 +266,7 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.profileCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -303,7 +305,7 @@ class _DetailPlaceholder extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Select a section',
+            context.l10n.profileSelectSection,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -377,7 +379,7 @@ class _WalletCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Kaspa Address',
+                            context.l10n.profileKaspaAddress,
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.outline,
                               letterSpacing: 0.8,
@@ -386,7 +388,7 @@ class _WalletCard extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             address.isEmpty
-                                ? 'No wallet configured'
+                                ? context.l10n.profileNoWallet
                                 : truncateAddress(address),
                             style: textTheme.bodyMedium?.copyWith(
                               fontFeatures: const [
@@ -404,20 +406,20 @@ class _WalletCard extends StatelessWidget {
                     if (address.isNotEmpty) ...[
                       IconButton(
                         icon: const Icon(Icons.copy_outlined),
-                        tooltip: 'Copy address',
+                        tooltip: context.l10n.profileCopyAddress,
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: address));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Address copied'),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(context.l10n.profileAddressCopied),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                         },
                       ),
                       IconButton(
                         icon: const Icon(Icons.open_in_browser_outlined),
-                        tooltip: 'View in explorer',
+                        tooltip: context.l10n.profileViewInExplorer,
                         onPressed: () {
                           final url =
                               '${context.read<NetworkCubit>().state.explorerAddressBaseUrl}$address';
@@ -436,7 +438,7 @@ class _WalletCard extends StatelessWidget {
 
                 // --- Balance ---
                 Text(
-                  'Balance',
+                  context.l10n.profileBalance,
                   style: textTheme.labelSmall?.copyWith(
                     color: colorScheme.outline,
                     letterSpacing: 0.8,
@@ -462,7 +464,7 @@ class _WalletCard extends StatelessWidget {
                         onPressed: address.isEmpty
                             ? null
                             : () => _showWithdrawSheet(context, address),
-                        child: const Text('Withdraw'),
+                        child: Text(context.l10n.profileWithdraw),
                       ),
                     ),
                   ],
@@ -575,11 +577,12 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final nav = Navigator.of(context); // capture before any async gap
+    final noWalletMsg = context.l10n.profileWithdrawNoWallet;
 
     final prefs = await SharedPreferences.getInstance();
     final mnemonic = prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
     if (mnemonic.isEmpty) {
-      _showError('No wallet mnemonic found. Please set up your wallet first.');
+      _showError(noWalletMsg);
       return;
     }
 
@@ -621,11 +624,13 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
       context.read<WalletCubit>().refreshBalance();
       setState(() => _submitting = false);
       nav.pop();
+      final withdrawTitle = context.l10n.profileWithdrawalSuccessTitle;
+      final withdrawSubtitle = context.l10n.profileWithdrawalSuccessSubtitle;
       nav.push(
         MaterialPageRoute(
-          builder: (_) => const PaymentSuccessfulPage(
-            title: 'Withdrawal Successful!',
-            subtitle: 'Your KAS has been sent successfully.',
+          builder: (_) => PaymentSuccessfulPage(
+            title: withdrawTitle,
+            subtitle: withdrawSubtitle,
           ),
         ),
       );
@@ -637,7 +642,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Transaction Failed'),
+        title: Text(context.l10n.profileTransactionFailed),
         content: Text(message),
         actions: [
           TextButton(
@@ -652,6 +657,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
   @override
   Widget build(BuildContext context) {
     final kasSymbol = context.watch<NetworkCubit>().state.kasSymbol;
+    final l10n = context.l10n;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -666,7 +672,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Withdraw $kasSymbol',
+              l10n.profileWithdrawTitle(kasSymbol),
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -675,14 +681,14 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
             TextFormField(
               controller: _toAddressController,
               decoration: InputDecoration(
-                labelText: 'Destination Kaspa Address',
+                labelText: l10n.profileDestinationAddress,
                 hintText: '${widget.hrp}:q...',
                 border: const OutlineInputBorder(),
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Address is required';
+                if (v == null || v.trim().isEmpty) return l10n.profileAddressRequired;
                 if (!v.trim().startsWith('${widget.hrp}:')) {
-                  return 'Must be a valid ${widget.hrp}: address';
+                  return l10n.profileAddressInvalid(widget.hrp);
                 }
                 return null;
               },
@@ -691,7 +697,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
             TextFormField(
               controller: _amountController,
               decoration: InputDecoration(
-                labelText: 'Amount ($kasSymbol)',
+                labelText: l10n.profileAmountLabel(kasSymbol),
                 hintText: '0.00',
                 border: const OutlineInputBorder(),
                 suffixIcon: TextButton(
@@ -714,16 +720,16 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                         .replaceAll(RegExp(r'\.$'), '.00');
                     _amountController.text = formatted;
                   },
-                  child: const Text('Max'),
+                  child: Text(l10n.profileMax),
                 ),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Amount is required';
+                if (v == null || v.trim().isEmpty) return l10n.profileAmountRequired;
                 final n = double.tryParse(v.trim());
-                if (n == null || n <= 0) return 'Enter a valid amount';
+                if (n == null || n <= 0) return l10n.profileAmountInvalid;
                 return null;
               },
             ),
@@ -739,7 +745,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Send'),
+                  : Text(l10n.profileSend),
             ),
           ],
         ),

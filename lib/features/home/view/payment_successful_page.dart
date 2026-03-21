@@ -2,17 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:lottie/lottie.dart';
 
 class PaymentSuccessfulPage extends StatefulWidget {
   const PaymentSuccessfulPage({
     super.key,
-    this.title = 'Payment Successful!',
-    this.subtitle = 'The transaction has been processed successfully.',
+    this.title,
+    this.subtitle,
   });
 
-  final String title;
-  final String subtitle;
+  final String? title;
+  final String? subtitle;
 
   @override
   State<PaymentSuccessfulPage> createState() => _PaymentSuccessfulPageState();
@@ -54,6 +55,10 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final resolvedTitle = widget.title ?? l10n.paymentSuccessTitle;
+    final resolvedSubtitle = widget.subtitle ?? l10n.paymentSuccessSubtitle;
+    final plural = _countdown == 1 ? '' : 's';
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -78,7 +83,7 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
                     ),
                     const SizedBox(height: 32),
                     Text(
-                      widget.title,
+                      resolvedTitle,
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -86,7 +91,7 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      widget.subtitle,
+                      resolvedSubtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
@@ -99,7 +104,7 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
             Positioned(
               bottom: 16,
               child: Text(
-                'You will be redirected in $_countdown second${_countdown == 1 ? '' : 's'}...',
+                l10n.paymentSuccessRedirect(_countdown, plural),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     ),

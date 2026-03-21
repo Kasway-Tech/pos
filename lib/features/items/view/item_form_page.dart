@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
@@ -32,7 +33,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
   static String _rawPrice(double amount, CurrencyState state) {
     final code = state.selectedCurrency.code.toLowerCase();
     if (state.selectedCurrency.isCrypto) return amount.toStringAsFixed(4);
-    if ({'jpy', 'krw', 'idr'}.contains(code)) return amount.toInt().toString();
+    if ({'jpy', 'krw', 'idr', 'vnd', 'pkr', 'ngn'}.contains(code)) return amount.toInt().toString();
     return amount.toStringAsFixed(2);
   }
 
@@ -71,9 +72,9 @@ class _ItemFormPageState extends State<ItemFormPage> {
     final isEditing = widget.product != null;
     return Scaffold(
       appBar: BlurAppBar(
-        title: Text(isEditing ? 'Edit Product' : 'Add Product'),
+        title: Text(isEditing ? context.l10n.itemFormEditTitle : context.l10n.itemFormAddTitle),
         centerTitle: true,
-        actions: [TextButton(onPressed: _submit, child: const Text('Save'))],
+        actions: [TextButton(onPressed: _submit, child: Text(context.l10n.itemFormSave))],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -89,11 +90,11 @@ class _ItemFormPageState extends State<ItemFormPage> {
                     TextFormField(
                       controller: _nameCtrl,
                       autofocus: !isEditing,
-                      decoration: const InputDecoration(
-                        labelText: 'Product Name',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.itemFormProductName,
                       ),
                       validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          (v == null || v.trim().isEmpty) ? context.l10n.itemFormRequired : null,
                     ),
                     const SizedBox(height: 16),
                     BlocConsumer<CurrencyCubit, CurrencyState>(
@@ -126,10 +127,10 @@ class _ItemFormPageState extends State<ItemFormPage> {
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
-                              return 'Required';
+                              return context.l10n.itemFormRequired;
                             }
                             if (double.tryParse(v) == null) {
-                              return 'Enter a valid number';
+                              return context.l10n.itemFormInvalidNumber;
                             }
                             return null;
                           },
@@ -151,8 +152,8 @@ class _ItemFormPageState extends State<ItemFormPage> {
                           initialValue: categories.contains(_selectedCategory)
                               ? _selectedCategory
                               : null,
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.itemFormCategory,
                           ),
                           items: categories
                               .map(
@@ -171,14 +172,14 @@ class _ItemFormPageState extends State<ItemFormPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _descCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Description (optional)',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.itemFormDescription,
                       ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Additions',
+                      context.l10n.itemFormAdditions,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -196,7 +197,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       title: Text(
-                        'Add Addition',
+                        context.l10n.itemFormAddAddition,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -233,7 +234,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
     final result = await showDialog<Addition>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(existing != null ? 'Edit Addition' : 'New Addition'),
+        title: Text(existing != null ? context.l10n.itemFormEditAdditionTitle : context.l10n.itemFormNewAdditionTitle),
         content: Form(
           key: formKey,
           child: Column(
@@ -242,23 +243,22 @@ class _ItemFormPageState extends State<ItemFormPage> {
               TextFormField(
                 controller: nameCtrl,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Addition Name'),
+                decoration: InputDecoration(labelText: context.l10n.itemFormAdditionName),
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    (v == null || v.trim().isEmpty) ? context.l10n.itemFormRequired : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: priceCtrl,
                 decoration: InputDecoration(
-                  labelText:
-                      'Extra Price (${currencyState.selectedCurrency.code}, 0 = free)',
+                  labelText: context.l10n.itemFormAdditionPriceLabel(currencyState.selectedCurrency.code),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (double.tryParse(v) == null) return 'Enter a valid number';
+                  if (v == null || v.trim().isEmpty) return context.l10n.itemFormRequired;
+                  if (double.tryParse(v) == null) return context.l10n.itemFormInvalidNumber;
                   return null;
                 },
               ),
@@ -268,7 +268,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.itemFormCancel),
           ),
           TextButton(
             onPressed: () {
@@ -286,7 +286,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
                 );
               }
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.itemFormSave),
           ),
         ],
       ),
@@ -354,7 +354,7 @@ class _AdditionRow extends StatelessWidget {
       title: Text(addition.name),
       subtitle: addition.price > 0
           ? PriceText(addition.price, kasPrice: addition.kasPrice)
-          : const Text('Free'),
+          : Text(context.l10n.itemFormAdditionFree),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

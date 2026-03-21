@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -11,7 +12,7 @@ class CategoryManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: const Text('Categories'), centerTitle: true),
+      appBar: BlurAppBar(title: Text(context.l10n.categoryManageTitle), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -39,7 +40,7 @@ class CategoryManagementPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     title: Text(
-                      'Add Category',
+                      context.l10n.categoryAddCategory,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -60,16 +61,16 @@ class CategoryManagementPage extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('New Category'),
+        title: Text(context.l10n.categoryNewCategory),
         content: TextField(
           controller: nameCtrl,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Category Name'),
+          decoration: InputDecoration(labelText: context.l10n.categoryNameLabel),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.categoryCancel),
           ),
           TextButton(
             onPressed: () {
@@ -80,7 +81,7 @@ class CategoryManagementPage extends StatelessWidget {
                 Navigator.of(ctx).pop();
               }
             },
-            child: const Text('Add'),
+            child: Text(context.l10n.categoryAdd),
           ),
         ],
       ),
@@ -92,16 +93,16 @@ class CategoryManagementPage extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rename Category'),
+        title: Text(context.l10n.categoryRenameTitle),
         content: TextField(
           controller: nameCtrl,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Category Name'),
+          decoration: InputDecoration(labelText: context.l10n.categoryNameLabel),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.categoryCancel),
           ),
           TextButton(
             onPressed: () {
@@ -113,7 +114,7 @@ class CategoryManagementPage extends StatelessWidget {
               }
               Navigator.of(ctx).pop();
             },
-            child: const Text('Rename'),
+            child: Text(context.l10n.categoryRename),
           ),
         ],
       ),
@@ -126,22 +127,22 @@ class CategoryManagementPage extends StatelessWidget {
     int count,
   ) async {
     final content = count > 0
-        ? '"$name" has $count item${count == 1 ? '' : 's'} that will also be permanently deleted. This cannot be undone.'
-        : 'Delete "$name"? This cannot be undone.';
+        ? context.l10n.categoryDeleteWithItems(name, count, count == 1 ? '' : 's')
+        : context.l10n.categoryDeleteEmpty(name);
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Category?'),
+        title: Text(context.l10n.categoryDeleteTitle),
         content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.categoryCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(context.l10n.categoryDelete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -171,7 +172,7 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
-      subtitle: Text('$count item${count == 1 ? '' : 's'}'),
+      subtitle: Text(context.l10n.categoryItemCount(count, count == 1 ? '' : 's')),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

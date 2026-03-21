@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/product.dart';
@@ -71,7 +72,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
 
         return Scaffold(
           appBar: BlurAppBar(
-            title: const Text('Manage Items'),
+            title: Text(context.l10n.itemManageTitle),
             centerTitle: true,
             bottom: categories.isEmpty
                 ? null
@@ -84,7 +85,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
             actions: [
               IconButton(
                 icon: const Icon(Icons.add),
-                tooltip: 'Create',
+                tooltip: context.l10n.itemManageCreate,
                 onPressed: () => _openCreateOptions(context, categories),
               ),
             ],
@@ -103,7 +104,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                       ),
-                      child: const Text('Done'),
+                      child: Text(context.l10n.itemDone),
                     ),
                   ),
                 )
@@ -119,11 +120,11 @@ class _ItemManagementPageState extends State<ItemManagementPage>
                         color: Theme.of(context).colorScheme.outlineVariant,
                       ),
                       const SizedBox(height: 16),
-                      const Text('No categories yet'),
+                      Text(context.l10n.itemNoCategoriesYet),
                       TextButton(
                         onPressed: () =>
                             _openCreateOptions(context, categories),
-                        child: const Text('Create Category'),
+                        child: Text(context.l10n.itemCreateCategory),
                       ),
                     ],
                   ),
@@ -155,20 +156,20 @@ class _ItemManagementPageState extends State<ItemManagementPage>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete Product?'),
+        title: Text(context.l10n.itemDeleteProductTitle),
         content: Text(
           inCart
-              ? '"${product.name}" is in the active order. Deleting will remove it from the cart too.'
-              : 'Delete "${product.name}"? This cannot be undone.',
+              ? context.l10n.itemDeleteProductInCart(product.name)
+              : context.l10n.itemDeleteProductConfirm(product.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.itemDeleteCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(context.l10n.itemDeleteConfirm, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -209,7 +210,7 @@ class _CategoryItemList extends StatelessWidget {
                   color: Theme.of(context).colorScheme.outlineVariant,
                 ),
                 const SizedBox(height: 16),
-                const Text('No items in this category'),
+                Text(context.l10n.itemNoItemsInCategory),
               ],
             ),
           );
@@ -256,7 +257,7 @@ class _ProductListTile extends StatelessWidget {
           PriceText(product.price, kasPrice: product.kasPrice),
           if (additionCount > 0)
             Text(
-              ' · $additionCount addition${additionCount == 1 ? '' : 's'}',
+              context.l10n.itemAdditionCount(additionCount, additionCount == 1 ? '' : 's'),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.outline,
                 fontSize: 12,

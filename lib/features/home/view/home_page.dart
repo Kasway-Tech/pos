@@ -1,3 +1,4 @@
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/table/table_cubit.dart';
@@ -93,13 +94,13 @@ class _HomeViewState extends State<HomeView>
         }
 
         if (state.status == HomeStatus.failure) {
-          return const Scaffold(
-            body: Center(child: Text('Failed to load products')),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.homeFailedToLoad)),
           );
         }
 
         if (state.categories.isEmpty) {
-          return const Scaffold(body: Center(child: Text('No products found')));
+          return Scaffold(body: Center(child: Text(context.l10n.homeNoProducts)));
         }
 
         final tabController = _tabController;
@@ -270,7 +271,7 @@ class _HomeViewState extends State<HomeView>
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          'Confirm Selection',
+                                          context.l10n.homeConfirmSelection,
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge
@@ -463,8 +464,8 @@ class _HomeViewState extends State<HomeView>
           width: double.infinity,
           color: Colors.amber,
           padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: const Text(
-            'Using the app in Testnet mode',
+          child: Text(
+            context.l10n.homeTestnetBanner,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Color(0xFF1A1A1A),
@@ -555,20 +556,18 @@ class _HomeViewState extends State<HomeView>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Order?'),
-        content: const Text(
-          'Are you sure you want to remove all items from the order list?',
-        ),
+        title: Text(context.l10n.homeClearOrderTitle),
+        content: Text(context.l10n.homeClearOrderContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.homeCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Clear Order',
-              style: TextStyle(color: Colors.red),
+            child: Text(
+              context.l10n.homeClearOrder,
+              style: const TextStyle(color: Colors.red),
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/table/table_state.dart';
@@ -187,26 +188,28 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
     final isGroup = groupId != null &&
         _tables.where((t) => t.groupId == groupId).length > 1;
 
+    final l10n = context.l10n;
+    final groupCount = _tables.where((t) => t.groupId == groupId).length;
     final content = isGroup
-        ? 'Remove the entire group (${_tables.where((t) => t.groupId == groupId).length} tables)?'
-        : 'Remove table "${table.label}"?';
+        ? l10n.tableLayoutDeleteGroupContent(groupCount)
+        : l10n.tableLayoutDeleteTableContent(table.label);
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isGroup ? 'Delete Group' : 'Delete Table'),
+        title: Text(isGroup ? l10n.tableLayoutDeleteGroup : l10n.tableLayoutDeleteTable),
         content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.tableLayoutCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.tableLayoutDelete),
           ),
         ],
       ),
@@ -224,21 +227,20 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
 
   Future<bool> _onWillPop() async {
     if (!_hasChanges) return true;
+    final l10n = context.l10n;
     final discard = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Unsaved Changes'),
-        content: const Text(
-          'You have unsaved changes. Discard them and leave?',
-        ),
+        title: Text(l10n.tableLayoutUnsavedChanges),
+        content: Text(l10n.tableLayoutUnsavedChangesContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Keep editing'),
+            child: Text(l10n.tableLayoutKeepEditing),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Discard', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.tableLayoutDiscard, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -285,13 +287,13 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
           },
           child: MacOSTitleBar(child: Scaffold(
             appBar: AppBar(
-              title: const Text('Table Layout'),
+              title: Text(context.l10n.tableLayoutTitle),
               centerTitle: true,
               actions: [
                 if (_hasChanges)
                   TextButton(
                     onPressed: _save,
-                    child: const Text('Save'),
+                    child: Text(context.l10n.tableLayoutSave),
                   ),
               ],
             ),
@@ -350,14 +352,14 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
                         FloatingActionButton.small(
                           heroTag: 'rotate_ccw',
                           onPressed: () => _rotateSelected(false),
-                          tooltip: 'Rotate counter-clockwise',
+                          tooltip: context.l10n.tableLayoutRotateCcw,
                           child: const Icon(Icons.rotate_left),
                         ),
                         const SizedBox(height: 8),
                         FloatingActionButton.small(
                           heroTag: 'rotate_cw',
                           onPressed: () => _rotateSelected(true),
-                          tooltip: 'Rotate clockwise',
+                          tooltip: context.l10n.tableLayoutRotateCw,
                           child: const Icon(Icons.rotate_right),
                         ),
                         const SizedBox(height: 12),
@@ -366,7 +368,7 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
                         heroTag: 'add_table',
                         onPressed: () => _showAddSheet(context),
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Table'),
+                        label: Text(context.l10n.tableLayoutAddTable),
                       ),
                     ],
                   )
@@ -412,7 +414,7 @@ class _FeatureToggleBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Table Layout',
+              context.l10n.tableLayoutFeatureToggle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -479,7 +481,7 @@ class _AddTableSheet extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Add Table',
+                context.l10n.tableLayoutAddTableSheet,
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge
@@ -487,7 +489,7 @@ class _AddTableSheet extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'SINGLE TABLES',
+                context.l10n.tableLayoutSingleTables,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: colorScheme.outline,
                       letterSpacing: 1.2,
@@ -514,7 +516,7 @@ class _AddTableSheet extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'TABLE GROUPS',
+                context.l10n.tableLayoutTableGroups,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: colorScheme.outline,
                       letterSpacing: 1.2,
@@ -522,7 +524,7 @@ class _AddTableSheet extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Places multiple tables at once in a preset arrangement.',
+                context.l10n.tableLayoutTableGroupsBody,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.outline,
                     ),
@@ -831,7 +833,7 @@ class _TableInspectorPanelState extends State<_TableInspectorPanel> {
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         Text(
-          ' · ${widget.table.seats} seats',
+          context.l10n.tableLayoutSeatsSuffix(widget.table.seats),
           style: Theme.of(context)
               .textTheme
               .bodySmall
@@ -840,12 +842,12 @@ class _TableInspectorPanelState extends State<_TableInspectorPanel> {
         const SizedBox(width: 8),
         _PanelIconButton(
           icon: Icons.edit_outlined,
-          tooltip: 'Rename',
+          tooltip: context.l10n.tableLayoutRename,
           onPressed: _startRename,
         ),
         _PanelIconButton(
           icon: Icons.delete_outline,
-          tooltip: 'Delete',
+          tooltip: context.l10n.tableLayoutDelete,
           color: cs.error,
           onPressed: widget.onDelete,
         ),
@@ -859,7 +861,7 @@ class _TableInspectorPanelState extends State<_TableInspectorPanel> {
       children: [
         _PanelIconButton(
           icon: Icons.close,
-          tooltip: 'Cancel',
+          tooltip: context.l10n.tableLayoutCancel,
           onPressed: _cancelRename,
         ),
         const SizedBox(width: 4),
@@ -881,7 +883,7 @@ class _TableInspectorPanelState extends State<_TableInspectorPanel> {
         const SizedBox(width: 4),
         _PanelIconButton(
           icon: Icons.check,
-          tooltip: 'Save',
+          tooltip: context.l10n.tableLayoutSaveName,
           color: cs.primary,
           onPressed: _saveRename,
         ),

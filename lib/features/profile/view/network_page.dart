@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/network/node_status_cubit.dart';
@@ -55,9 +56,9 @@ class _NetworkPageState extends State<NetworkPage>
     await cubit.setTestnet10Url(_testnet10UrlController.text.trim());
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Saved — reconnecting…'),
-        duration: Duration(seconds: 3),
+      SnackBar(
+        content: Text(context.l10n.networkSaved),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -74,11 +75,12 @@ class _NetworkPageState extends State<NetworkPage>
         listenWhen: (prev, curr) => prev.daaScore != curr.daaScore,
         listener: (context, _) => _pulseController.forward(from: 0),
         child: Scaffold(
-          appBar: BlurAppBar(title: const Text('Network'), centerTitle: true),
+          appBar: BlurAppBar(title: Text(context.l10n.networkTitle), centerTitle: true),
           body: BlocBuilder<NetworkCubit, NetworkState>(
             builder: (context, networkState) {
               return BlocBuilder<NodeStatusCubit, NodeStatusState>(
                 builder: (context, nodeState) {
+                  final l10n = context.l10n;
                   return Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 540),
@@ -89,15 +91,15 @@ class _NetworkPageState extends State<NetworkPage>
                         ),
                         children: [
                           // ── Active Network ──────────────────────────────
-                          _SectionLabel('Active Network'),
+                          _SectionLabel(l10n.networkActiveNetwork),
                           const SizedBox(height: 10),
                           Card(
                             margin: EdgeInsets.zero,
                             child: Column(
                               children: [
                                 _NetworkOption(
-                                  label: 'Mainnet',
-                                  subtitle: 'Production Kaspa network',
+                                  label: l10n.networkMainnet,
+                                  subtitle: l10n.networkMainnetSubtitle,
                                   selected:
                                       networkState.network ==
                                       KaspaNetwork.mainnet,
@@ -111,8 +113,8 @@ class _NetworkPageState extends State<NetworkPage>
                                   endIndent: 16,
                                 ),
                                 _NetworkOption(
-                                  label: 'Testnet-10',
-                                  subtitle: 'Test network · uses TKAS',
+                                  label: l10n.networkTestnet10,
+                                  subtitle: l10n.networkTestnet10Subtitle,
                                   selected:
                                       networkState.network ==
                                       KaspaNetwork.testnet10,
@@ -127,7 +129,7 @@ class _NetworkPageState extends State<NetworkPage>
                           const SizedBox(height: 24),
 
                           // ── Node Status ─────────────────────────────────
-                          _SectionLabel('Node Status'),
+                          _SectionLabel(l10n.networkNodeStatus),
                           const SizedBox(height: 10),
                           Card(
                             margin: EdgeInsets.zero,
@@ -144,8 +146,8 @@ class _NetworkPageState extends State<NetworkPage>
                                       const SizedBox(width: 8),
                                       Text(
                                         nodeState.connected
-                                            ? 'Connected'
-                                            : 'Disconnected',
+                                            ? l10n.networkConnected
+                                            : l10n.networkDisconnected,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
@@ -221,7 +223,7 @@ class _NetworkPageState extends State<NetworkPage>
                                   const SizedBox(height: 6),
                                   Center(
                                     child: Text(
-                                      'Virtual DAA Score',
+                                      l10n.networkVirtualDaaScore,
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelMedium
@@ -245,9 +247,9 @@ class _NetworkPageState extends State<NetworkPage>
                             child: Column(
                               children: [
                                 ListTile(
-                                  title: const Text(
-                                    'Custom Node URLs',
-                                    style: TextStyle(
+                                  title: Text(
+                                    l10n.networkCustomNodeUrls,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -277,37 +279,35 @@ class _NetworkPageState extends State<NetworkPage>
                                         children: [
                                           TextFormField(
                                             controller: _mainnetUrlController,
-                                            decoration: const InputDecoration(
-                                              labelText:
-                                                  'Mainnet WebSocket URL',
+                                            decoration: InputDecoration(
+                                              labelText: l10n.networkMainnetUrl,
                                               hintText: 'wss://…',
-                                              border: OutlineInputBorder(),
+                                              border: const OutlineInputBorder(),
                                               isDense: true,
                                             ),
                                             validator: (v) =>
                                                 (v == null || v.trim().isEmpty)
-                                                ? 'Required'
+                                                ? l10n.networkRequired
                                                 : null,
                                           ),
                                           const SizedBox(height: 12),
                                           TextFormField(
                                             controller: _testnet10UrlController,
-                                            decoration: const InputDecoration(
-                                              labelText:
-                                                  'Testnet-10 WebSocket URL',
+                                            decoration: InputDecoration(
+                                              labelText: l10n.networkTestnet10Url,
                                               hintText: 'wss://…',
-                                              border: OutlineInputBorder(),
+                                              border: const OutlineInputBorder(),
                                               isDense: true,
                                             ),
                                             validator: (v) =>
                                                 (v == null || v.trim().isEmpty)
-                                                ? 'Required'
+                                                ? l10n.networkRequired
                                                 : null,
                                           ),
                                           const SizedBox(height: 16),
                                           FilledButton(
                                             onPressed: _saveUrls,
-                                            child: const Text('Save'),
+                                            child: Text(l10n.networkSave),
                                           ),
                                         ],
                                       ),

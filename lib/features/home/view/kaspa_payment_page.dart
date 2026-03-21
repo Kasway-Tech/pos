@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/payload_codec.dart';
 
 import 'package:flutter/material.dart';
@@ -301,7 +302,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   Widget build(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-      appBar: BlurAppBar(title: const Text('Payment')),
+      appBar: BlurAppBar(title: Text(context.l10n.paymentTitle)),
       body: BlocListener<WalletCubit, WalletState>(
         listenWhen: (prev, curr) => prev.address != curr.address,
         listener: (context, walletState) {
@@ -335,7 +336,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    'No wallet configured. Please set up your wallet first.',
+                    context.l10n.paymentNoWallet,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
@@ -358,12 +359,12 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                       const CircularProgressIndicator(),
                       const SizedBox(height: 24),
                       Text(
-                        'Fetching exchange rates…',
+                        context.l10n.paymentFetchingRates,
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Please wait a moment.',
+                        context.l10n.paymentPleaseWait,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -373,7 +374,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         onPressed: () =>
                             context.read<CurrencyCubit>().fetchRates(),
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
+                        label: Text(context.l10n.paymentRetry),
                       ),
                     ],
                   ),
@@ -471,7 +472,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '$receivedStr of $totalStr $kasSymbol received',
+                      context.l10n.paymentReceivedOf(receivedStr, totalStr, kasSymbol),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),
@@ -525,7 +526,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Send $kasSymbol only, and exactly the amount shown above. Sending any other asset or incorrect amount might result in funds being lost.',
+                            context.l10n.paymentWarning(kasSymbol),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: Colors.white),
                           ),
@@ -570,7 +571,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Auto-donation active — $donationStr $kasSymbol will be sent to the developer after payment confirmation.',
+                                  context.l10n.paymentAutoDonationNotice(donationStr, kasSymbol),
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
@@ -669,7 +670,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                           8,
                                         ),
                                         child: Text(
-                                          'Order List',
+                                          context.l10n.paymentOrderList,
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleLarge

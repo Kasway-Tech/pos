@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
@@ -27,10 +28,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     _ordersFuture = context.read<OrderRepository>().getOrders(network);
   }
 
-  Map<String, List<Order>> _groupByDate(List<Order> orders) {
+  Map<String, List<Order>> _groupByDate(
+    List<Order> orders,
+    BuildContext context,
+  ) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
+    final l10n = context.l10n;
 
     final result = <String, List<Order>>{};
     for (final order in orders) {
@@ -38,9 +43,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       final day = DateTime(d.year, d.month, d.day);
       final String label;
       if (day == today) {
-        label = 'Today';
+        label = l10n.orderHistoryToday;
       } else if (day == yesterday) {
-        label = 'Yesterday';
+        label = l10n.orderHistoryYesterday;
       } else {
         label = DateFormat('d MMM yyyy').format(d);
       }
@@ -52,7 +57,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: const Text('Order History')),
+      appBar: BlurAppBar(title: Text(context.l10n.orderHistoryTitle)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -64,7 +69,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               }
               final orders = snapshot.data ?? [];
               if (orders.isEmpty) {
-                return const Center(child: Text('No orders yet'));
+                return Center(child: Text(context.l10n.orderHistoryNoOrders));
               }
 
               final now = DateTime.now();
@@ -77,7 +82,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 (sum, o) => sum + o.totalIdr,
               );
 
-              final groups = _groupByDate(orders);
+              final groups = _groupByDate(orders, context);
 
               return CustomScrollView(
                 slivers: [
@@ -88,13 +93,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         children: [
                           Expanded(
                             child: _StatColumn(
-                              label: "Today's Orders",
+                              label: context.l10n.orderHistoryTodayOrders,
                               value: todayOrders.length.toString(),
                             ),
                           ),
                           Expanded(
                             child: _StatColumnPrice(
-                              label: "Today's Revenue",
+                              label: context.l10n.orderHistoryTodayRevenue,
                               idrAmount: todayTotal,
                             ),
                           ),
@@ -203,7 +208,7 @@ class _ExplorerButton extends StatelessWidget {
           foregroundColor: Theme.of(context).colorScheme.secondary,
         ),
         icon: const Icon(Icons.open_in_browser_outlined, size: 16),
-        label: const Text('View on Explorer'),
+        label: Text(context.l10n.orderHistoryViewOnExplorer),
         onPressed: () {
           final url =
               '${context.read<NetworkCubit>().state.explorerBaseUrl}$txId';
@@ -278,7 +283,7 @@ class _OrderCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          'Table ${order.tableLabel}',
+                          context.l10n.orderHistoryTable(order.tableLabel),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,
@@ -323,7 +328,7 @@ class _OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'No item details recorded',
+                          context.l10n.orderHistoryNoItemDetails,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,
@@ -359,10 +364,10 @@ class _OrderCard extends StatelessWidget {
                         const Divider(height: 20),
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
-                                'Total',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                context.l10n.orderHistoryTotal,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
                             PriceText(

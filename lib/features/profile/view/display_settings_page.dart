@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/app/display/display_state.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 
 class DisplaySettingsPage extends StatelessWidget {
@@ -16,12 +17,13 @@ class DisplaySettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: BlurAppBar(
-        title: const Text('External Display'),
+        title: Text(context.l10n.displayTitle),
         centerTitle: true,
       ),
       body: BlocBuilder<DisplayCubit, DisplayState>(
         builder: (context, state) {
           final cubit = context.read<DisplayCubit>();
+          final l10n = context.l10n;
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 540),
@@ -37,11 +39,11 @@ class DisplaySettingsPage extends StatelessWidget {
                       onChanged: _isSupported
                           ? (v) => cubit.setEnabled(v)
                           : null,
-                      title: const Text('External Display'),
+                      title: Text(l10n.displayTitle),
                       subtitle: Text(
                         _isSupported
-                            ? 'Mirror the payment QR screen to a connected display.'
-                            : 'Available on Android and iOS only.',
+                            ? l10n.displaySubtitle
+                            : l10n.displayNotSupported,
                       ),
                       secondary: const Icon(Icons.tv_outlined),
                     ),
@@ -57,14 +59,14 @@ class DisplaySettingsPage extends StatelessWidget {
                             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
                             child: Row(
                               children: [
-                                _SectionTitle('Available Displays'),
+                                _SectionTitle(l10n.displayAvailableDisplays),
                                 const Spacer(),
                                 FilledButton.tonal(
                                   onPressed:
                                       state.status == DisplayStatus.scanning
                                       ? null
                                       : () => cubit.scanDisplays(),
-                                  child: const Text('Scan'),
+                                  child: Text(l10n.displayScan),
                                 ),
                                 const SizedBox(width: 8),
                               ],
@@ -79,7 +81,7 @@ class DisplaySettingsPage extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                               child: Text(
-                                'No displays found. Tap Scan to search.',
+                                l10n.displayNoDisplays,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(
@@ -112,7 +114,7 @@ class DisplaySettingsPage extends StatelessWidget {
                                     : FilledButton.tonal(
                                         onPressed: () =>
                                             cubit.connect(d.id, d.name),
-                                        child: const Text('Connect'),
+                                        child: Text(l10n.displayConnect),
                                       ),
                               );
                             }),
@@ -129,7 +131,7 @@ class DisplaySettingsPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _SectionTitle('Status'),
+                            _SectionTitle(l10n.displayStatus),
                             const SizedBox(height: 12),
 
                             Row(
@@ -139,8 +141,8 @@ class DisplaySettingsPage extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     state.isConnected
-                                        ? 'Connected: ${state.connectedDisplayName ?? 'Display ${state.connectedDisplayId}'}'
-                                        : 'Not connected',
+                                        ? l10n.displayConnected(state.connectedDisplayName ?? 'Display ${state.connectedDisplayId}')
+                                        : l10n.displayNotConnected,
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyLarge,
@@ -170,14 +172,14 @@ class DisplaySettingsPage extends StatelessWidget {
                                   Expanded(
                                     child: FilledButton.tonal(
                                       onPressed: () => cubit.reconnect(),
-                                      child: const Text('Reconnect'),
+                                      child: Text(l10n.displayReconnect),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: OutlinedButton(
                                       onPressed: () => cubit.disconnect(),
-                                      child: const Text('Disconnect'),
+                                      child: Text(l10n.displayDisconnect),
                                     ),
                                   ),
                                 ],

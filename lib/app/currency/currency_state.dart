@@ -47,6 +47,20 @@ class CurrencyState extends Equatable {
     Currency(code: 'CNY', name: 'Chinese Yuan', flag: '🇨🇳'),
     Currency(code: 'HKD', name: 'Hong Kong Dollar', flag: '🇭🇰'),
     Currency(code: 'KRW', name: 'South Korean Won', flag: '🇰🇷'),
+    Currency(code: 'THB', name: 'Thai Baht', flag: '🇹🇭'),
+    Currency(code: 'VND', name: 'Vietnamese Dong', flag: '🇻🇳'),
+    Currency(code: 'PHP', name: 'Philippine Peso', flag: '🇵🇭'),
+    Currency(code: 'BRL', name: 'Brazilian Real', flag: '🇧🇷'),
+    Currency(code: 'MXN', name: 'Mexican Peso', flag: '🇲🇽'),
+    Currency(code: 'CAD', name: 'Canadian Dollar', flag: '🇨🇦'),
+    Currency(code: 'CHF', name: 'Swiss Franc', flag: '🇨🇭'),
+    Currency(code: 'NZD', name: 'New Zealand Dollar', flag: '🇳🇿'),
+    Currency(code: 'ZAR', name: 'South African Rand', flag: '🇿🇦'),
+    Currency(code: 'INR', name: 'Indian Rupee', flag: '🇮🇳'),
+    Currency(code: 'AED', name: 'UAE Dirham', flag: '🇦🇪'),
+    Currency(code: 'SAR', name: 'Saudi Riyal', flag: '🇸🇦'),
+    Currency(code: 'NGN', name: 'Nigerian Naira', flag: '🇳🇬'),
+    Currency(code: 'PKR', name: 'Pakistani Rupee', flag: '🇵🇰'),
   ];
 
   final Currency selectedCurrency;
@@ -78,7 +92,7 @@ class CurrencyState extends Equatable {
     final converted = kasPrice != null
         ? kasPrice * kasTarget
         : (idrPrice / kasIdr) * kasTarget;
-    final decimals = {'jpy', 'krw', 'idr'}.contains(code) ? 0 : 2;
+    final decimals = {'jpy', 'krw', 'idr', 'vnd', 'pkr', 'ngn'}.contains(code) ? 0 : 2;
     return NumberFormat.currency(
       symbol: '${selectedCurrency.code} ',
       decimalDigits: decimals,

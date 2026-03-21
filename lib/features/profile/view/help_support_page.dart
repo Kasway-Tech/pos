@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 
@@ -7,9 +8,10 @@ class HelpSupportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(title: const Text('Help & Support')),
+        appBar: BlurAppBar(title: Text(l10n.helpTitle)),
         body: Center(
           child: ConstrainedBox(
             key: const Key('content_constraint'),
@@ -19,42 +21,36 @@ class HelpSupportPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'Frequently Asked Questions',
+                    l10n.helpFaqTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const ExpansionTile(
-                  title: Text('How to place an order?'),
+                ExpansionTile(
+                  title: Text(l10n.helpHowToPlaceOrder),
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(
-                        'You can pick products from the home page and confirm the selection.',
-                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(l10n.helpHowToPlaceOrderAnswer),
                     ),
                   ],
                 ),
-                const ExpansionTile(
-                  title: Text('Payment methods available?'),
+                ExpansionTile(
+                  title: Text(l10n.helpPaymentMethods),
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(
-                        'We support Credit Cards, E-Wallets, and Cash.',
-                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(l10n.helpPaymentMethodsAnswer),
                     ),
                   ],
                 ),
-                const ExpansionTile(
-                  title: Text('Can I cancel an order?'),
+                ExpansionTile(
+                  title: Text(l10n.helpCancelOrder),
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(
-                        'Orders can be cleared before confirmation from the order bar.',
-                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(l10n.helpCancelOrderAnswer),
                     ),
                   ],
                 ),
@@ -62,7 +58,7 @@ class HelpSupportPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'Contact Us',
+                    l10n.helpContactUs,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -70,19 +66,19 @@ class HelpSupportPage extends StatelessWidget {
                 ),
                 ListTile(
                   leading: const Icon(Icons.email_outlined),
-                  title: const Text('Email Support'),
+                  title: Text(l10n.helpEmailSupport),
                   subtitle: const Text('support@kasway.com'),
                   onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.chat_outlined),
-                  title: const Text('WhatsApp Support'),
+                  title: Text(l10n.helpWhatsAppSupport),
                   subtitle: const Text('+62 812-3456-7890'),
                   onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.phone_outlined),
-                  title: const Text('Call Center'),
+                  title: Text(l10n.helpCallCenter),
                   subtitle: const Text('1500-123'),
                   onTap: () {},
                 ),

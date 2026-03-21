@@ -6,6 +6,7 @@ import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
 import 'package:kasway/app/helpers/format_helpers.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
@@ -29,7 +30,7 @@ class _DonationPageState extends State<DonationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: const Text('Donate'), centerTitle: true),
+      appBar: BlurAppBar(title: Text(context.l10n.donateTitle), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -84,7 +85,7 @@ class _OneTimeDonationSection extends StatelessWidget {
                     Icon(Icons.favorite, color: colorScheme.primary, size: 22),
                     const SizedBox(width: 10),
                     Text(
-                      'Support the Developer',
+                      context.l10n.donateSupportDeveloper,
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -93,7 +94,7 @@ class _OneTimeDonationSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Kasway is free and open source. If you find it useful, consider sending a one-time KAS donation directly to the developer.',
+                  context.l10n.donateSupportDeveloperBody,
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -126,9 +127,9 @@ class _OneTimeDonationSection extends StatelessWidget {
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: devAddress));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Address copied'),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(context.l10n.donateAddressCopied),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                         },
@@ -146,7 +147,7 @@ class _OneTimeDonationSection extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: () => _openDonateSheet(context),
                     icon: const Icon(Icons.send_outlined),
-                    label: const Text('Donate Now'),
+                    label: Text(context.l10n.donateDonateNow),
                   ),
                 ),
               ],
@@ -215,11 +216,12 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
 
     final activeUrl = context.read<NetworkCubit>().state.activeUrl;
     final donationRepo = context.read<DonationRepository>();
+    final noWalletMsg = context.l10n.donateNoWallet;
 
     final prefs = await SharedPreferences.getInstance();
     final mnemonic = prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
     if (mnemonic.isEmpty) {
-      _showError('No wallet mnemonic found. Please set up your wallet first.');
+      _showError(noWalletMsg);
       return;
     }
     final kasAmount = double.tryParse(_amountController.text.trim()) ?? 0;
@@ -255,7 +257,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Thank you! TX: ${result.txId}'),
+          content: Text(context.l10n.donateThankYou(result.txId)),
           duration: const Duration(seconds: 6),
         ),
       );
@@ -268,7 +270,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Transaction Failed'),
+        title: Text(context.l10n.donateTransactionFailed),
         content: Text(message),
         actions: [
           TextButton(
@@ -282,6 +284,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -296,21 +299,21 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Donate KAS',
+              l10n.donateKas,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Recipient: ${truncateAddress(DonationConstants.addressForHrp(widget.hrp), visibleEnd: 8)}',
+              l10n.donateRecipient(truncateAddress(DonationConstants.addressForHrp(widget.hrp), visibleEnd: 8)),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Available: ${formatKas(widget.balanceKas)} KAS',
+              l10n.donateAvailable(formatKas(widget.balanceKas)),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),
@@ -318,18 +321,18 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
             const SizedBox(height: 20),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount (KAS)',
+              decoration: InputDecoration(
+                labelText: l10n.donateAmountLabel,
                 hintText: '0.00',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Amount is required';
+                if (v == null || v.trim().isEmpty) return l10n.donateAmountRequired;
                 final n = double.tryParse(v.trim());
-                if (n == null || n <= 0) return 'Enter a valid amount';
+                if (n == null || n <= 0) return l10n.donateAmountInvalid;
                 return null;
               },
             ),
@@ -345,7 +348,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Send'),
+                  : Text(l10n.donateSend),
             ),
           ],
         ),
@@ -400,21 +403,21 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Auto-Donate Per Payment',
+                  context.l10n.donateAutoPerPayment,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Silently send a small KAS amount to the developer after each confirmed customer payment (mainnet only).',
+                  context.l10n.donateAutoPerPaymentBody,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Enable Auto-Donate'),
+                  title: Text(context.l10n.donateEnableAuto),
                   value: state.autoEnabled,
                   onChanged: (v) =>
                       context.read<DonationCubit>().setAutoEnabled(v),
@@ -437,12 +440,12 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
                       children: [
                         RadioListTile<DonationMode>(
                           contentPadding: EdgeInsets.zero,
-                          title: const Text('Percentage of transaction'),
+                          title: Text(context.l10n.donatePercentage),
                           value: DonationMode.percentage,
                         ),
                         RadioListTile<DonationMode>(
                           contentPadding: EdgeInsets.zero,
-                          title: const Text('Fixed amount (KAS)'),
+                          title: Text(context.l10n.donateFixed),
                           value: DonationMode.fixedAmount,
                         ),
                       ],
@@ -453,11 +456,9 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
                     controller: _valueController,
                     decoration: InputDecoration(
                       labelText: state.mode == DonationMode.percentage
-                          ? 'Percentage (%)'
-                          : 'Amount (KAS)',
-                      hintText: state.mode == DonationMode.percentage
-                          ? '1.0'
-                          : '1.0',
+                          ? context.l10n.donatePercentageLabel
+                          : context.l10n.donateAmountKasLabel,
+                      hintText: '1.0',
                       border: const OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -469,7 +470,7 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () => _save(context, state),
-                      child: const Text('Save'),
+                      child: Text(context.l10n.donateSaveSettings),
                     ),
                   ),
                 ],
@@ -485,7 +486,7 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
     final raw = double.tryParse(_valueController.text.trim()) ?? 0;
     if (raw <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid value greater than 0')),
+        SnackBar(content: Text(context.l10n.donateInvalidValue)),
       );
       return;
     }
@@ -496,9 +497,9 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
       cubit.setFixedAmount(raw);
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Auto-donate settings saved'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(context.l10n.donateSettingsSaved),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -542,7 +543,7 @@ class _DonationHistorySectionState extends State<_DonationHistorySection> {
                 Icon(Icons.history, color: colorScheme.primary, size: 22),
                 const SizedBox(width: 10),
                 Text(
-                  'Donation History',
+                  context.l10n.donateHistory,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -564,7 +565,7 @@ class _DonationHistorySectionState extends State<_DonationHistorySection> {
                 final records = snapshot.data ?? [];
                 if (records.isEmpty) {
                   return Text(
-                    'No donations yet',
+                    context.l10n.donateNoDonations,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -655,9 +656,9 @@ class _DonationRow extends StatelessWidget {
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: record.txId));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('TX ID copied'),
-                        duration: Duration(seconds: 2),
+                      SnackBar(
+                        content: Text(context.l10n.donateTxIdCopied),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   },

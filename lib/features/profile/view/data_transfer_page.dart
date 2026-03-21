@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
@@ -33,14 +34,14 @@ class _DataTransferPageState extends State<DataTransferPage> {
       await _dataService.exportData(context);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Backup saved successfully')),
+          SnackBar(content: Text(context.l10n.dataBackupSuccess)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Backup failed: $e'),
+            content: Text(context.l10n.dataBackupFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -58,7 +59,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
       if (result.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Restore failed: ${result.error}'),
+            content: Text(context.l10n.dataRestoreFailed(result.error!)),
             backgroundColor: Colors.red,
           ),
         );
@@ -66,7 +67,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
         context.read<HomeBloc>().add(HomeStarted());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${result.imported} items restored successfully'),
+            content: Text(context.l10n.dataRestoreSuccess(result.imported)),
           ),
         );
       }
@@ -74,7 +75,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Restore failed: $e'),
+            content: Text(context.l10n.dataRestoreFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -86,9 +87,10 @@ class _DataTransferPageState extends State<DataTransferPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: BlurAppBar(
-        title: const Text('Backup & Restore'),
+        title: Text(l10n.dataTitle),
         centerTitle: true,
       ),
       body: _loading
@@ -105,7 +107,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
                         vertical: 4.0,
                       ),
                       child: Text(
-                        'Backup',
+                        l10n.dataBackupSection,
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: Theme.of(context).colorScheme.outline,
@@ -115,10 +117,8 @@ class _DataTransferPageState extends State<DataTransferPage> {
                     ),
                     ListTile(
                       leading: const Icon(Icons.backup_outlined),
-                      title: const Text('Back Up Catalog'),
-                      subtitle: const Text(
-                        'Save all your items and categories to a CSV file',
-                      ),
+                      title: Text(l10n.dataBackupTitle),
+                      subtitle: Text(l10n.dataBackupSubtitle),
                       trailing: const Icon(Icons.chevron_right, size: 20),
                       onTap: _export,
                     ),
@@ -129,7 +129,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
                         vertical: 4.0,
                       ),
                       child: Text(
-                        'Restore',
+                        l10n.dataRestoreSection,
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: Theme.of(context).colorScheme.outline,
@@ -139,17 +139,15 @@ class _DataTransferPageState extends State<DataTransferPage> {
                     ),
                     ListTile(
                       leading: const Icon(Icons.restore_outlined),
-                      title: const Text('Restore from Backup'),
-                      subtitle: const Text(
-                        'Load items from a previously saved CSV file',
-                      ),
+                      title: Text(l10n.dataRestoreTitle),
+                      subtitle: Text(l10n.dataRestoreSubtitle),
                       trailing: const Icon(Icons.chevron_right, size: 20),
                       onTap: _import,
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                       child: Text(
-                        'Note: Items with the same ID in the backup will overwrite existing ones.',
+                        l10n.dataRestoreNote,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),

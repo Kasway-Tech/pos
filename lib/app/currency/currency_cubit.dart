@@ -11,7 +11,7 @@ class CurrencyCubit extends Cubit<CurrencyState> {
     _init();
   }
   static const _coingeckoUrl =
-      'https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=idr,usd,eur,gbp,jpy,sgd,myr,aud,cny,hkd,krw';
+      'https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=idr,usd,eur,gbp,jpy,sgd,myr,aud,cny,hkd,krw,thb,vnd,php,brl,mxn,cad,chf,nzd,zar,inr,aed,sar,ngn,pkr';
 
   Timer? _timer;
 

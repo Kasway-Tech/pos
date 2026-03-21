@@ -65,5 +65,369 @@
   "onboardingImportFailed": "Import failed: {error}",
   "@onboardingImportFailed": {
     "placeholders": { "error": { "type": "String" } }
-  }
+  },
+
+  "helpTitle": "Help & Support",
+  "helpFaqTitle": "Frequently Asked Questions",
+  "helpHowToPlaceOrder": "How to place an order?",
+  "helpHowToPlaceOrderAnswer": "You can pick products from the home page and confirm the selection.",
+  "helpPaymentMethods": "Payment methods available?",
+  "helpPaymentMethodsAnswer": "We support Credit Cards, E-Wallets, and Cash.",
+  "helpCancelOrder": "Can I cancel an order?",
+  "helpCancelOrderAnswer": "Orders can be cleared before confirmation from the order bar.",
+  "helpContactUs": "Contact Us",
+  "helpEmailSupport": "Email Support",
+  "helpWhatsAppSupport": "WhatsApp Support",
+  "helpCallCenter": "Call Center",
+
+  "dataTitle": "Backup & Restore",
+  "dataBackupSection": "Backup",
+  "dataBackupTitle": "Back Up Catalog",
+  "dataBackupSubtitle": "Save all your items and categories to a CSV file",
+  "dataRestoreSection": "Restore",
+  "dataRestoreTitle": "Restore from Backup",
+  "dataRestoreSubtitle": "Load items from a previously saved CSV file",
+  "dataRestoreNote": "Note: Items with the same ID in the backup will overwrite existing ones.",
+  "dataBackupSuccess": "Backup saved successfully",
+  "dataBackupFailed": "Backup failed: {error}",
+  "@dataBackupFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "dataRestoreFailed": "Restore failed: {error}",
+  "@dataRestoreFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "dataRestoreSuccess": "{count} items restored successfully",
+  "@dataRestoreSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsDisplayCurrency": "Display Currency",
+  "settingsDynamicPricing": "Dynamic Pricing",
+  "settingsDynamicPricingUnavailable": "Not available for KAS display currency",
+  "settingsDynamicPricingSubtitle": "Auto-update prices every 60 seconds",
+  "settingsAppInfo": "App Info",
+  "settingsAppVersion": "App Version",
+  "settingsTermsOfService": "Terms of Service",
+
+  "themeTitle": "Theme Settings",
+  "themeMode": "Theme Mode",
+  "themeModeSystem": "System",
+  "themeModeLight": "Light",
+  "themeModeDark": "Dark",
+  "themePrimaryColor": "Primary Color",
+  "themeResetToDefault": "Reset to default",
+  "themePreview": "Preview",
+  "themePreviewSampleCard": "Sample Card",
+  "themePreviewSampleCardBody": "This is how your theme will look with the selected color.",
+  "themePreviewFilledButton": "Filled Button",
+  "themePreviewOutlinedButton": "Outlined Button",
+  "themePreviewTextButton": "Text Button",
+
+  "networkTitle": "Network",
+  "networkActiveNetwork": "Active Network",
+  "networkMainnet": "Mainnet",
+  "networkMainnetSubtitle": "Production Kaspa network",
+  "networkTestnet10": "Testnet-10",
+  "networkTestnet10Subtitle": "Test network · uses TKAS",
+  "networkNodeStatus": "Node Status",
+  "networkConnected": "Connected",
+  "networkDisconnected": "Disconnected",
+  "networkVirtualDaaScore": "Virtual DAA Score",
+  "networkCustomNodeUrls": "Custom Node URLs",
+  "networkMainnetUrl": "Mainnet WebSocket URL",
+  "networkTestnet10Url": "Testnet-10 WebSocket URL",
+  "networkSave": "Save",
+  "networkSaved": "Saved — reconnecting…",
+  "networkRequired": "Required",
+
+  "donateTitle": "Donate",
+  "donateSupportDeveloper": "Support the Developer",
+  "donateSupportDeveloperBody": "Kasway is free and open source. If you find it useful, consider sending a one-time KAS donation directly to the developer.",
+  "donateAddressCopied": "Address copied",
+  "donateDonateNow": "Donate Now",
+  "donateKas": "Donate KAS",
+  "donateRecipient": "Recipient: {address}",
+  "@donateRecipient": {
+    "placeholders": { "address": { "type": "String" } }
+  },
+  "donateAvailable": "Available: {amount} KAS",
+  "@donateAvailable": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "donateAmountLabel": "Amount (KAS)",
+  "donateAmountRequired": "Amount is required",
+  "donateAmountInvalid": "Enter a valid amount",
+  "donateSend": "Send",
+  "donateThankYou": "Thank you! TX: {txId}",
+  "@donateThankYou": {
+    "placeholders": { "txId": { "type": "String" } }
+  },
+  "donateTransactionFailed": "Transaction Failed",
+  "donateAutoPerPayment": "Auto-Donate Per Payment",
+  "donateAutoPerPaymentBody": "Silently send a small KAS amount to the developer after each confirmed customer payment (mainnet only).",
+  "donateEnableAuto": "Enable Auto-Donate",
+  "donatePercentage": "Percentage of transaction",
+  "donateFixed": "Fixed amount (KAS)",
+  "donatePercentageLabel": "Percentage (%)",
+  "donateAmountKasLabel": "Amount (KAS)",
+  "donateSaveSettings": "Save",
+  "donateInvalidValue": "Enter a valid value greater than 0",
+  "donateSettingsSaved": "Auto-donate settings saved",
+  "donateHistory": "Donation History",
+  "donateNoDonations": "No donations yet",
+  "donateTxIdCopied": "TX ID copied",
+  "donateNoWallet": "No wallet mnemonic found. Please set up your wallet first.",
+
+  "displayTitle": "External Display",
+  "displaySubtitle": "Mirror the payment QR screen to a connected display.",
+  "displayNotSupported": "Available on Android and iOS only.",
+  "displayAvailableDisplays": "Available Displays",
+  "displayScan": "Scan",
+  "displayNoDisplays": "No displays found. Tap Scan to search.",
+  "displayConnect": "Connect",
+  "displayStatus": "Status",
+  "displayConnected": "Connected: {name}",
+  "@displayConnected": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "displayNotConnected": "Not connected",
+  "displayReconnect": "Reconnect",
+  "displayDisconnect": "Disconnect",
+
+  "tableLayoutTitle": "Table Layout",
+  "tableLayoutSave": "Save",
+  "tableLayoutFeatureToggle": "Table Layout",
+  "tableLayoutAddTable": "Add Table",
+  "tableLayoutRotateCcw": "Rotate counter-clockwise",
+  "tableLayoutRotateCw": "Rotate clockwise",
+  "tableLayoutDeleteGroup": "Delete Group",
+  "tableLayoutDeleteTable": "Delete Table",
+  "tableLayoutDeleteGroupContent": "Remove the entire group ({count} tables)?",
+  "@tableLayoutDeleteGroupContent": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "tableLayoutDeleteTableContent": "Remove table \"{label}\"?",
+  "@tableLayoutDeleteTableContent": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "tableLayoutCancel": "Cancel",
+  "tableLayoutDelete": "Delete",
+  "tableLayoutUnsavedChanges": "Unsaved Changes",
+  "tableLayoutUnsavedChangesContent": "You have unsaved changes. Discard them and leave?",
+  "tableLayoutKeepEditing": "Keep editing",
+  "tableLayoutDiscard": "Discard",
+  "tableLayoutSingleTables": "SINGLE TABLES",
+  "tableLayoutTableGroups": "TABLE GROUPS",
+  "tableLayoutTableGroupsBody": "Places multiple tables at once in a preset arrangement.",
+  "tableLayoutAddTableSheet": "Add Table",
+  "tableLayoutSeatsSuffix": " · {seats} seats",
+  "@tableLayoutSeatsSuffix": {
+    "placeholders": { "seats": { "type": "int" } }
+  },
+  "tableLayoutRename": "Rename",
+  "tableLayoutSaveName": "Save",
+
+  "orderHistoryTitle": "Order History",
+  "orderHistoryNoOrders": "No orders yet",
+  "orderHistoryTodayOrders": "Today's Orders",
+  "orderHistoryTodayRevenue": "Today's Revenue",
+  "orderHistoryToday": "Today",
+  "orderHistoryYesterday": "Yesterday",
+  "orderHistoryNoItemDetails": "No item details recorded",
+  "orderHistoryTotal": "Total",
+  "orderHistoryViewOnExplorer": "View on Explorer",
+  "orderHistoryTable": "Table {label}",
+  "@orderHistoryTable": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+
+  "withdrawalHistoryTitle": "Withdraw History",
+  "withdrawalHistoryNoWithdrawals": "No withdrawals yet",
+  "withdrawalHistoryCopyTxId": "Copy TX ID",
+  "withdrawalHistoryViewOnExplorer": "View on Explorer",
+  "withdrawalHistoryTxIdCopied": "TX ID copied",
+
+  "profileTitle": "Profile",
+  "profileSelectSection": "Select a section",
+  "profileOrderHistory": "Order History",
+  "profileManageItem": "Manage Item",
+  "profileTableLayout": "Table Layout",
+  "profileBackupRestore": "Backup & Restore",
+  "profileNetworkNode": "Network & Node",
+  "profileDisplay": "Display",
+  "profileThemeSettings": "Theme Settings",
+  "profileSettings": "Settings",
+  "profileDonate": "Donate",
+  "profileLogout": "Logout",
+  "profileLogoutContent": "Are you sure you want to log out?",
+  "profileCancel": "Cancel",
+  "profileKaspaAddress": "Kaspa Address",
+  "profileNoWallet": "No wallet configured",
+  "profileCopyAddress": "Copy address",
+  "profileViewInExplorer": "View in explorer",
+  "profileBalance": "Balance",
+  "profileWithdraw": "Withdraw",
+  "profileAddressCopied": "Address copied",
+  "profileWithdrawTitle": "Withdraw {kasSymbol}",
+  "@profileWithdrawTitle": {
+    "placeholders": { "kasSymbol": { "type": "String" } }
+  },
+  "profileDestinationAddress": "Destination Kaspa Address",
+  "profileAddressRequired": "Address is required",
+  "profileAddressInvalid": "Must be a valid {hrp}: address",
+  "@profileAddressInvalid": {
+    "placeholders": { "hrp": { "type": "String" } }
+  },
+  "profileAmountLabel": "Amount ({kasSymbol})",
+  "@profileAmountLabel": {
+    "placeholders": { "kasSymbol": { "type": "String" } }
+  },
+  "profileAmountRequired": "Amount is required",
+  "profileAmountInvalid": "Enter a valid amount",
+  "profileSend": "Send",
+  "profileTransactionFailed": "Transaction Failed",
+  "profileWithdrawNoWallet": "No wallet mnemonic found. Please set up your wallet first.",
+  "profileWithdrawalSuccessTitle": "Withdrawal Successful!",
+  "profileWithdrawalSuccessSubtitle": "Your KAS has been sent successfully.",
+  "profileMax": "Max",
+
+  "homeFailedToLoad": "Failed to load products",
+  "homeNoProducts": "No products found",
+  "homeConfirmSelection": "Confirm Selection",
+  "homeClearOrderTitle": "Clear Order?",
+  "homeClearOrderContent": "Are you sure you want to remove all items from the order list?",
+  "homeClearOrder": "Clear Order",
+  "homeCancel": "Cancel",
+  "homeTestnetBanner": "Using the app in Testnet mode",
+
+  "paymentTitle": "Payment",
+  "paymentNoWallet": "No wallet configured. Please set up your wallet first.",
+  "paymentFetchingRates": "Fetching exchange rates…",
+  "paymentPleaseWait": "Please wait a moment.",
+  "paymentRetry": "Retry",
+  "paymentReceivedOf": "{received} of {total} {kasSymbol} received",
+  "@paymentReceivedOf": {
+    "placeholders": {
+      "received": { "type": "String" },
+      "total": { "type": "String" },
+      "kasSymbol": { "type": "String" }
+    }
+  },
+  "paymentWarning": "Send {kasSymbol} only, and exactly the amount shown above. Sending any other asset or incorrect amount might result in funds being lost.",
+  "@paymentWarning": {
+    "placeholders": { "kasSymbol": { "type": "String" } }
+  },
+  "paymentAutoDonationNotice": "Auto-donation active — {amount} {kasSymbol} will be sent to the developer after payment confirmation.",
+  "@paymentAutoDonationNotice": {
+    "placeholders": {
+      "amount": { "type": "String" },
+      "kasSymbol": { "type": "String" }
+    }
+  },
+  "paymentOrderList": "Order List",
+
+  "tableSelectTitle": "Select Table",
+  "tableSelectMarkAsServed": "Mark as Served",
+  "tableSelectFreeTable": "Free Table",
+  "tableSelectFreeTableContent": "Mark Table {label} as available? This will remove the occupied status.",
+  "@tableSelectFreeTableContent": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "tableSelectFreeTableTitle": "Free Table",
+  "tableSelectTableLabel": "Table {label}",
+  "@tableSelectTableLabel": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "tableSelectNoTables": "No tables configured",
+  "tableSelectNoTablesBody": "Set up your floor plan in Profile > Table Layout.",
+  "tableSelectGoToLayout": "Go to Table Layout",
+
+  "paymentSuccessTitle": "Payment Successful!",
+  "paymentSuccessSubtitle": "The transaction has been processed successfully.",
+  "paymentSuccessRedirect": "You will be redirected in {count} second{plural}...",
+  "@paymentSuccessRedirect": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "plural": { "type": "String" }
+    }
+  },
+
+  "itemManageTitle": "Manage Items",
+  "itemNoCategoriesYet": "No categories yet",
+  "itemCreateCategory": "Create Category",
+  "itemNoItemsInCategory": "No items in this category",
+  "itemDeleteProductTitle": "Delete Product?",
+  "itemDeleteProductInCart": "\"{name}\" is in the active order. Deleting will remove it from the cart too.",
+  "@itemDeleteProductInCart": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "itemDeleteProductConfirm": "Delete \"{name}\"? This cannot be undone.",
+  "@itemDeleteProductConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "itemDeleteCancel": "Cancel",
+  "itemDeleteConfirm": "Delete",
+  "itemDone": "Done",
+  "itemAdditionCount": " · {count} addition{plural}",
+  "@itemAdditionCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "plural": { "type": "String" }
+    }
+  },
+
+  "itemFormEditTitle": "Edit Product",
+  "itemFormAddTitle": "Add Product",
+  "itemFormSave": "Save",
+  "itemFormProductName": "Product Name",
+  "itemFormRequired": "Required",
+  "itemFormInvalidNumber": "Enter a valid number",
+  "itemFormCategory": "Category",
+  "itemFormDescription": "Description (optional)",
+  "itemFormAdditions": "Additions",
+  "itemFormAddAddition": "Add Addition",
+  "itemFormAdditionFree": "Free",
+  "itemFormEditAdditionTitle": "Edit Addition",
+  "itemFormNewAdditionTitle": "New Addition",
+  "itemFormAdditionName": "Addition Name",
+  "itemFormAdditionPriceLabel": "Extra Price ({code}, 0 = free)",
+  "@itemFormAdditionPriceLabel": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "itemFormCancel": "Cancel",
+
+  "categoryManageTitle": "Categories",
+  "categoryAddCategory": "Add Category",
+  "categoryNewCategory": "New Category",
+  "categoryNameLabel": "Category Name",
+  "categoryAdd": "Add",
+  "categoryCancel": "Cancel",
+  "categoryRenameTitle": "Rename Category",
+  "categoryRename": "Rename",
+  "categoryDeleteTitle": "Delete Category?",
+  "categoryDeleteWithItems": "\"{name}\" has {count} item{plural} that will also be permanently deleted. This cannot be undone.",
+  "@categoryDeleteWithItems": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" },
+      "plural": { "type": "String" }
+    }
+  },
+  "categoryDeleteEmpty": "Delete \"{name}\"? This cannot be undone.",
+  "@categoryDeleteEmpty": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "categoryDelete": "Delete",
+  "categoryItemCount": "{count} item{plural}",
+  "@categoryItemCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "plural": { "type": "String" }
+    }
+  },
+
+  "itemManageCreate": "Create"
 }

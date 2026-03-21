@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kasway/app/helpers/format_helpers.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
@@ -35,7 +36,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
     return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(
-          title: const Text('Withdraw History'),
+          title: Text(context.l10n.withdrawalHistoryTitle),
           centerTitle: true,
         ),
         body: FutureBuilder<List<Withdrawal>>(
@@ -46,7 +47,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
             }
             final withdrawals = snapshot.data ?? [];
             if (withdrawals.isEmpty) {
-              return const Center(child: Text('No withdrawals yet'));
+              return Center(child: Text(context.l10n.withdrawalHistoryNoWithdrawals));
             }
             return Center(
               child: ConstrainedBox(
@@ -65,20 +66,20 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.copy_outlined),
-                            tooltip: 'Copy TX ID',
+                            tooltip: context.l10n.withdrawalHistoryCopyTxId,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: w.txId));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('TX ID copied'),
-                                  duration: Duration(seconds: 2),
+                                SnackBar(
+                                  content: Text(context.l10n.withdrawalHistoryTxIdCopied),
+                                  duration: const Duration(seconds: 2),
                                 ),
                               );
                             },
                           ),
                           IconButton(
                             icon: const Icon(Icons.open_in_browser_outlined),
-                            tooltip: 'View on Explorer',
+                            tooltip: context.l10n.withdrawalHistoryViewOnExplorer,
                             onPressed: () {
                               final url =
                                   '${context.read<NetworkCubit>().state.explorerBaseUrl}${w.txId}';

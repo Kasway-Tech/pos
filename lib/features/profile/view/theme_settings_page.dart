@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 
 import '../../../app/theme/theme_cubit.dart';
@@ -32,12 +33,13 @@ class ThemeSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: const Text('Theme Settings')),
+      appBar: BlurAppBar(title: Text(context.l10n.themeTitle)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: BlocBuilder<ThemeCubit, ThemeState>(
             builder: (context, state) {
+              final l10n = context.l10n;
               return LayoutBuilder(
                 builder: (context, constraints) {
                   final isLargeScreen = constraints.maxWidth >= 900;
@@ -46,28 +48,28 @@ class ThemeSettingsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Theme Mode',
+                        l10n.themeMode,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         child: SegmentedButton<ThemeMode>(
-                          segments: const [
+                          segments: [
                             ButtonSegment<ThemeMode>(
                               value: ThemeMode.system,
-                              icon: Icon(Icons.settings_suggest),
-                              label: Text('System'),
+                              icon: const Icon(Icons.settings_suggest),
+                              label: Text(l10n.themeModeSystem),
                             ),
                             ButtonSegment<ThemeMode>(
                               value: ThemeMode.light,
-                              icon: Icon(Icons.light_mode),
-                              label: Text('Light'),
+                              icon: const Icon(Icons.light_mode),
+                              label: Text(l10n.themeModeLight),
                             ),
                             ButtonSegment<ThemeMode>(
                               value: ThemeMode.dark,
-                              icon: Icon(Icons.dark_mode),
-                              label: Text('Dark'),
+                              icon: const Icon(Icons.dark_mode),
+                              label: Text(l10n.themeModeDark),
                             ),
                           ],
                           selected: {state.themeMode},
@@ -85,7 +87,7 @@ class ThemeSettingsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Primary Color',
+                        l10n.themePrimaryColor,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
@@ -145,7 +147,7 @@ class ThemeSettingsPage extends StatelessWidget {
                             ? null
                             : () => context.read<ThemeCubit>().resetSeedColor(),
                         icon: const Icon(Icons.restart_alt),
-                        label: const Text('Reset to default'),
+                        label: Text(l10n.themeResetToDefault),
                       ),
                     ],
                   );
@@ -154,7 +156,7 @@ class ThemeSettingsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Preview',
+                        l10n.themePreview,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
@@ -165,12 +167,12 @@ class ThemeSettingsPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Sample Card',
+                                l10n.themePreviewSampleCard,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'This is how your theme will look with the selected color.',
+                                l10n.themePreviewSampleCardBody,
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               const SizedBox(height: 16),
@@ -180,15 +182,15 @@ class ThemeSettingsPage extends StatelessWidget {
                                 children: [
                                   FilledButton(
                                     onPressed: () {},
-                                    child: const Text('Filled Button'),
+                                    child: Text(l10n.themePreviewFilledButton),
                                   ),
                                   OutlinedButton(
                                     onPressed: () {},
-                                    child: const Text('Outlined Button'),
+                                    child: Text(l10n.themePreviewOutlinedButton),
                                   ),
                                   TextButton(
                                     onPressed: () {},
-                                    child: const Text('Text Button'),
+                                    child: Text(l10n.themePreviewTextButton),
                                   ),
                                 ],
                               ),

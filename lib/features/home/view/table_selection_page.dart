@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/table/table_state.dart';
 import 'package:kasway/data/models/table_item.dart';
@@ -41,7 +42,7 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  'Table ${table.label}',
+                  context.l10n.tableSelectTableLabel(table.label),
                   style: Theme.of(sheetContext).textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
@@ -50,7 +51,7 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
               if (!table.isServed)
                 ListTile(
                   leading: const Icon(Icons.restaurant, color: Colors.green),
-                  title: const Text('Mark as Served'),
+                  title: Text(context.l10n.tableSelectMarkAsServed),
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     tableCubit.markServed(id);
@@ -59,7 +60,7 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
               ListTile(
                 leading: const Icon(Icons.event_seat_outlined,
                     color: Colors.orange),
-                title: const Text('Free Table'),
+                title: Text(context.l10n.tableSelectFreeTable),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _confirmFreeTable(context, tableCubit, id, table.label);
@@ -82,19 +83,18 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Free Table'),
-        content: Text(
-            'Mark Table $label as available? This will remove the occupied status.'),
+        title: Text(context.l10n.tableSelectFreeTableTitle),
+        content: Text(context.l10n.tableSelectFreeTableContent(label)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.categoryCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(
-              'Free Table',
-              style: TextStyle(color: Colors.orange),
+            child: Text(
+              context.l10n.tableSelectFreeTable,
+              style: const TextStyle(color: Colors.orange),
             ),
           ),
         ],
@@ -109,7 +109,7 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Table'),
+        title: Text(context.l10n.tableSelectTitle),
         centerTitle: true,
       ),
       body: BlocBuilder<TableCubit, TableState>(
@@ -186,7 +186,7 @@ class _TableChipList extends StatelessWidget {
             onLongPress: table.isOccupied ? () => onLongPress(table.id) : null,
             onSecondaryTap: table.isOccupied ? () => onLongPress(table.id) : null,
             child: FilterChip(
-              label: Text('Table ${table.label}'),
+              label: Text(context.l10n.tableSelectTableLabel(table.label)),
               selected: false,
               backgroundColor: table.isOccupied ? null : chipBg,
               disabledColor: table.isOccupied ? chipBg : null,
@@ -216,14 +216,14 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No tables configured',
+            context.l10n.tableSelectNoTables,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Set up your floor plan in Profile > Table Layout.',
+            context.l10n.tableSelectNoTablesBody,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
@@ -232,7 +232,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           FilledButton.tonal(
             onPressed: onGoToLayout,
-            child: const Text('Go to Table Layout'),
+            child: Text(context.l10n.tableSelectGoToLayout),
           ),
         ],
       ),
