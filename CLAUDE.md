@@ -54,9 +54,9 @@ Feature-based clean architecture under `lib/`:
 
 ```
 lib/
-├── app/           # App setup: router, theme, global widgets
+├── app/           # App setup: router, theme, global widgets, app-level cubits
 ├── data/          # Models (Freezed) and repositories
-└── features/      # Feature modules (home, profile)
+└── features/      # Feature modules (home, profile, items, auth, splash, onboarding)
     └── <feature>/
         ├── bloc/  # BLoC state management
         └── view/  # Pages and widgets
@@ -64,7 +64,7 @@ lib/
 
 **State management**: BLoC (`flutter_bloc`). All business logic lives in BLoC/Cubit classes; views only dispatch events and render states.
 
-**Navigation**: `go_router` — routes defined in `lib/app/app_router.dart`. Nested routes for the order flow (`/order-confirmation`, `/select-payment-method`, `/payment-success`) and profile section (`/profile/*`).
+**Navigation**: `go_router` — routes defined in `lib/app/app_router.dart`. Nested routes for the order flow and profile section (`/profile/*`).
 
 **Data models**: Immutable classes using `freezed` + `json_serializable`. After changing a model, run `build_runner` to regenerate `.freezed.dart` and `.g.dart` files.
 
@@ -72,11 +72,19 @@ lib/
 
 **Currency**: `CurrencyCubit` in `lib/app/currency/` manages selected display currency, live exchange rates, and the Dynamic Pricing toggle, all persisted via `shared_preferences`. See details below.
 
+**Locale**: `LocaleCubit` in `lib/app/locale/` manages the app language, persisted via `shared_preferences`. See details below.
+
 **macOS-specific**: Window chrome is customized at startup in `main.dart` using `macos_window_utils` and `window_manager` (transparent titlebar, full-size content view). The `MacosTitleBar` widget in `lib/app/widgets/` provides the drag region.
+
+## SharedPreferences Keys
+
+All keys are centralized in `lib/app/constants/preference_keys.dart` (`PreferenceKeys` class). Always use constants from this class — never hardcode key strings.
+
+Categories: Theme, Currency, Donation, Network, Wallet, Locale, Onboarding, Display, Table Layout.
 
 ## Key Domain Concepts
 
-- **Product**: Has optional `additions` (variants/customizations with extra price).
+- **Product**: Has optional `additions` (variants/customizations with extra price). Both `Product` and `Addition` have an optional `kasPrice` field for a fixed KAS price override.
 - **CartItem**: A product + selected additions + quantity. Has a `totalPrice` getter `(product.price + additions sum) * quantity`.
 - **HomeBloc**: Central bloc managing the product catalog (loaded from SQLite), cart, and search. Products and categories are stored in `kasway.db` via `AppDatabase`.
 - **Tablet detection**: `app.dart` detects screen width 600–1200px to adapt layout.
@@ -88,10 +96,10 @@ All product prices are stored in IDR (Indonesian Rupiah). The currency system co
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/app/currency/currency_state.dart` | `Currency` model + `CurrencyState` with `formatPrice(idrPrice)` + `formatPriceInFiat(idrPrice, fiat)` |
-| `lib/app/currency/currency_cubit.dart` | Fetches CoinGecko rates, 60s refresh timer, SharedPreferences persistence, `setReferenceFiat()` |
+| `lib/app/currency/currency_state.dart` | `Currency` model + `CurrencyState` with `formatPrice()`, `idrToDisplay()`, `displayToKas()`, `displayToIdr()` |
+| `lib/app/currency/currency_cubit.dart` | Fetches CoinGecko rates, 60s refresh timer, SharedPreferences persistence |
 | `lib/app/widgets/price_text.dart` | `PriceText(idrPrice)` widget — use this everywhere a price is displayed |
-| `lib/features/profile/view/currency_settings_page.dart` | Two-section currency page: **Display Currency** (all 12 incl. KAS) + **Reference Fiat** (11 fiats only) |
+| `lib/features/profile/view/currency_settings_page.dart` | Currency selection page (all 12 currencies incl. KAS) |
 
 ### How to display a price
 Always use `PriceText(someDoubleInIdr)` instead of formatting directly with `NumberFormat`. It wraps a `BlocBuilder<CurrencyCubit, CurrencyState>` and calls `state.formatPrice(idrPrice)` automatically.
@@ -104,13 +112,18 @@ PriceText(product.price, style: someTextStyle)
 
 Never hardcode `NumberFormat.currency(locale: 'id_ID', ...)` for prices shown to the user.
 
-### Reference Fiat
-`CurrencyState.referenceFiat` is always a fiat `Currency` (never KAS). Defaults to IDR. It is:
-- The secondary amount shown in `_RevenuePriceDisplay` when KAS is the display currency (`≈ USD Y.YY`)
-- Stored with each withdrawal record (`refFiatCode`, `refFiatAmount`) as a rate snapshot at withdrawal time
-- Configurable via the **Reference Fiat** section in `/profile/currency`
+### CurrencyState methods
+```dart
+// Format for display (returns a String)
+state.formatPrice(idrPrice)
+state.formatPrice(idrPrice, kasPrice: product.kasPrice)  // use fixed KAS price if set
+state.formatPrice(idrPrice, kasSymbol: 'TKAS')           // testnet symbol
 
-Use `state.formatPriceInFiat(idrPrice, state.referenceFiat)` to format in the reference fiat without going through `PriceText`.
+// Raw conversion helpers
+state.idrToDisplay(idrPrice)           // → display-currency amount as double
+state.displayToKas(displayAmount)      // → KAS as double? (null if rate unavailable)
+state.displayToIdr(displayAmount)      // → IDR as double
+```
 
 ### Conversion formula (KAS as bridge currency)
 ```
@@ -130,11 +143,27 @@ Rates are stored in `CurrencyState.exchangeRates` as `Map<String, double>` keyed
 KAS (default), IDR, USD, EUR, GBP, JPY, SGD, MYR, AUD, CNY, HKD, KRW. Defined in `CurrencyState.allCurrencies`.
 
 ### Settings integration
-- **Currency Settings** tile → navigates to `/profile/currency` (two sections: Display Currency + Reference Fiat)
+- **Currency Settings** tile → navigates to `/profile/currency`
 - **Dynamic Pricing** toggle → calls `CurrencyCubit.setDynamicPricing(bool)` — when off, the 60s timer stops and prices stay at the last fetched rate
 
 ### No-network fallback
 When `exchangeRates` is empty or `kasIdr <= 0`, `formatPrice` falls back to displaying IDR directly.
+
+## Locale System
+
+App language is managed by `LocaleCubit` / `LocaleState` in `lib/app/locale/`.
+
+### Supported languages
+English (default), Indonesian, Malay, Chinese (Simplified), Japanese, Korean.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `lib/app/locale/locale_state.dart` | `AppLanguage` model + `LocaleState` with `supportedLanguages` list |
+| `lib/app/locale/locale_cubit.dart` | Loads/persists selected language via `PreferenceKeys.appLanguageCode` |
+| `lib/app/widgets/language_picker_sheet.dart` | Bottom sheet for language selection, used in Settings |
+
+Language is configurable from `/profile/settings`.
 
 ## SVG Assets
 
@@ -176,7 +205,7 @@ Products and categories are persisted in SQLite (`sqflite`) via `AppDatabase` si
 ### Navigation
 Profile → **Item Management** (`/profile/items`) → `ItemManagementPage`
 - Manage categories: `IconButton(Icons.category_outlined)` in AppBar → `CategoryManagementPage` (imperative push)
-- Add/edit items: pushed imperatively via `Navigator.of(context).push(MaterialPageRoute(...))` with `BlocProvider.value` to share the parent `HomeBloc`
+- Add/edit items: pushed imperatively via `Navigator.of(context).push(MaterialPageRoute(...))`
 
 ### Optimistic Updates
 All 6 catalog events (`HomeCatalogProduct{Added,Updated,Deleted}`, `HomeCategory{Added,Renamed,Deleted}`) follow the pattern:
@@ -184,18 +213,29 @@ All 6 catalog events (`HomeCatalogProduct{Added,Updated,Deleted}`, `HomeCategory
 2. `await _productRepository.persistXxx()`
 3. On error: `emit(previous)` — silent rollback
 
-### Schema (kasway.db, version 7)
+### Schema (kasway.db, version 14)
 ```sql
 categories(name TEXT PK, sort_order INTEGER)
-products(id TEXT PK, name TEXT, price REAL, description TEXT, category_name TEXT, created_at INTEGER)
-additions(id TEXT PK, product_id TEXT, name TEXT, price REAL)
+products(id TEXT PK, name TEXT, price REAL, description TEXT,
+         category_name TEXT, created_at INTEGER, kas_price REAL)   -- kas_price added v11
+additions(id TEXT PK, product_id TEXT, name TEXT, price REAL,
+          kas_price REAL)                                           -- kas_price added v11
 orders(id TEXT PK, total_idr REAL, kas_amount REAL, kas_idr_rate REAL,
-       created_at INTEGER)  -- kas_amount/kas_idr_rate added in v7
+       tx_id TEXT, network TEXT, table_label TEXT,
+       created_at INTEGER)
+       -- kas_amount/kas_idr_rate added v7; tx_id v8; network v10; table_label v12
 order_items(id TEXT PK, order_id TEXT, product_name TEXT, unit_price REAL,
-            quantity INTEGER, additions TEXT)  -- added in v7; additions = JSON array
+            quantity INTEGER, additions TEXT)    -- added v7; additions = JSON array
 withdrawals(tx_id TEXT PK, to_address TEXT, amount_kas REAL, amount_idr REAL,
             kas_idr_rate REAL, ref_fiat_code TEXT, ref_fiat_amount REAL,
-            created_at INTEGER)  -- added in v5; rate snapshot columns added in v6
+            network TEXT, created_at INTEGER)
+            -- added v5; rate columns v6; network v10
+donations(tx_id TEXT PK, amount_kas REAL, is_auto INTEGER,
+          network TEXT, created_at INTEGER)     -- added v9; network v10
+table_items(id TEXT PK, label TEXT, seats INTEGER DEFAULT 4,
+            x REAL, y REAL, rotation REAL, is_occupied INTEGER DEFAULT 0,
+            is_served INTEGER DEFAULT 0, group_id TEXT)
+            -- added v12; group_id v13; is_served v14
 ```
 Category rename cascades: DB transaction updates both `categories` and all matching `products.category_name`.
 
@@ -409,18 +449,19 @@ Completed withdrawals are persisted in SQLite. History is accessible from the wa
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/data/models/withdrawal.dart` | Freezed `Withdrawal` model (txId, toAddress, amountKas, amountIdr, kasIdrRate, refFiatCode, refFiatAmount, createdAt) |
+| `lib/data/models/withdrawal.dart` | Freezed `Withdrawal` model (txId, toAddress, amountKas, amountIdr, kasIdrRate, createdAt) |
 | `lib/data/repositories/withdrawal_repository.dart` | `recordWithdrawal(...)` + `getWithdrawals()` + `getAllForExport()` |
 | `lib/features/profile/view/withdrawal_history_page.dart` | List of past withdrawals with fiat equivalent + copy-TX-ID action |
 
 ### Route
 `/profile/withdrawals` → `WithdrawalHistoryPage`
 
-### Rate snapshot fields
-`kasIdrRate`, `refFiatCode`, `refFiatAmount` are captured at withdrawal time from `CurrencyCubit.state` so historical records are self-contained (not dependent on live rates).
-
 ### Export
-`DataService` exports both `kasway_data.csv` (catalog) and `kasway_withdrawals.csv` (withdrawals) when the user taps Export in Data Transfer. The withdrawal CSV includes `kas_idr_rate`, `ref_fiat_code`, `ref_fiat_amount` columns.
+`DataService` exports both `kasway_data.csv` (catalog) and `kasway_withdrawals.csv` (withdrawals) when the user taps Export in Data Transfer.
+
+Withdrawal CSV columns: `tx_id, to_address, amount_kas, amount_idr, kas_idr_rate, created_at`
+
+Note: The `withdrawals` DB table also stores `ref_fiat_code`, `ref_fiat_amount`, and `network` columns (added in migrations v6/v10), but these are not currently read into the `Withdrawal` Dart model or exported.
 
 ## Kaspa wRPC Real-Time (Dart WebSocket)
 
@@ -463,8 +504,16 @@ await for (final raw in ws) { /* parse params.virtualDaaScore */ }
 // Reconnect on close/error with 3s delay; honour _disposed flag.
 ```
 
-### Route
-`/profile/node-status` → `NodeStatusPage` (real-time DAA score, no Rust signals needed)
+## NodeStatusCubit
+
+Real-time DAA score polling lives in `lib/app/network/node_status_cubit.dart` + `node_status_state.dart`. It is an app-level cubit (not page-scoped).
+
+- Subscribes to `NetworkCubit.stream` and auto-reconnects when `activeUrl` changes
+- Uses a generation counter (`_generation`) to self-terminate stale `_connect()` loops on reconnect
+- Polls `getBlockDagInfo` every 1s; parses `params.virtualDaaScore`
+- State: `connected` (bool), `daaScore` (String), `lastUpdated` (time string), `error` (String)
+
+Node status is displayed inside `/profile/network` → `NetworkPage` (combined network settings + live node status). There is no separate `/profile/node-status` route.
 
 ## Network Switching (Mainnet / Testnet-10)
 
@@ -475,10 +524,11 @@ Runtime network switching without app restart. `NetworkCubit` manages the active
 |------|---------|
 | `lib/app/network/network_state.dart` | `KaspaNetwork` enum + `NetworkState` with `activeUrl`, `networkLabel`, `kasSymbol` getters |
 | `lib/app/network/network_cubit.dart` | Persists selected network + custom URLs via SharedPreferences |
-| `lib/features/profile/view/network_settings_page.dart` | Settings page: network selector + URL fields + Save button |
+| `lib/app/network/node_status_cubit.dart` | App-level DAA score polling; auto-reconnects on network switch |
+| `lib/features/profile/view/network_page.dart` | Combined network settings + live node status display |
 
-### SharedPreferences keys
-`kaspa_network` (string: `"mainnet"` / `"testnet10"`), `kaspa_mainnet_url`, `kaspa_testnet10_url`
+### SharedPreferences keys (via `PreferenceKeys`)
+`kaspaNetwork`, `kaspaMainnetUrl`, `kaspaTestnet10Url`
 
 ### Default URLs
 - Mainnet: `wss://rose.kaspa.green/kaspa/mainnet/wrpc/json`
@@ -489,15 +539,12 @@ Runtime network switching without app restart. `NetworkCubit` manages the active
 `formatPrice()` in `CurrencyState` accepts an optional `kasSymbol` named parameter (defaults to `'KAS'`).
 `PriceText` watches both `CurrencyCubit` and `NetworkCubit` and passes the symbol automatically.
 
-### Auto-reconnect
-`NodeStatusPage` wraps its body in `BlocListener<NetworkCubit, NetworkState>` and calls `_reconnect()` whenever `activeUrl` changes. The reconnect sets `_disposed = true`, closes the socket, waits 50 ms, then resets and starts a fresh `_connect()` loop.
-
 ### Route
-`/profile/network` → `NetworkSettingsPage`
+`/profile/network` → `NetworkPage` (settings + node status combined)
 
 ## Kaspa Payment Detection (JSON wRPC polling)
 
-Payment confirmation on the Kaspa payment QR page via periodic `getUtxosByAddresses` polling over the existing JSON wRPC WebSocket (same URL as `NodeStatusPage`). The Borsh subscription approach was attempted but public nodes return error code 3 (not supported) for `NotifyUtxosChanged`.
+Payment confirmation on the Kaspa payment QR page via periodic `getUtxosByAddresses` polling over the existing JSON wRPC WebSocket (same URL as `NodeStatusCubit`). The Borsh subscription approach was attempted but public nodes return error code 3 (not supported) for `NotifyUtxosChanged`.
 
 ### Files
 | File | Purpose |
@@ -545,8 +592,8 @@ Merchants can donate KAS to the developer, either manually (one-time) or automat
 ### Auto-donation
 `_tryAutoDonate()` is called fire-and-forget inside `KaspaConfirmationPage._onConfirmed()`, before dispatching `HomeOrderCompleted`. Guards: auto disabled, hrp != 'kaspa' (testnet skip), empty mnemonic, kasIdr <= 0.
 
-### SharedPreferences keys
-`donation_auto_enabled`, `donation_mode` (`"percentage"` / `"fixedAmount"`), `donation_percentage`, `donation_fixed_kas`
+### SharedPreferences keys (via `PreferenceKeys`)
+`donationAutoEnabled`, `donationMode` (`"percentage"` / `"fixedAmount"`), `donationPercentage`, `donationFixedKas`
 
 ### Modes
 - **Percentage**: `totalKas * (percentageValue / 100)` donated per transaction
@@ -588,8 +635,8 @@ The secondary engine has no BLoC access. All display data is serialised into a `
 ### Route
 `/profile/display` → `DisplaySettingsPage`
 
-### SharedPreferences keys
-`display_enabled` (bool), `display_last_connected_id` (int)
+### SharedPreferences keys (via `PreferenceKeys`)
+`displayEnabled` (bool), `displayLastConnectedId` (int)
 
 ### Data payload format (Map sent to secondary engine)
 ```dart
@@ -620,10 +667,10 @@ Optional floor-plan feature for restaurants and cafés. When enabled, the cashie
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/data/models/table_item.dart` | Freezed `TableItem` model (id, label, seats 1–8, x, y, rotation, isOccupied, groupId?) |
+| `lib/data/models/table_item.dart` | Freezed `TableItem` model (id, label, seats 1–8, x, y, rotation, isOccupied, isServed, groupId?) |
 | `lib/data/repositories/table_repository.dart` | SQLite CRUD for `table_items`; `saveLayout` does full-replace in a single transaction |
 | `lib/app/table/table_state.dart` | Plain-class `TableState` (enabled, tables, selectedTableId) with `selectedTable` getter |
-| `lib/app/table/table_cubit.dart` | App-level cubit: toggle, saveLayout, selectTable, markOccupied, freeTable |
+| `lib/app/table/table_cubit.dart` | App-level cubit: toggle, saveLayout, selectTable, markOccupied, markServed, freeTable |
 | `lib/features/home/view/widgets/table_canvas.dart` | Shared canvas used in editor (editMode=true) and selection page (editMode=false) |
 | `lib/features/profile/view/table_layout_page.dart` | Canvas editor: drag/rotate tables, label editing, bottom sheet palette |
 | `lib/features/home/view/table_selection_page.dart` | Pre-payment table picker: canvas + chip list |
@@ -644,19 +691,6 @@ Long-pressing an occupied table on `TableSelectionPage` (canvas or chip) shows a
 
 After payment confirmation (`KaspaConfirmationPage._onConfirmed`), `tableCubit.clearSelection()` is called so the table remains occupied (customer still seated) but is deselected for the next order. The table is freed only when the cashier explicitly taps "Free Table" from the long-press menu.
 
-### DB Schema (v12 + v13 + v14)
-```sql
-table_items(id TEXT PK, label TEXT, seats INTEGER DEFAULT 4,
-            x REAL DEFAULT 0, y REAL DEFAULT 0,
-            rotation REAL DEFAULT 0, is_occupied INTEGER DEFAULT 0,
-            is_served INTEGER DEFAULT 0,  -- added in v14
-            group_id TEXT)           -- added in v13; NULL = ungrouped
--- orders also has: table_label TEXT NOT NULL DEFAULT ''
-```
-
-### Table groups
-Tables added as a group share a `groupId` (set to the first table's id in the group). Dragging or rotating any member in `TableLayoutPage` moves/rotates all other members with the same `groupId` in real-time via `_onTableDragUpdate` (live) and `_onTableMoved` (on drag end). Rotation snap is 90° (`pi/2`). Group gap is 20 dp.
-
 ### Canvas visual details
 - Seat circles are drawn around each table body using `_TableWithSeatsPainter` (a `CustomPainter` in `table_canvas.dart`). Constants: `_seatR = 6`, `_seatGap = 3.5`, `_seatPad = _seatR + _seatGap`.
 - The label/seat-count text is counter-rotated (`Transform.rotate(angle: -rotation)`) so it stays horizontal regardless of table rotation.
@@ -668,6 +702,35 @@ Tables added as a group share a `groupId` (set to the first table's id in the gr
 ### Table freed after payment
 In `KaspaConfirmationPage._onConfirmed()`, after `HomeOrderCompleted` and `HomeCartCleared`, calls `tableCubit.freeTable(selectedTableId)` to mark the table available again.
 
-### SharedPreferences key
-`table_layout_enabled` (bool) — defined in `PreferenceKeys.tableLayoutEnabled`.
+### SharedPreferences key (via `PreferenceKeys`)
+`tableLayoutEnabled` (bool)
 
+## Routes Reference
+
+| Route | Widget | Notes |
+|-------|--------|-------|
+| `/splash` | `SplashPage` | App entry point |
+| `/` | `HomePage` | Main POS screen |
+| `/order-confirmation` | `OrderConfirmationPage` | |
+| `/kaspa-payment` | `KaspaPaymentPage` | QR + wRPC polling |
+| `/payment-success` | `PaymentSuccessfulPage` | |
+| `/table-selection` | `TableSelectionPage` | Only when table layout enabled |
+| `/profile` | `ProfilePage` | |
+| `/profile/orders` | `OrderHistoryPage` | |
+| `/profile/settings` | `SettingsPage` | Language picker + other settings |
+| `/profile/help` | `HelpSupportPage` | FAQ / expandable tiles |
+| `/profile/theme` | `ThemeSettingsPage` | |
+| `/profile/currency` | `CurrencySettingsPage` | |
+| `/profile/items` | `ItemManagementPage` | |
+| `/profile/data-transfer` | `DataTransferPage` | Import / Export CSV |
+| `/profile/withdrawals` | `WithdrawalHistoryPage` | |
+| `/profile/network` | `NetworkPage` | Network selector + live node status |
+| `/profile/donate` | `DonationPage` | |
+| `/profile/display` | `DisplaySettingsPage` | Android/iOS only |
+| `/profile/table-layout` | `TableLayoutPage` | |
+| `/auth` | `AuthPage` | Onboarding entry |
+| `/auth/eula` | `EulaPage` | |
+| `/auth/seed-phrase` | `SeedPhrasePage` | |
+| `/auth/currency` | `OnboardingCurrencyPage` | |
+| `/auth/login` | `LoginPage` | |
+| `/onboarding` | `OnboardingPage` | |
