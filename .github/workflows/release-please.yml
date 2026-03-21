@@ -48,12 +48,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Patch presentation_displays namespace
+      - name: Patch presentation_displays namespace and JVM target
         run: |
           FILE="$HOME/.pub-cache/hosted/pub.dev/presentation_displays-1.0.0/android/build.gradle"
           if ! grep -q "namespace" "$FILE"; then
             sed -i 's/android {/android {\n    namespace "com.namit.presentation_displays"/' "$FILE"
           fi
+          sed -i 's/sourceCompatibility JavaVersion.VERSION_1_8/sourceCompatibility JavaVersion.VERSION_17/' "$FILE"
+          sed -i 's/targetCompatibility JavaVersion.VERSION_1_8/targetCompatibility JavaVersion.VERSION_17/' "$FILE"
+          sed -i "s/jvmTarget = '1.8'/jvmTarget = '17'/" "$FILE"
 
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs
