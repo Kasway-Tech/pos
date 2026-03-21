@@ -158,7 +158,18 @@ class ProductRepository {
 
   Future<void> deleteCategory(String name) async {
     final db = await _db.database;
-    await db.delete('categories', where: 'name = ?', whereArgs: [name]);
+    await db.transaction((txn) async {
+      // Fetch product ids in this category to delete their additions
+      final rows = await txn.query('products',
+          columns: ['id'], where: 'category_name = ?', whereArgs: [name]);
+      for (final row in rows) {
+        await txn.delete('additions',
+            where: 'product_id = ?', whereArgs: [row['id']]);
+      }
+      await txn.delete('products',
+          where: 'category_name = ?', whereArgs: [name]);
+      await txn.delete('categories', where: 'name = ?', whereArgs: [name]);
+    });
   }
 
   Future<int> countProductsInCategory(String name) async {

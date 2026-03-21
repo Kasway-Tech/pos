@@ -128,38 +128,23 @@ class CategoryManagementPage extends StatelessWidget {
 
   Future<void> _confirmDelete(
       BuildContext context, String name, int count) async {
-    if (count > 0) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Cannot Delete Category'),
-          content: Text(
-              '"$name" has $count item${count == 1 ? '' : 's'}. Remove or move all items before deleting this category.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
+    final content = count > 0
+        ? '"$name" has $count item${count == 1 ? '' : 's'} that will also be permanently deleted. This cannot be undone.'
+        : 'Delete "$name"? This cannot be undone.';
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Delete Category?'),
-        content: Text('Delete "$name"? This cannot be undone.'),
+        content: Text(content),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
