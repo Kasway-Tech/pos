@@ -5,7 +5,7 @@ import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum _LoginError { none, invalidWord, invalidChecksum, invalidWordCount, generic }
@@ -120,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
     final wordCount = _words.length;
     final hasEnoughWords = wordCount == 12 || wordCount == 24;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(
           title: Text(l10n.loginTitle),

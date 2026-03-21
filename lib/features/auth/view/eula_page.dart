@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class EulaPage extends StatefulWidget {
   const EulaPage({super.key});
@@ -20,7 +20,7 @@ class _EulaPageState extends State<EulaPage> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = context.l10n;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(
           title: Text(l10n.eulaTitle),

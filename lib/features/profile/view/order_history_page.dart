@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/order.dart';
 import 'package:kasway/data/repositories/order_repository.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   const OrderHistoryPage({super.key});
@@ -52,91 +51,82 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(
-      child: Scaffold(
-        appBar: BlurAppBar(title: const Text('Order History')),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: FutureBuilder<List<Order>>(
-              future: _ordersFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final orders = snapshot.data ?? [];
-                if (orders.isEmpty) {
-                  return const Center(child: Text('No orders yet'));
-                }
+    return Scaffold(
+      appBar: BlurAppBar(title: const Text('Order History')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: FutureBuilder<List<Order>>(
+            future: _ordersFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final orders = snapshot.data ?? [];
+              if (orders.isEmpty) {
+                return const Center(child: Text('No orders yet'));
+              }
 
-                final now = DateTime.now();
-                final todayMidnight =
-                    DateTime(now.year, now.month, now.day);
-                final todayOrders = orders
-                    .where((o) =>
-                        !o.createdAt.isBefore(todayMidnight))
-                    .toList();
-                final todayTotal = todayOrders.fold<double>(
-                    0, (sum, o) => sum + o.totalIdr);
+              final now = DateTime.now();
+              final todayMidnight = DateTime(now.year, now.month, now.day);
+              final todayOrders = orders
+                  .where((o) => !o.createdAt.isBefore(todayMidnight))
+                  .toList();
+              final todayTotal = todayOrders.fold<double>(
+                0,
+                (sum, o) => sum + o.totalIdr,
+              );
 
-                final groups = _groupByDate(orders);
+              final groups = _groupByDate(orders);
 
-                return CustomScrollView(
-                  slivers: [
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _StatColumn(
+                              label: "Today's Orders",
+                              value: todayOrders.length.toString(),
+                            ),
+                          ),
+                          Expanded(
+                            child: _StatColumnPrice(
+                              label: "Today's Revenue",
+                              idrAmount: todayTotal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  for (final entry in groups.entries) ...[
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _StatColumn(
-                                label: "Today's Orders",
-                                value: todayOrders.length.toString(),
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                        child: Text(
+                          entry.key,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
                               ),
-                            ),
-                            Expanded(
-                              child: _StatColumnPrice(
-                                label: "Today's Revenue",
-                                idrAmount: todayTotal,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ),
-                    for (final entry in groups.entries) ...[
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                          child: Text(
-                            entry.key,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outline,
-                                ),
-                          ),
-                        ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) =>
+                            _OrderCard(order: entry.value[index]),
+                        childCount: entry.value.length,
                       ),
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => _OrderCard(
-                            order: entry.value[index],
-                          ),
-                          childCount: entry.value.length,
-                        ),
-                      ),
-                    ],
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 24),
                     ),
                   ],
-                );
-              },
-            ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -154,16 +144,19 @@ class _StatColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                )),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(value,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -179,17 +172,18 @@ class _StatColumnPrice extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                )),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ),
         const SizedBox(height: 4),
         PriceText(
           idrAmount,
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -213,9 +207,9 @@ class _ExplorerButton extends StatelessWidget {
         onPressed: () {
           final url =
               '${context.read<NetworkCubit>().state.explorerBaseUrl}$txId';
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => ExplorerPage(url: url),
-          ));
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => ExplorerPage(url: url)));
         },
       ),
     );
@@ -237,9 +231,9 @@ class _OrderCard extends StatelessWidget {
     final kasSymbol = networkState.kasSymbol;
     final kasStr = order.kasAmount > 0
         ? order.kasAmount
-            .toStringAsFixed(4)
-            .replaceAll(RegExp(r'0+$'), '')
-            .replaceAll(RegExp(r'\.$'), '')
+              .toStringAsFixed(4)
+              .replaceAll(RegExp(r'0+$'), '')
+              .replaceAll(RegExp(r'\.$'), '')
         : null;
 
     return Card(
@@ -255,27 +249,27 @@ class _OrderCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('#$shortId',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    '#$shortId',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Row(
                     children: [
-                      Text(timeStr,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  )),
+                      Text(
+                        timeStr,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
                       if (order.tableLabel.isNotEmpty) ...[
                         Text(
                           ' · ',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                         Icon(
                           Icons.table_restaurant_outlined,
@@ -285,11 +279,10 @@ class _OrderCard extends StatelessWidget {
                         const SizedBox(width: 2),
                         Text(
                           'Table ${order.tableLabel}',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                       ],
                     ],
@@ -300,8 +293,10 @@ class _OrderCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                PriceText(order.totalIdr,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                PriceText(
+                  order.totalIdr,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 if (kasStr != null &&
                     !context
                         .read<CurrencyCubit>()
@@ -311,8 +306,8 @@ class _OrderCard extends StatelessWidget {
                   Text(
                     '$kasStr $kasSymbol',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
               ],
             ),
@@ -329,10 +324,10 @@ class _OrderCard extends StatelessWidget {
                       children: [
                         Text(
                           'No item details recorded',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.outline,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                         if (order.txId.isNotEmpty) ...[
                           const SizedBox(height: 12),
@@ -347,12 +342,15 @@ class _OrderCard extends StatelessWidget {
                       children: [
                         ...order.items.map((item) {
                           final additionTotal = item.additions.fold<double>(
-                              0, (sum, a) => sum + a.price);
+                            0,
+                            (sum, a) => sum + a.price,
+                          );
                           return LineItemRow(
                             productName: item.productName,
                             quantity: item.quantity,
                             lineTotal:
-                                (item.unitPrice + additionTotal) * item.quantity,
+                                (item.unitPrice + additionTotal) *
+                                item.quantity,
                             additions: item.additions
                                 .map((a) => (name: a.name, price: a.price))
                                 .toList(),
@@ -370,7 +368,8 @@ class _OrderCard extends StatelessWidget {
                             PriceText(
                               order.totalIdr,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -387,5 +386,3 @@ class _OrderCard extends StatelessWidget {
     );
   }
 }
-
-

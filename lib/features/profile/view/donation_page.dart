@@ -3,14 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
-import 'package:kasway/app/helpers/format_helpers.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
+import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +28,7 @@ class _DonationPageState extends State<DonationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(child: Scaffold(
+    return Scaffold(
       appBar: BlurAppBar(title: const Text('Donate'), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
@@ -46,7 +45,7 @@ class _DonationPageState extends State<DonationPage> {
           ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -71,8 +70,9 @@ class _OneTimeDonationSection extends StatelessWidget {
 
     return BlocBuilder<NetworkCubit, NetworkState>(
       builder: (context, networkState) {
-        final devAddress =
-            DonationConstants.addressForHrp(networkState.addressHrp);
+        final devAddress = DonationConstants.addressForHrp(
+          networkState.addressHrp,
+        );
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -85,21 +85,25 @@ class _OneTimeDonationSection extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       'Support the Developer',
-                      style: textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'Kasway is free and open source. If you find it useful, consider sending a one-time KAS donation directly to the developer.',
-                  style: textTheme.bodyMedium
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
@@ -293,24 +297,23 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
           children: [
             Text(
               'Donate KAS',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Recipient: ${truncateAddress(DonationConstants.addressForHrp(widget.hrp), visibleEnd: 8)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               'Available: ${formatKas(widget.balanceKas)} KAS',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 20),
             TextFormField(
@@ -320,8 +323,9 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
                 hintText: '0.00',
                 border: OutlineInputBorder(),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Amount is required';
                 final n = double.tryParse(v.trim());
@@ -348,7 +352,6 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
       ),
     );
   }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -398,17 +401,16 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
               children: [
                 Text(
                   'Auto-Donate Per Payment',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Silently send a small KAS amount to the developer after each confirmed customer payment (mainnet only).',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
@@ -424,11 +426,10 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
                     onChanged: (v) {
                       if (v == null) return;
                       if (v == DonationMode.percentage) {
-                        _valueController.text =
-                            state.percentageValue.toString();
+                        _valueController.text = state.percentageValue
+                            .toString();
                       } else {
-                        _valueController.text =
-                            state.fixedKasAmount.toString();
+                        _valueController.text = state.fixedKasAmount.toString();
                       }
                       context.read<DonationCubit>().setMode(v);
                     },
@@ -459,8 +460,9 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
                           : '1.0',
                       border: const OutlineInputBorder(),
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -541,8 +543,9 @@ class _DonationHistorySectionState extends State<_DonationHistorySection> {
                 const SizedBox(width: 10),
                 Text(
                   'Donation History',
-                  style: textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -562,8 +565,9 @@ class _DonationHistorySectionState extends State<_DonationHistorySection> {
                 if (records.isEmpty) {
                   return Text(
                     'No donations yet',
-                    style: textTheme.bodyMedium
-                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   );
                 }
                 return Column(
@@ -598,8 +602,7 @@ class _DonationRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final kasSymbol = context.read<NetworkCubit>().state.kasSymbol;
-    final dateStr =
-        DateFormat('d MMM yyyy, HH:mm').format(record.createdAt);
+    final dateStr = DateFormat('d MMM yyyy, HH:mm').format(record.createdAt);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -614,14 +617,17 @@ class _DonationRow extends StatelessWidget {
                   children: [
                     Text(
                       '${formatKas(record.amountKas)} $kasSymbol',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     if (record.isAuto) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(4),
@@ -629,16 +635,20 @@ class _DonationRow extends StatelessWidget {
                         child: Text(
                           'auto',
                           style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant),
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(dateStr,
-                    style: textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.outline)),
+                Text(
+                  dateStr,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.outline,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 InkWell(
                   borderRadius: BorderRadius.circular(4),
@@ -662,8 +672,11 @@ class _DonationRow extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Icon(Icons.copy_outlined,
-                          size: 12, color: colorScheme.outline),
+                      Icon(
+                        Icons.copy_outlined,
+                        size: 12,
+                        color: colorScheme.outline,
+                      ),
                     ],
                   ),
                 ),

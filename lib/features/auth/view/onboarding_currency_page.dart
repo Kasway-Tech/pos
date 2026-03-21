@@ -7,7 +7,7 @@ import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class OnboardingCurrencyPage extends StatelessWidget {
   const OnboardingCurrencyPage({super.key});
@@ -18,7 +18,7 @@ class OnboardingCurrencyPage extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final l10n = context.l10n;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(
           title: Text(l10n.currencyTitle),

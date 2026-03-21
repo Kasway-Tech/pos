@@ -8,7 +8,7 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/pulse_display.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class NodeStatusPage extends StatefulWidget {
   const NodeStatusPage({super.key});
@@ -149,7 +149,7 @@ class _NodeStatusPageState extends State<NodeStatusPage>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return TitlebarSafeArea(child: BlocListener<NetworkCubit, NetworkState>(
+    return MacOSTitleBar(child: BlocListener<NetworkCubit, NetworkState>(
       listenWhen: (previous, current) =>
           previous.activeUrl != current.activeUrl,
       listener: (context, state) {

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
+import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/addition.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 
 class ItemFormPage extends StatefulWidget {
   const ItemFormPage({super.key, this.product, this.defaultCategory});
@@ -70,147 +69,141 @@ class _ItemFormPageState extends State<ItemFormPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.product != null;
-    return TitlebarSafeArea(
-      child: Scaffold(
-        appBar: BlurAppBar(
-          title: Text(isEditing ? 'Edit Product' : 'Add Product'),
-          centerTitle: true,
-          actions: [TextButton(onPressed: _submit, child: const Text('Save'))],
-        ),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _nameCtrl,
-                        autofocus: !isEditing,
-                        decoration: const InputDecoration(
-                          labelText: 'Product Name',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+    return Scaffold(
+      appBar: BlurAppBar(
+        title: Text(isEditing ? 'Edit Product' : 'Add Product'),
+        centerTitle: true,
+        actions: [TextButton(onPressed: _submit, child: const Text('Save'))],
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _nameCtrl,
+                      autofocus: !isEditing,
+                      decoration: const InputDecoration(
+                        labelText: 'Product Name',
                       ),
-                      const SizedBox(height: 16),
-                      BlocConsumer<CurrencyCubit, CurrencyState>(
-                        listenWhen: (prev, curr) =>
-                            prev.selectedCurrency.code !=
-                                curr.selectedCurrency.code ||
-                            prev.exchangeRates != curr.exchangeRates,
-                        listener: (context, currencyState) {
-                          final displayAmount = double.tryParse(
-                            _priceCtrl.text,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    BlocConsumer<CurrencyCubit, CurrencyState>(
+                      listenWhen: (prev, curr) =>
+                          prev.selectedCurrency.code !=
+                              curr.selectedCurrency.code ||
+                          prev.exchangeRates != curr.exchangeRates,
+                      listener: (context, currencyState) {
+                        final displayAmount = double.tryParse(_priceCtrl.text);
+                        if (displayAmount != null) {
+                          final idr = _lastCurrencyState.displayToIdr(
+                            displayAmount,
                           );
-                          if (displayAmount != null) {
-                            final idr = _lastCurrencyState.displayToIdr(
-                              displayAmount,
-                            );
-                            _priceCtrl.text = _rawPrice(
-                              currencyState.idrToDisplay(idr),
-                              currencyState,
-                            );
-                          }
-                          _lastCurrencyState = currencyState;
-                        },
-                        builder: (context, currencyState) {
-                          return TextFormField(
-                            controller: _priceCtrl,
-                            decoration: InputDecoration(
-                              labelText:
-                                  'Price (${currencyState.selectedCurrency.code})',
-                            ),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Required';
-                              }
-                              if (double.tryParse(v) == null) {
-                                return 'Enter a valid number';
-                              }
-                              return null;
-                            },
+                          _priceCtrl.text = _rawPrice(
+                            currencyState.idrToDisplay(idr),
+                            currencyState,
                           );
-                        },
+                        }
+                        _lastCurrencyState = currencyState;
+                      },
+                      builder: (context, currencyState) {
+                        return TextFormField(
+                          controller: _priceCtrl,
+                          decoration: InputDecoration(
+                            labelText:
+                                'Price (${currencyState.selectedCurrency.code})',
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Required';
+                            }
+                            if (double.tryParse(v) == null) {
+                              return 'Enter a valid number';
+                            }
+                            return null;
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    BlocBuilder<HomeBloc, HomeState>(
+                      buildWhen: (prev, curr) =>
+                          prev.categories != curr.categories,
+                      builder: (context, state) {
+                        final categories = state.categories;
+                        if (!categories.contains(_selectedCategory) &&
+                            categories.isNotEmpty) {
+                          _selectedCategory = categories.first;
+                        }
+                        return DropdownButtonFormField<String>(
+                          key: ValueKey(_selectedCategory),
+                          initialValue: categories.contains(_selectedCategory)
+                              ? _selectedCategory
+                              : null,
+                          decoration: const InputDecoration(
+                            labelText: 'Category',
+                          ),
+                          items: categories
+                              .map(
+                                (c) =>
+                                    DropdownMenuItem(value: c, child: Text(c)),
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            if (v != null) {
+                              setState(() => _selectedCategory = v);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _descCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Description (optional)',
                       ),
-                      const SizedBox(height: 16),
-                      BlocBuilder<HomeBloc, HomeState>(
-                        buildWhen: (prev, curr) =>
-                            prev.categories != curr.categories,
-                        builder: (context, state) {
-                          final categories = state.categories;
-                          if (!categories.contains(_selectedCategory) &&
-                              categories.isNotEmpty) {
-                            _selectedCategory = categories.first;
-                          }
-                          return DropdownButtonFormField<String>(
-                            key: ValueKey(_selectedCategory),
-                            initialValue: categories.contains(_selectedCategory)
-                                ? _selectedCategory
-                                : null,
-                            decoration: const InputDecoration(
-                              labelText: 'Category',
-                            ),
-                            items: categories
-                                .map(
-                                  (c) => DropdownMenuItem(
-                                    value: c,
-                                    child: Text(c),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) {
-                              if (v != null) {
-                                setState(() => _selectedCategory = v);
-                              }
-                            },
-                          );
-                        },
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Additions',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    ..._additions.asMap().entries.map(
+                      (e) => _AdditionRow(
+                        addition: e.value,
+                        onEdit: () => _showAdditionDialog(index: e.key),
+                        onDelete: () =>
+                            setState(() => _additions.removeAt(e.key)),
                       ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _descCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Description (optional)',
-                        ),
-                        maxLines: 3,
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.add_circle_outline,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Additions',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      ..._additions.asMap().entries.map(
-                        (e) => _AdditionRow(
-                          addition: e.value,
-                          onEdit: () => _showAdditionDialog(index: e.key),
-                          onDelete: () =>
-                              setState(() => _additions.removeAt(e.key)),
-                        ),
-                      ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.add_circle_outline,
+                      title: Text(
+                        'Add Addition',
+                        style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
-                        title: Text(
-                          'Add Addition',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        onTap: () => _showAdditionDialog(),
                       ),
-                    ],
-                  ),
+                      onTap: () => _showAdditionDialog(),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -227,7 +220,10 @@ class _ItemFormPageState extends State<ItemFormPage> {
     final priceCtrl = TextEditingController(
       text: existing != null
           ? _rawPrice(
-              currencyState.idrToDisplay(existing.price, kasPrice: existing.kasPrice),
+              currencyState.idrToDisplay(
+                existing.price,
+                kasPrice: existing.kasPrice,
+              ),
               currencyState,
             )
           : '',

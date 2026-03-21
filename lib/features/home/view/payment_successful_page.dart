@@ -5,7 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 class PaymentSuccessfulPage extends StatefulWidget {
-  const PaymentSuccessfulPage({super.key});
+  const PaymentSuccessfulPage({
+    super.key,
+    this.title = 'Payment Successful!',
+    this.subtitle = 'The transaction has been processed successfully.',
+  });
+
+  final String title;
+  final String subtitle;
 
   @override
   State<PaymentSuccessfulPage> createState() => _PaymentSuccessfulPageState();
@@ -71,7 +78,7 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
                     ),
                     const SizedBox(height: 32),
                     Text(
-                      'Payment Successful!',
+                      widget.title,
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -79,7 +86,7 @@ class _PaymentSuccessfulPageState extends State<PaymentSuccessfulPage>
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'The transaction has been processed successfully.',
+                      widget.subtitle,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(context).colorScheme.outline,

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/widgets/language_picker_sheet.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -21,7 +21,7 @@ class AuthPage extends StatelessWidget {
     final currentLanguage = context.watch<LocaleCubit>().state.language;
     final l10n = context.l10n;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         body: SafeArea(
           child: Padding(

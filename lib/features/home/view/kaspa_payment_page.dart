@@ -17,7 +17,7 @@ import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/cart_item.dart';
@@ -299,7 +299,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
       appBar: BlurAppBar(title: const Text('Payment')),
       body: BlocListener<WalletCubit, WalletState>(

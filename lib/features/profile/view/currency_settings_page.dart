@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 import '../../../app/currency/currency_cubit.dart';
 import '../../../app/currency/currency_state.dart';
@@ -13,7 +13,7 @@ class CurrencySettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(title: const Text('Display Currency')),
         body: Center(

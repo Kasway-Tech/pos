@@ -9,7 +9,7 @@ import 'package:kasway/data/services/data_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/items/view/item_management_page.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -80,7 +80,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final textTheme = Theme.of(context).textTheme;
     final l10n = context.l10n;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         body: SafeArea(
           child: _loading

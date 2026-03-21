@@ -4,57 +4,51 @@ import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 
 class CategoryManagementPage extends StatelessWidget {
   const CategoryManagementPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(
-      child: Scaffold(
-        appBar: BlurAppBar(
-          title: const Text('Categories'),
-          centerTitle: true,
-        ),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: BlocBuilder<HomeBloc, HomeState>(
-              buildWhen: (prev, curr) => prev.categories != curr.categories,
-              builder: (context, state) {
-                final categories = state.categories;
-                return ListView.separated(
-                  itemCount: categories.length + 1,
-                  separatorBuilder: (_, index) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    if (index < categories.length) {
-                      final name = categories[index];
-                      final count =
-                          state.itemsByCategory[name]?.length ?? 0;
-                      return _CategoryTile(
-                        name: name,
-                        count: count,
-                        onRename: () => _showRenameDialog(context, name),
-                        onDelete: () => _confirmDelete(context, name, count),
-                      );
-                    }
-                    return ListTile(
-                      leading: Icon(
-                        Icons.add_circle_outline,
+    return Scaffold(
+      appBar: BlurAppBar(title: const Text('Categories'), centerTitle: true),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: BlocBuilder<HomeBloc, HomeState>(
+            buildWhen: (prev, curr) => prev.categories != curr.categories,
+            builder: (context, state) {
+              final categories = state.categories;
+              return ListView.separated(
+                itemCount: categories.length + 1,
+                separatorBuilder: (_, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  if (index < categories.length) {
+                    final name = categories[index];
+                    final count = state.itemsByCategory[name]?.length ?? 0;
+                    return _CategoryTile(
+                      name: name,
+                      count: count,
+                      onRename: () => _showRenameDialog(context, name),
+                      onDelete: () => _confirmDelete(context, name, count),
+                    );
+                  }
+                  return ListTile(
+                    leading: Icon(
+                      Icons.add_circle_outline,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      'Add Category',
+                      style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      title: Text(
-                        'Add Category',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary),
-                      ),
-                      onTap: () => _showAddDialog(context),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                    onTap: () => _showAddDialog(context),
+                  );
+                },
+              );
+            },
           ),
         ),
       ),
@@ -65,7 +59,7 @@ class CategoryManagementPage extends StatelessWidget {
     final nameCtrl = TextEditingController();
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('New Category'),
         content: TextField(
           controller: nameCtrl,
@@ -74,16 +68,16 @@ class CategoryManagementPage extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
               if (nameCtrl.text.trim().isNotEmpty) {
-                context
-                    .read<HomeBloc>()
-                    .add(HomeCategoryAdded(nameCtrl.text.trim()));
-                Navigator.of(context).pop();
+                context.read<HomeBloc>().add(
+                  HomeCategoryAdded(nameCtrl.text.trim()),
+                );
+                Navigator.of(ctx).pop();
               }
             },
             child: const Text('Add'),
@@ -93,12 +87,11 @@ class CategoryManagementPage extends StatelessWidget {
     );
   }
 
-  Future<void> _showRenameDialog(
-      BuildContext context, String current) async {
+  Future<void> _showRenameDialog(BuildContext context, String current) async {
     final nameCtrl = TextEditingController(text: current);
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Rename Category'),
         content: TextField(
           controller: nameCtrl,
@@ -107,7 +100,7 @@ class CategoryManagementPage extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -115,9 +108,10 @@ class CategoryManagementPage extends StatelessWidget {
               final newName = nameCtrl.text.trim();
               if (newName.isNotEmpty && newName != current) {
                 context.read<HomeBloc>().add(
-                    HomeCategoryRenamed(oldName: current, newName: newName));
+                  HomeCategoryRenamed(oldName: current, newName: newName),
+                );
               }
-              Navigator.of(context).pop();
+              Navigator.of(ctx).pop();
             },
             child: const Text('Rename'),
           ),
@@ -127,7 +121,10 @@ class CategoryManagementPage extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, String name, int count) async {
+    BuildContext context,
+    String name,
+    int count,
+  ) async {
     final content = count > 0
         ? '"$name" has $count item${count == 1 ? '' : 's'} that will also be permanently deleted. This cannot be undone.'
         : 'Delete "$name"? This cannot be undone.';

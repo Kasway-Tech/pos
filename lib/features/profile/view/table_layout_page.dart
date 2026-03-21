@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/table/table_state.dart';
 import 'package:kasway/data/models/table_item.dart';
@@ -282,7 +283,7 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
               }
             }
           },
-          child: Scaffold(
+          child: MacOSTitleBar(child: Scaffold(
             appBar: AppBar(
               title: const Text('Table Layout'),
               centerTitle: true,
@@ -370,7 +371,7 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
                     ],
                   )
                 : null,
-          ),
+          )),
         );
       },
     );

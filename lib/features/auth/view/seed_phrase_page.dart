@@ -9,7 +9,7 @@ import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SeedPhrasePage extends StatefulWidget {
@@ -64,7 +64,7 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(
           title: Text(l10n.seedPhraseTitle),

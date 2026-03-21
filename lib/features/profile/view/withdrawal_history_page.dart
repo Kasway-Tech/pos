@@ -8,7 +8,7 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/data/models/withdrawal.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class WithdrawalHistoryPage extends StatefulWidget {
   const WithdrawalHistoryPage({super.key});
@@ -32,7 +32,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
   @override
   Widget build(BuildContext context) {
     final kasSymbol = context.watch<NetworkCubit>().state.kasSymbol;
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(
           title: const Text('Withdraw History'),

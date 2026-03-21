@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class NetworkSettingsPage extends StatefulWidget {
   const NetworkSettingsPage({super.key});
@@ -51,7 +51,7 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(title: const Text('Network'), centerTitle: true),
         body: BlocBuilder<NetworkCubit, NetworkState>(

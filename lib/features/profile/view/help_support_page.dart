@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(title: const Text('Help & Support')),
         body: Center(

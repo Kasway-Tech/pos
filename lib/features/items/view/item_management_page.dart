@@ -8,7 +8,6 @@ import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
 import 'package:kasway/features/items/view/create_option_page.dart';
 import 'package:kasway/features/items/view/item_form_page.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 
 class ItemManagementPage extends StatefulWidget {
   const ItemManagementPage({super.key, this.onSetupComplete});
@@ -44,15 +43,20 @@ class _ItemManagementPageState extends State<ItemManagementPage>
     final currentCategory = _tabController != null && categories.isNotEmpty
         ? categories[_tabController!.index]
         : null;
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => CreateOptionPage(currentCategory: currentCategory),
-    ));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CreateOptionPage(currentCategory: currentCategory),
+      ),
+    );
   }
 
   void _openEditForm(BuildContext context, Product product, String category) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ItemFormPage(product: product, defaultCategory: category),
-    ));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            ItemFormPage(product: product, defaultCategory: category),
+      ),
+    );
   }
 
   @override
@@ -65,91 +69,98 @@ class _ItemManagementPageState extends State<ItemManagementPage>
         final categories = state.categories;
         _rebuildTabController(categories);
 
-        return TitlebarSafeArea(
-          child: Scaffold(
-            appBar: BlurAppBar(
-              title: const Text('Manage Items'),
-              centerTitle: true,
-              bottom: categories.isEmpty
-                  ? null
-                  : TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      tabs: categories.map((c) => Tab(text: c)).toList(),
-                    ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Create',
-                  onPressed: () => _openCreateOptions(context, categories),
-                ),
-              ],
-            ),
-            bottomNavigationBar: widget.onSetupComplete != null
-                ? SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: FilledButton(
-                        onPressed: state.itemsByCategory.values
-                                .any((items) => items.isNotEmpty)
-                            ? widget.onSetupComplete
-                            : null,
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                        ),
-                        child: const Text('Done'),
-                      ),
-                    ),
-                  )
-                : null,
-            body: categories.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text('No categories yet'),
-                        TextButton(
-                          onPressed: () => _openCreateOptions(context, categories),
-                          child: const Text('Create Category'),
-                        ),
-                      ],
-                    ),
-                  )
-                : TabBarView(
+        return Scaffold(
+          appBar: BlurAppBar(
+            title: const Text('Manage Items'),
+            centerTitle: true,
+            bottom: categories.isEmpty
+                ? null
+                : TabBar(
                     controller: _tabController,
-                    children: categories
-                        .map((c) => _CategoryItemList(
-                              category: c,
-                              onEditTap: (p) => _openEditForm(context, p, c),
-                              onDeleteTap: (p) =>
-                                  _confirmDelete(context, p, c),
-                            ))
-                        .toList(),
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    tabs: categories.map((c) => Tab(text: c)).toList(),
                   ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Create',
+                onPressed: () => _openCreateOptions(context, categories),
+              ),
+            ],
           ),
+          bottomNavigationBar: widget.onSetupComplete != null
+              ? SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: FilledButton(
+                      onPressed:
+                          state.itemsByCategory.values.any(
+                            (items) => items.isNotEmpty,
+                          )
+                          ? widget.onSetupComplete
+                          : null,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      child: const Text('Done'),
+                    ),
+                  ),
+                )
+              : null,
+          body: categories.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('No categories yet'),
+                      TextButton(
+                        onPressed: () =>
+                            _openCreateOptions(context, categories),
+                        child: const Text('Create Category'),
+                      ),
+                    ],
+                  ),
+                )
+              : TabBarView(
+                  controller: _tabController,
+                  children: categories
+                      .map(
+                        (c) => _CategoryItemList(
+                          category: c,
+                          onEditTap: (p) => _openEditForm(context, p, c),
+                          onDeleteTap: (p) => _confirmDelete(context, p, c),
+                        ),
+                      )
+                      .toList(),
+                ),
         );
       },
     );
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, Product product, String category) async {
+    BuildContext context,
+    Product product,
+    String category,
+  ) async {
     final bloc = context.read<HomeBloc>();
     final inCart = bloc.state.cartItems.any((i) => i.product.id == product.id);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete Product?'),
-        content: Text(inCart
-            ? '"${product.name}" is in the active order. Deleting will remove it from the cart too.'
-            : 'Delete "${product.name}"? This cannot be undone.'),
+        content: Text(
+          inCart
+              ? '"${product.name}" is in the active order. Deleting will remove it from the cart too.'
+              : 'Delete "${product.name}"? This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -163,8 +174,9 @@ class _ItemManagementPageState extends State<ItemManagementPage>
       ),
     );
     if (confirmed == true) {
-      bloc.add(HomeCatalogProductDeleted(
-          category: category, productId: product.id));
+      bloc.add(
+        HomeCatalogProductDeleted(category: category, productId: product.id),
+      );
     }
   }
 }
@@ -183,8 +195,7 @@ class _CategoryItemList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
-      buildWhen: (prev, curr) =>
-          prev.itemsByCategory != curr.itemsByCategory,
+      buildWhen: (prev, curr) => prev.itemsByCategory != curr.itemsByCategory,
       builder: (context, state) {
         final items = state.itemsByCategory[category] ?? [];
         if (items.isEmpty) {
@@ -235,9 +246,7 @@ class _ProductListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final additionCount = product.additions.length;
     return ListTile(
-      leading: CircleAvatar(
-        child: Text(product.name[0].toUpperCase()),
-      ),
+      leading: CircleAvatar(child: Text(product.name[0].toUpperCase())),
       title: Text(
         product.name,
         style: const TextStyle(fontWeight: FontWeight.w500),
@@ -258,10 +267,7 @@ class _ProductListTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: onEdit,
-          ),
+          IconButton(icon: const Icon(Icons.edit_outlined), onPressed: onEdit),
           IconButton(
             icon: const Icon(Icons.delete_outline),
             color: Colors.red,

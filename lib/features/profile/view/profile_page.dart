@@ -28,7 +28,7 @@ import 'package:kasway/features/profile/view/settings_page.dart';
 import 'package:kasway/features/profile/view/table_layout_page.dart';
 import 'package:kasway/features/profile/view/theme_settings_page.dart';
 import 'package:kasway/features/profile/view/withdrawal_history_page.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // ---- Narrow layout (mobile / portrait tablet) --------------------------
 
   Widget _buildNarrow(BuildContext context) {
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         appBar: BlurAppBar(title: const Text('Profile'), centerTitle: true),
         body: Center(
@@ -114,7 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // ---- Wide layout (landscape tablet / desktop) --------------------------
 
   Widget _buildWide(BuildContext context) {
-    return TitlebarSafeArea(
+    return MacOSTitleBar(
       child: Scaffold(
         body: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -626,7 +626,10 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
       setState(() => _submitting = false);
       nav.pop();
       nav.push(MaterialPageRoute(
-        builder: (_) => const PaymentSuccessfulPage(),
+        builder: (_) => const PaymentSuccessfulPage(
+        title: 'Withdrawal Successful!',
+        subtitle: 'Your KAS has been sent successfully.',
+      ),
       ));
     }
   }

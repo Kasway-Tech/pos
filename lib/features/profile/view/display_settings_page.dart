@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/app/display/display_state.dart';
 import 'package:kasway/app/widgets/blur_app_bar.dart';
-import 'package:macos_window_utils/macos_window_utils.dart';
 
 class DisplaySettingsPage extends StatelessWidget {
   const DisplaySettingsPage({super.key});
@@ -15,193 +14,185 @@ class DisplaySettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TitlebarSafeArea(
-      child: Scaffold(
-        appBar: BlurAppBar(
-          title: const Text('External Display'),
-          centerTitle: true,
-        ),
-        body: BlocBuilder<DisplayCubit, DisplayState>(
-          builder: (context, state) {
-            final cubit = context.read<DisplayCubit>();
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 540),
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 24,
+    return Scaffold(
+      appBar: BlurAppBar(
+        title: const Text('External Display'),
+        centerTitle: true,
+      ),
+      body: BlocBuilder<DisplayCubit, DisplayState>(
+        builder: (context, state) {
+          final cubit = context.read<DisplayCubit>();
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 540),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
+                children: [
+                  _Section(
+                    child: SwitchListTile(
+                      value: state.enabled,
+                      onChanged: _isSupported
+                          ? (v) => cubit.setEnabled(v)
+                          : null,
+                      title: const Text('External Display'),
+                      subtitle: Text(
+                        _isSupported
+                            ? 'Mirror the payment QR screen to a connected display.'
+                            : 'Available on Android and iOS only.',
+                      ),
+                      secondary: const Icon(Icons.tv_outlined),
+                    ),
                   ),
-                  children: [
+
+                  if (state.enabled && _isSupported) ...[
+                    const SizedBox(height: 16),
                     _Section(
-                      child: SwitchListTile(
-                        value: state.enabled,
-                        onChanged:
-                            _isSupported ? (v) => cubit.setEnabled(v) : null,
-                        title: const Text('External Display'),
-                        subtitle: Text(
-                          _isSupported
-                              ? 'Mirror the payment QR screen to a connected display.'
-                              : 'Available on Android and iOS only.',
-                        ),
-                        secondary: const Icon(Icons.tv_outlined),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+                            child: Row(
+                              children: [
+                                _SectionTitle('Available Displays'),
+                                const Spacer(),
+                                FilledButton.tonal(
+                                  onPressed:
+                                      state.status == DisplayStatus.scanning
+                                      ? null
+                                      : () => cubit.scanDisplays(),
+                                  child: const Text('Scan'),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                            ),
+                          ),
+
+                          if (state.status == DisplayStatus.scanning)
+                            const LinearProgressIndicator(),
+
+                          if (state.availableDisplays.isEmpty &&
+                              state.status != DisplayStatus.scanning)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                              child: Text(
+                                'No displays found. Tap Scan to search.',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.outline,
+                                    ),
+                              ),
+                            )
+                          else
+                            ...state.availableDisplays.map((d) {
+                              final isConnected =
+                                  state.connectedDisplayId == d.id;
+                              final primaryColor = Theme.of(
+                                context,
+                              ).colorScheme.primary;
+                              return ListTile(
+                                leading: Icon(
+                                  isConnected
+                                      ? Icons.monitor
+                                      : Icons.monitor_outlined,
+                                  color: isConnected ? primaryColor : null,
+                                ),
+                                title: Text(d.name),
+                                subtitle: Text('ID: ${d.id}'),
+                                trailing: isConnected
+                                    ? Icon(
+                                        Icons.check_circle,
+                                        color: primaryColor,
+                                      )
+                                    : FilledButton.tonal(
+                                        onPressed: () =>
+                                            cubit.connect(d.id, d.name),
+                                        child: const Text('Connect'),
+                                      ),
+                              );
+                            }),
+                        ],
                       ),
                     ),
+                  ],
 
-                    if (state.enabled && _isSupported) ...[
-                      const SizedBox(height: 16),
-                      _Section(
+                  if (state.enabled && _isSupported) ...[
+                    const SizedBox(height: 16),
+                    _Section(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 12, 8, 8),
-                              child: Row(
-                                children: [
-                                  _SectionTitle('Available Displays'),
-                                  const Spacer(),
-                                  FilledButton.tonal(
-                                    onPressed:
-                                        state.status == DisplayStatus.scanning
-                                            ? null
-                                            : () => cubit.scanDisplays(),
-                                    child: const Text('Scan'),
+                            _SectionTitle('Status'),
+                            const SizedBox(height: 12),
+
+                            Row(
+                              children: [
+                                _StatusDot(connected: state.isConnected),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    state.isConnected
+                                        ? 'Connected: ${state.connectedDisplayName ?? 'Display ${state.connectedDisplayId}'}'
+                                        : 'Not connected',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
                                   ),
-                                  const SizedBox(width: 8),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
 
-                            if (state.status == DisplayStatus.scanning)
-                              const LinearProgressIndicator(),
+                            if (state.status == DisplayStatus.error &&
+                                state.errorMessage != null) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                state.errorMessage!,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                              ),
+                            ],
 
-                            if (state.availableDisplays.isEmpty &&
-                                state.status != DisplayStatus.scanning)
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    16, 8, 16, 16),
-                                child: Text(
-                                  'No displays found. Tap Scan to search.',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .outline,
-                                      ),
-                                ),
-                              )
-                            else
-                              ...state.availableDisplays.map((d) {
-                                final isConnected =
-                                    state.connectedDisplayId == d.id;
-                                final primaryColor = Theme.of(context)
-                                    .colorScheme
-                                    .primary;
-                                return ListTile(
-                                  leading: Icon(
-                                    isConnected
-                                        ? Icons.monitor
-                                        : Icons.monitor_outlined,
-                                    color:
-                                        isConnected ? primaryColor : null,
+                            if (state.isConnected) ...[
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: FilledButton.tonal(
+                                      onPressed: () => cubit.reconnect(),
+                                      child: const Text('Reconnect'),
+                                    ),
                                   ),
-                                  title: Text(d.name),
-                                  subtitle: Text('ID: ${d.id}'),
-                                  trailing: isConnected
-                                      ? Icon(
-                                          Icons.check_circle,
-                                          color: primaryColor,
-                                        )
-                                      : FilledButton.tonal(
-                                          onPressed: () =>
-                                              cubit.connect(d.id, d.name),
-                                          child: const Text('Connect'),
-                                        ),
-                                );
-                              }),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () => cubit.disconnect(),
+                                      child: const Text('Disconnect'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                    ],
-
-                    if (state.enabled && _isSupported) ...[
-                      const SizedBox(height: 16),
-                      _Section(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _SectionTitle('Status'),
-                              const SizedBox(height: 12),
-
-                              Row(
-                                children: [
-                                  _StatusDot(connected: state.isConnected),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      state.isConnected
-                                          ? 'Connected: ${state.connectedDisplayName ?? 'Display ${state.connectedDisplayId}'}'
-                                          : 'Not connected',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              if (state.status == DisplayStatus.error &&
-                                  state.errorMessage != null) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  state.errorMessage!,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .error,
-                                      ),
-                                ),
-                              ],
-
-                              if (state.isConnected) ...[
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: FilledButton.tonal(
-                                        onPressed: () => cubit.reconnect(),
-                                        child: const Text('Reconnect'),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: OutlinedButton(
-                                        onPressed: () => cubit.disconnect(),
-                                        child: const Text('Disconnect'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
-                ),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -230,8 +221,8 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }
@@ -249,9 +240,7 @@ class _StatusDot extends StatelessWidget {
       height: 10,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: connected
-            ? Colors.green
-            : Theme.of(context).colorScheme.outline,
+        color: connected ? Colors.green : Theme.of(context).colorScheme.outline,
       ),
     );
   }
