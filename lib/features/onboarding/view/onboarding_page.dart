@@ -51,9 +51,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
         setState(() => _loading = false);
         return;
       }
-      if (result.imported > 0) {
-        context.read<HomeBloc>().add(HomeStarted());
+      if (result.imported == 0) {
+        // User cancelled the file picker — stay on onboarding.
+        setState(() => _loading = false);
+        return;
       }
+      context.read<HomeBloc>().add(HomeStarted());
       await _completeOnboarding();
     } catch (e) {
       if (mounted) {
