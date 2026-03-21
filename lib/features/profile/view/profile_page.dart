@@ -258,6 +258,9 @@ class _ProfilePageState extends State<ProfilePage> {
     required String confirmLabel,
     bool isDestructive = false,
   }) async {
+    final walletCubit = context.read<WalletCubit>();
+    final router = GoRouter.of(context);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -280,7 +283,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (confirmed == true) {
-      // Logic for confirmation would go here
+      final prefs = await SharedPreferences.getInstance();
+      await walletCubit.clearWallet();
+      await prefs.setBool(PreferenceKeys.onboardingComplete, false);
+      router.go('/auth');
     }
   }
 }

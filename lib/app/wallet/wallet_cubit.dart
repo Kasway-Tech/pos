@@ -186,6 +186,16 @@ class WalletCubit extends Cubit<WalletState> {
     unawaited(_connect(address));
   }
 
+  /// Clears the mnemonic from SharedPreferences and resets wallet state.
+  /// Called on logout.
+  Future<void> clearWallet() async {
+    await _disconnect();
+    await _prefs.remove(PreferenceKeys.walletMnemonic);
+    if (!isClosed) {
+      emit(const WalletState(mnemonic: '', address: '', addressReady: true));
+    }
+  }
+
   /// Immediately re-fetch balance. The persistent connection will also pick
   /// up the change within 1 second automatically.
   void refreshBalance() => _sendUtxoRequest(state.address);
