@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/furatamasensei/pos/compare/kasway-v1.3.0...kasway-v1.3.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* declare plugin_platform_interface as a direct dev dependency ([725db53](https://github.com/furatamasensei/pos/commit/725db530cff7b0659cf131381ac82580ee9d0efd))
+
 ## [1.3.0](https://github.com/furatamasensei/pos/compare/kasway-v1.2.0...kasway-v1.3.0) (2026-03-21)
 
 
