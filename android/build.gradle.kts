@@ -21,6 +21,10 @@ subprojects {
 subprojects {
     plugins.withId("com.android.library") {
         extensions.configure<com.android.build.gradle.LibraryExtension> {
+            // presentation_displays-1.0.0 omits namespace in its build.gradle
+            if (namespace.isNullOrEmpty()) {
+                namespace = "com.namit.${project.name.replace("-", "_")}"
+            }
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_17
                 targetCompatibility = JavaVersion.VERSION_17
