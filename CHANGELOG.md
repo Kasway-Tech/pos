@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/furatamasensei/pos/compare/kasway-v1.1.1...kasway-v1.1.2) (2026-03-21)
+
+
+### Bug Fixes
+
+* patch presentation_displays JVM target to 17 in release workflow ([88b08f1](https://github.com/furatamasensei/pos/commit/88b08f1ac9be5e16455da00fa9fbdeba19f18315))
+
 ## [1.1.1](https://github.com/furatamasensei/pos/compare/kasway-v1.1.0...kasway-v1.1.1) (2026-03-21)
 
 
