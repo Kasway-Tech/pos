@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/table/table_state.dart';
 import 'package:kasway/data/models/table_item.dart';
@@ -53,6 +54,11 @@ const _servedTable = TableItem(
 // then calling router.push('/table-selection') inside each test.
 // ---------------------------------------------------------------------------
 
+Widget _buildApp(GoRouter router) => MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      routerConfig: router,
+    );
+
 GoRouter _buildRouter(MockTableCubit tableCubit) => GoRouter(
       initialLocation: '/',
       routes: [
@@ -96,7 +102,7 @@ void main() {
         const TableState(enabled: true, tables: []),
       );
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -109,7 +115,7 @@ void main() {
         const TableState(enabled: true, tables: []),
       );
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -122,7 +128,7 @@ void main() {
   group('chip list', () {
     testWidgets('renders a chip for each table', (tester) async {
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -138,7 +144,7 @@ void main() {
         ),
       );
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -153,7 +159,7 @@ void main() {
   group('_selectTable — free table', () {
     testWidgets('tapping a free chip calls selectTable(id)', (tester) async {
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -166,7 +172,7 @@ void main() {
 
     testWidgets('selecting a free table pops the page', (tester) async {
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -186,7 +192,7 @@ void main() {
     testWidgets('tapping an occupied chip does not call selectTable',
         (tester) async {
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
@@ -204,7 +210,7 @@ void main() {
   group('AppBar', () {
     testWidgets('shows "Select Table" title', (tester) async {
       final router = _buildRouter(tableCubit);
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(_buildApp(router));
       router.push('/table-selection');
       await tester.pumpAndSettle();
 
