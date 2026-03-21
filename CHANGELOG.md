@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.6](https://github.com/furatamasensei/pos/compare/kasway-v1.1.5...kasway-v1.1.6) (2026-03-21)
+
+
+### Bug Fixes
+
+* stay on onboarding when file picker is cancelled ([a318136](https://github.com/furatamasensei/pos/commit/a3181362007980877be559d92d9b515de74c4599))
+
+
+### Performance
+
+* prefetch currency flag assets during splash ([e6e2a13](https://github.com/furatamasensei/pos/commit/e6e2a1387c1214b157ac743e5e73e58ebb36598e))
+
 ## [1.1.5](https://github.com/furatamasensei/pos/compare/kasway-v1.1.4...kasway-v1.1.5) (2026-03-21)
 
 
