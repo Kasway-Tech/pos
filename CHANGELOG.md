@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.5](https://github.com/furatamasensei/pos/compare/kasway-v1.1.4...kasway-v1.1.5) (2026-03-21)
+
+
+### Bug Fixes
+
+* resolve lint errors in vendored presentation_displays package ([5c89025](https://github.com/furatamasensei/pos/commit/5c89025bfa5298faf228ae176ccf55221ae72c47))
+* vendor presentation_displays with AGP/Kotlin 17 fixes applied ([f0172c2](https://github.com/furatamasensei/pos/commit/f0172c2ef5936454ea18cc89dc0eb1afcfc2f07e))
+
 ## [1.1.4](https://github.com/furatamasensei/pos/compare/kasway-v1.1.3...kasway-v1.1.4) (2026-03-21)
 
 
