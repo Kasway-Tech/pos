@@ -21,7 +21,7 @@ A Flutter-based point-of-sale terminal that accepts **Kaspa (KAS)** payments via
 
 ## Screenshots
 
-_Coming soon._
+![Kasway demo](demo.gif)
 
 ## Tech Stack
 
