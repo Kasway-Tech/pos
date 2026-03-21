@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -32,6 +33,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    _prefetchCurrencyFlags();
     // After 3 seconds, navigate regardless of exchange rate status (handles offline).
     _ratesTimer = Timer(const Duration(seconds: 3), () {
       if (mounted) {
@@ -41,6 +43,19 @@ class _SplashPageState extends State<SplashPage> {
     });
     // Check immediately in case everything is already ready.
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeNavigate());
+  }
+
+  // Warm up the asset bundle cache for all currency flag .si files used by
+  // country_flags so the currency picker page opens instantly.
+  void _prefetchCurrencyFlags() {
+    const flagCodes = [
+      'ae', 'au', 'br', 'ca', 'ch', 'cn', 'eu', 'gb',
+      'hk', 'id', 'in', 'jp', 'kr', 'mx', 'my', 'ng',
+      'nz', 'ph', 'pk', 'sa', 'sg', 'th', 'us', 'vn', 'za',
+    ];
+    for (final code in flagCodes) {
+      rootBundle.load('packages/country_flags/res/si/$code.si');
+    }
   }
 
   @override
