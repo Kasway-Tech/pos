@@ -1,0 +1,28 @@
+name: presentation_displays
+description: Flutter plugin supports to run on two screens. It's basically a tablet connected to another screen via an HDMI or Wireless
+homepage: https://github.com/VNAPNIC/presentation-displays
+version: 1.0.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  # Flutter versions prior to 1.12 did not support the
+  # flutter.plugin.platforms map.
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.4
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.namit.presentation_displays
+        pluginClass: PresentationDisplaysPlugin
+      ios:
+        pluginClass: PresentationDisplaysPlugin
