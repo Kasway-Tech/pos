@@ -25,8 +25,6 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
   int _lastSpawnSeats = 4;
   double _lastRotation = 0.0;
 
-  static double _snap(double v) => (v / 40.0).round() * 40.0;
-
   @override
   void initState() {
     super.initState();
@@ -42,18 +40,16 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
   }
 
   void _addTable(int seats) {
-    const gap = 40.0;
-    const tableH = 64.0;
-    const canvasWidth = 2000.0;
+    const gap = snapGrid;
 
     final prevW = tableWidth(_lastSpawnSeats);
-    double newX = _snap(_lastSpawnX + prevW + gap);
+    double newX = snapToGrid(_lastSpawnX + prevW + gap);
     double newY = _lastSpawnY;
 
     // Wrap to the next row if the new table would go off the right edge
     if (newX + tableWidth(seats) > canvasWidth - 80) {
-      newX = _snap(80.0);
-      newY = _snap(_lastSpawnY + tableH + gap);
+      newX = snapToGrid(80.0);
+      newY = snapToGrid(_lastSpawnY + tableHeight + gap);
     }
 
     var newTable = context.read<TableCubit>().buildNewTable(
@@ -74,11 +70,11 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
 
   void _addTableGroup(int rows, int cols, int seatsPerTable) {
     final tblW = tableWidth(seatsPerTable);
-    const tblH = 64.0;
+    const tblH = tableHeight;
     const gap = 20.0;
 
-    final baseX = _snap(80.0);
-    final baseY = _snap(80.0 + _tables.length * 8.0);
+    final baseX = snapToGrid(80.0);
+    final baseY = snapToGrid(80.0 + _tables.length * 8.0);
 
     // Build tables first (to get their IDs)
     final newTables = <TableItem>[];
@@ -89,8 +85,8 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
           existingCount: _tables.length + newTables.length,
         );
         newTables.add(tbl.copyWith(
-          x: _snap(baseX + col * (tblW + gap)),
-          y: _snap(baseY + row * (tblH + gap)),
+          x: snapToGrid(baseX + col * (tblW + gap)),
+          y: snapToGrid(baseY + row * (tblH + gap)),
         ));
       }
     }
@@ -167,15 +163,6 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
           return t.copyWith(x: t.x + dx, y: t.y + dy);
         }).toList();
       }
-      _hasChanges = true;
-    });
-  }
-
-  void _onTableRotated(String id, double rotation) {
-    setState(() {
-      _tables = _tables
-          .map((t) => t.id == id ? t.copyWith(rotation: rotation) : t)
-          .toList();
       _hasChanges = true;
     });
   }
@@ -327,7 +314,6 @@ class _TableLayoutPageState extends State<TableLayoutPage> {
                         onTableTap: _onTableTap,
                         onTableMoved: _onTableMoved,
                         onTableDragUpdate: _onTableDragUpdate,
-                        onTableRotated: _onTableRotated,
                       ),
                       // Inspector panel — shown when a table is selected
                       if (tableState.enabled && _selectedTableId != null)

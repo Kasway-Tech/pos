@@ -17,10 +17,10 @@ class _TableSelectionPageState extends State<TableSelectionPage> {
   String? _hoveredId;
 
   void _selectTable(BuildContext context, String id) {
-    final table =
-        context.read<TableCubit>().state.tables.firstWhere((t) => t.id == id);
+    final cubit = context.read<TableCubit>();
+    final table = cubit.state.tables.firstWhere((t) => t.id == id);
     if (table.isOccupied) return;
-    context.read<TableCubit>().selectTable(id);
+    cubit.selectTable(id);
     context.pop();
   }
 
@@ -178,14 +178,10 @@ class _TableChipList extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final table = tables[index];
-          final Color? chipBg;
-          if (table.isOccupied && table.isServed) {
-            chipBg = Colors.green.shade100;
-          } else if (table.isOccupied) {
-            chipBg = Colors.amber.shade100;
-          } else {
-            chipBg = Theme.of(context).colorScheme.primaryContainer;
-          }
+          final chipBg = tableColors(
+            table,
+            Theme.of(context).colorScheme,
+          ).chip;
           return GestureDetector(
             onLongPress: table.isOccupied ? () => onLongPress(table.id) : null,
             onSecondaryTap: table.isOccupied ? () => onLongPress(table.id) : null,

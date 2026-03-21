@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:kasway/data/models/table_item.dart';
 
-const double _snapGrid = 40.0;
-double _snap(double v) => (v / _snapGrid).round() * _snapGrid;
+const double snapGrid = 40.0;
+double snapToGrid(double v) => (v / snapGrid).round() * snapGrid;
 
 /// Returns the logical width for a table with [seats] seats.
 double tableWidth(int seats) {
@@ -21,9 +21,64 @@ double tableWidth(int seats) {
   };
 }
 
-const double _tableHeight = 64;
-const double _canvasWidth = 2000;
-const double _canvasHeight = 1500;
+typedef TableStatusColors = ({Color bg, Color text, Color seat, Color? chip});
+
+/// Derives the three rendering colors for a table based on its occupancy state.
+/// [isSelected] is only relevant when the table is not occupied.
+TableStatusColors tableColors(
+  TableItem table,
+  ColorScheme cs, {
+  bool isSelected = false,
+}) {
+  if (table.isOccupied && table.isServed) {
+    return (
+      bg: Colors.green.shade400,
+      text: Colors.white,
+      seat: Colors.green.shade200,
+      chip: Colors.green.shade100,
+    );
+  }
+  if (table.isOccupied) {
+    return (
+      bg: Colors.amber.shade600,
+      text: Colors.white,
+      seat: Colors.amber.shade300,
+      chip: Colors.amber.shade100,
+    );
+  }
+  if (isSelected) {
+    return (
+      bg: cs.primaryContainer,
+      text: cs.onPrimaryContainer,
+      seat: cs.primary.withAlpha(180),
+      chip: cs.primaryContainer,
+    );
+  }
+  return (
+    bg: cs.primary,
+    text: cs.onPrimary,
+    seat: cs.primaryContainer,
+    chip: cs.primaryContainer,
+  );
+}
+
+/// Returns the (top, bottom, left, right) seat count for a given seat number.
+(int, int, int, int) seatLayout(int seats) => switch (seats) {
+      1 => (1, 0, 0, 0),
+      2 => (1, 1, 0, 0),
+      3 => (2, 1, 0, 0),
+      4 => (2, 2, 0, 0),
+      5 => (2, 2, 0, 1),
+      6 => (2, 2, 1, 1),
+      8 => (3, 3, 1, 1),
+      10 => (4, 4, 1, 1),
+      12 => (5, 5, 1, 1),
+      _ => (2, 2, 0, 0),
+    };
+
+const double tableHeight = 64;
+const double canvasWidth = 2000;
+const double canvasHeight = 1500;
 
 // Seat-circle geometry constants
 const double _seatR = 6.0;
@@ -42,7 +97,6 @@ class TableCanvas extends StatefulWidget {
     this.onTableLongPress,
     this.onTableMoved,
     this.onTableDragUpdate,
-    this.onTableRotated,
   });
 
   final List<TableItem> tables;
@@ -55,7 +109,6 @@ class TableCanvas extends StatefulWidget {
   final void Function(String id)? onTableLongPress;
   final void Function(String id, double x, double y)? onTableMoved;
   final void Function(String id, double x, double y)? onTableDragUpdate;
-  final void Function(String id, double rotation)? onTableRotated;
 
   @override
   State<TableCanvas> createState() => _TableCanvasState();
@@ -72,8 +125,8 @@ class _TableCanvasState extends State<TableCanvas> {
       minScale: 0.3,
       maxScale: 3.0,
       child: SizedBox(
-        width: _canvasWidth,
-        height: _canvasHeight,
+        width: canvasWidth,
+        height: canvasHeight,
         child: Stack(
           children: [
             const _GridBackground(),
@@ -110,7 +163,7 @@ class _GridBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: const Size(_canvasWidth, _canvasHeight),
+      size: const Size(canvasWidth, canvasHeight),
       painter: _DotGridPainter(
         color: Theme.of(context).colorScheme.outlineVariant.withAlpha(100),
       ),
@@ -194,7 +247,7 @@ class _PositionedTableState extends State<_PositionedTable> {
   @override
   Widget build(BuildContext context) {
     final w = tableWidth(widget.table.seats);
-    const h = _tableHeight;
+    const h = tableHeight;
 
     return Positioned(
       left: _x - _seatPad,
@@ -224,8 +277,8 @@ class _PositionedTableState extends State<_PositionedTable> {
                       (_startDragX + details.globalPosition.dx) + _seatPad;
                   final rawY =
                       (_startDragY + details.globalPosition.dy) + _seatPad;
-                  _x = _snap(rawX).clamp(0.0, _canvasWidth - effectiveW);
-                  _y = _snap(rawY).clamp(0.0, _canvasHeight - effectiveH);
+                  _x = snapToGrid(rawX).clamp(0.0, canvasWidth - effectiveW);
+                  _y = snapToGrid(rawY).clamp(0.0, canvasHeight - effectiveH);
                 });
                 widget.onDragUpdate?.call(_x, _y);
               }
@@ -270,30 +323,10 @@ class _TableShape extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-
-    final Color bgColor;
-    final Color textColor;
-    final Color seatColor;
-
-    if (table.isOccupied && table.isServed) {
-      // Served — green
-      bgColor = Colors.green.shade400;
-      textColor = Colors.white;
-      seatColor = Colors.green.shade200;
-    } else if (table.isOccupied) {
-      // Occupied / waiting — amber
-      bgColor = Colors.amber.shade600;
-      textColor = Colors.white;
-      seatColor = Colors.amber.shade300;
-    } else if (isSelected) {
-      bgColor = cs.primaryContainer;
-      textColor = cs.onPrimaryContainer;
-      seatColor = cs.primary.withAlpha(180);
-    } else {
-      bgColor = cs.primary;
-      textColor = cs.onPrimary;
-      seatColor = cs.primaryContainer;
-    }
+    final colors = tableColors(table, cs, isSelected: isSelected);
+    final bgColor = colors.bg;
+    final textColor = colors.text;
+    final seatColor = colors.seat;
 
     return SizedBox(
       width: width + 2 * _seatPad,
@@ -369,20 +402,6 @@ class _TableWithSeatsPainter extends CustomPainter {
   final Color seatColor;
   final Color? borderColor;
 
-  // Returns (topSeats, bottomSeats, leftSeats, rightSeats)
-  (int, int, int, int) get _layout => switch (seats) {
-        1 => (1, 0, 0, 0),
-        2 => (1, 1, 0, 0),
-        3 => (2, 1, 0, 0),
-        4 => (2, 2, 0, 0),
-        5 => (2, 2, 0, 1),
-        6 => (2, 2, 1, 1),
-        8 => (3, 3, 1, 1),
-        10 => (4, 4, 1, 1),
-        12 => (5, 5, 1, 1),
-        _ => (2, 2, 0, 0),
-      };
-
   @override
   void paint(Canvas canvas, Size size) {
     // Table rect starts at (_seatPad, _seatPad) within this canvas
@@ -391,7 +410,7 @@ class _TableWithSeatsPainter extends CustomPainter {
 
     // --- Draw seat circles first (behind table) ---
     final seatPaint = Paint()..color = seatColor;
-    final (topS, bottomS, leftS, rightS) = _layout;
+    final (topS, bottomS, leftS, rightS) = seatLayout(seats);
 
     for (int i = 0; i < topS; i++) {
       final cx = left + tableW * (i + 1) / (topS + 1);

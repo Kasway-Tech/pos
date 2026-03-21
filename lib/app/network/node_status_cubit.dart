@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
@@ -30,50 +31,58 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
 
   Future<void> _connect() async {
     final myGeneration = _generation;
+    await runZonedGuarded(() async {
+      while (!isClosed && _generation == myGeneration) {
+        try {
+          final ws = await WebSocket.connect(_currentUrl);
 
-    while (!isClosed && _generation == myGeneration) {
-      try {
-        final ws = await WebSocket.connect(_currentUrl);
+          if (isClosed || _generation != myGeneration) {
+            ws.close().ignore();
+            return;
+          }
 
-        if (isClosed || _generation != myGeneration) {
-          ws.close().ignore();
-          return;
-        }
+          _socket = ws;
+          emit(state.copyWith(connected: true, error: ''));
 
-        _socket = ws;
-        emit(state.copyWith(connected: true, error: ''));
+          void poll() {
+            if (isClosed || _generation != myGeneration) return;
+            if (ws.readyState != WebSocket.open) return;
+            try {
+              ws.add(jsonEncode({
+                'id': _reqId++,
+                'method': 'getBlockDagInfo',
+                'params': {},
+              }));
+            } catch (_) {}
+          }
 
-        void poll() {
+          poll();
+          final timer = Stream.periodic(const Duration(seconds: 1))
+              .listen((_) => poll());
+
+          await for (final raw in ws) {
+            if (_generation != myGeneration) break;
+            if (raw is String) _handleFrame(raw, myGeneration);
+          }
+          await timer.cancel();
+
           if (isClosed || _generation != myGeneration) return;
-          if (ws.readyState != WebSocket.open) return;
-          try {
-            ws.add(jsonEncode(
-                {'id': _reqId++, 'method': 'getBlockDagInfo', 'params': {}}));
-          } catch (_) {}
+          emit(state.copyWith(connected: false, error: 'Connection closed'));
+        } on WebSocketException catch (e) {
+          if (isClosed || _generation != myGeneration) return;
+          emit(state.copyWith(connected: false, error: e.message));
+        } catch (e) {
+          if (isClosed || _generation != myGeneration) return;
+          emit(state.copyWith(connected: false, error: e.toString()));
         }
 
-        poll();
-        final timer =
-            Stream.periodic(const Duration(seconds: 1)).listen((_) => poll());
-
-        await for (final raw in ws) {
-          if (_generation != myGeneration) break;
-          if (raw is String) _handleFrame(raw, myGeneration);
-        }
-        await timer.cancel();
-
-        if (isClosed || _generation != myGeneration) return;
-        emit(state.copyWith(connected: false, error: 'Connection closed'));
-      } on WebSocketException catch (e) {
-        if (isClosed || _generation != myGeneration) return;
-        emit(state.copyWith(connected: false, error: e.message));
-      } catch (e) {
-        if (isClosed || _generation != myGeneration) return;
-        emit(state.copyWith(connected: false, error: e.toString()));
+        await Future<void>.delayed(const Duration(seconds: 3));
       }
-
-      await Future<void>.delayed(const Duration(seconds: 3));
-    }
+    }, (e, _) {
+      // SocketException thrown by dart:io internals after socket close;
+      // not catchable by regular try/catch — silently swallow.
+      if (e is! SocketException) debugPrint('[NodeStatus] zone: $e');
+    });
   }
 
   Future<void> _reconnect(String newUrl) async {

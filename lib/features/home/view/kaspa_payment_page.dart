@@ -95,6 +95,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
     final jsonUrl = context.read<NetworkCubit>().state.activeUrl;
     final address = _merchantAddress;
 
+    await runZonedGuarded(() async {
     while (!_wsDisposed) {
       try {
         final ws = await WebSocket.connect(jsonUrl);
@@ -138,6 +139,11 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       if (_wsDisposed) return;
       await Future<void>.delayed(const Duration(seconds: 3));
     }
+    }, (e, _) {
+      // SocketException thrown by dart:io internals after socket close;
+      // not catchable by regular try/catch — silently swallow.
+      if (e is! SocketException) debugPrint('[wRPC] zone: $e');
+    });
   }
 
   void _handleResponse(String raw) {

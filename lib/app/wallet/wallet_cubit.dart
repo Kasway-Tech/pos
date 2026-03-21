@@ -86,6 +86,7 @@ class WalletCubit extends Cubit<WalletState> {
     final url = _networkCubit.state.activeUrl;
     _connectedUrl = url;
 
+    await runZonedGuarded(() async {
     try {
       final ws = await WebSocket.connect(url)
           .timeout(const Duration(seconds: 10));
@@ -109,6 +110,14 @@ class WalletCubit extends Cubit<WalletState> {
     } catch (_) {
       unawaited(_reconnect(address));
     }
+    }, (e, _) {
+      // SocketException thrown by dart:io internals after socket close;
+      // not catchable by regular try/catch — silently swallow.
+      if (e is! SocketException) {
+        // ignore: avoid_print
+        print('[Wallet] zone: $e');
+      }
+    });
   }
 
   void _sendUtxoRequest(String address) {

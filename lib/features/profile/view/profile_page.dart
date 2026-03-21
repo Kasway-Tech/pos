@@ -196,8 +196,7 @@ class _ProfilePageState extends State<ProfilePage> {
         icon: Icons.table_restaurant_outlined,
         title: 'Table Layout',
         isSelected: isSelected(_ProfileSection.tableLayout),
-        onTap: () =>
-            navigate(_ProfileSection.tableLayout, '/profile/table-layout'),
+        onTap: () => context.push('/profile/table-layout'),
       ),
       _ProfileMenuItem(
         icon: Icons.restore_outlined,

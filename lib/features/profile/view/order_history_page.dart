@@ -196,6 +196,32 @@ class _StatColumnPrice extends StatelessWidget {
   }
 }
 
+class _ExplorerButton extends StatelessWidget {
+  const _ExplorerButton({required this.txId});
+  final String txId;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          foregroundColor: Theme.of(context).colorScheme.secondary,
+        ),
+        icon: const Icon(Icons.open_in_browser_outlined, size: 16),
+        label: const Text('View on Explorer'),
+        onPressed: () {
+          final url =
+              '${context.read<NetworkCubit>().state.explorerBaseUrl}$txId';
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => ExplorerPage(url: url),
+          ));
+        },
+      ),
+    );
+  }
+}
+
 class _OrderCard extends StatelessWidget {
   const _OrderCard({required this.order});
   final Order order;
@@ -310,25 +336,7 @@ class _OrderCard extends StatelessWidget {
                         ),
                         if (order.txId.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: TextButton.icon(
-                              style: TextButton.styleFrom(
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.secondary,
-                              ),
-                              icon: const Icon(Icons.open_in_browser_outlined,
-                                  size: 16),
-                              label: const Text('View on Explorer'),
-                              onPressed: () {
-                                final url =
-                                    '${context.read<NetworkCubit>().state.explorerBaseUrl}${order.txId}';
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => ExplorerPage(url: url),
-                                ));
-                              },
-                            ),
-                          ),
+                          _ExplorerButton(txId: order.txId),
                         ],
                       ],
                     ),
@@ -368,25 +376,7 @@ class _OrderCard extends StatelessWidget {
                         ),
                         if (order.txId.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: TextButton.icon(
-                              style: TextButton.styleFrom(
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.secondary,
-                              ),
-                              icon: const Icon(Icons.open_in_browser_outlined,
-                                  size: 16),
-                              label: const Text('View on Explorer'),
-                              onPressed: () {
-                                final url =
-                                    '${context.read<NetworkCubit>().state.explorerBaseUrl}${order.txId}';
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => ExplorerPage(url: url),
-                                ));
-                              },
-                            ),
-                          ),
+                          _ExplorerButton(txId: order.txId),
                         ],
                       ],
                     ),
