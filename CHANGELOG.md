@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/furatamasensei/pos/compare/kasway-v1.1.0...kasway-v1.1.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* patch presentation_displays namespace and macOS signing in release workflow ([150d1e2](https://github.com/furatamasensei/pos/commit/150d1e232c24b5eb687c4341aebf63c3266213cd))
+
 ## [1.1.0](https://github.com/furatamasensei/pos/compare/kasway-v1.0.0...kasway-v1.1.0) (2026-03-21)
 
 
