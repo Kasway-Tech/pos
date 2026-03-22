@@ -395,6 +395,27 @@ class AppLocalizationsMs extends AppLocalizations {
   String get networkRequired => 'Diperlukan';
 
   @override
+  String get networkAutoMode => 'Auto (Penyelesai)';
+
+  @override
+  String get networkCustomMode => 'Nod Tersuai';
+
+  @override
+  String get networkResolving => 'Mencari nod terbaik…';
+
+  @override
+  String networkResolvedNode(String url) {
+    return 'Nod: $url';
+  }
+
+  @override
+  String get networkResetToAuto => 'Set Semula ke Auto';
+
+  @override
+  String get networkResetToAutoSnackbar =>
+      'Set semula ke auto — menyambung semula…';
+
+  @override
   String get donateTitle => 'Derma';
 
   @override

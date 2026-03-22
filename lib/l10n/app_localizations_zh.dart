@@ -374,6 +374,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get networkRequired => '必填';
 
   @override
+  String get networkAutoMode => '自动（解析器）';
+
+  @override
+  String get networkCustomMode => '自定义节点';
+
+  @override
+  String get networkResolving => '正在查找最佳节点…';
+
+  @override
+  String networkResolvedNode(String url) {
+    return '节点: $url';
+  }
+
+  @override
+  String get networkResetToAuto => '重置为自动';
+
+  @override
+  String get networkResetToAutoSnackbar => '已重置为自动 — 重新连接中…';
+
+  @override
   String get donateTitle => '捐赠';
 
   @override

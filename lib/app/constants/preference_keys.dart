@@ -19,8 +19,12 @@ abstract final class PreferenceKeys {
 
   // ── Network ────────────────────────────────────────────────────────────────
   static const String kaspaNetwork = 'kaspa_network';
+  /// Legacy keys — read-once for migration to the custom URL keys below.
   static const String kaspaMainnetUrl = 'kaspa_mainnet_url';
   static const String kaspaTestnet10Url = 'kaspa_testnet10_url';
+  /// New keys for explicitly saved custom node URLs (null = use resolver).
+  static const String kaspaMainnetCustomUrl = 'kaspa_mainnet_custom_url';
+  static const String kaspaTestnet10CustomUrl = 'kaspa_testnet10_custom_url';
 
   // ── Wallet ─────────────────────────────────────────────────────────────────
   static const String walletMnemonic = 'wallet_mnemonic';

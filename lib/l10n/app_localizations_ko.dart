@@ -377,6 +377,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get networkRequired => '필수';
 
   @override
+  String get networkAutoMode => '자동 (리졸버)';
+
+  @override
+  String get networkCustomMode => '사용자 정의 노드';
+
+  @override
+  String get networkResolving => '최적 노드 검색 중…';
+
+  @override
+  String networkResolvedNode(String url) {
+    return '노드: $url';
+  }
+
+  @override
+  String get networkResetToAuto => '자동으로 초기화';
+
+  @override
+  String get networkResetToAutoSnackbar => '자동으로 초기화 — 재연결 중…';
+
+  @override
   String get donateTitle => '기부';
 
   @override

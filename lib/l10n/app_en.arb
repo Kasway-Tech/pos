@@ -142,6 +142,15 @@
   "networkSave": "Save",
   "networkSaved": "Saved — reconnecting…",
   "networkRequired": "Required",
+  "networkAutoMode": "Auto (Resolver)",
+  "networkCustomMode": "Custom Node",
+  "networkResolving": "Resolving best node…",
+  "networkResolvedNode": "Node: {url}",
+  "@networkResolvedNode": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "networkResetToAuto": "Reset to Auto",
+  "networkResetToAutoSnackbar": "Reset to auto — reconnecting…",
 
   "donateTitle": "Donate",
   "donateSupportDeveloper": "Support the Developer",

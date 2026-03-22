@@ -4,13 +4,15 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:kasway/app/network/network_cubit.dart';
-import 'package:kasway/app/network/network_state.dart';
+
+import 'network_cubit.dart';
+import 'network_state.dart';
 import 'node_status_state.dart';
 
 class NodeStatusCubit extends Cubit<NodeStatusState> {
   NodeStatusCubit({required NetworkCubit networkCubit})
-      : super(const NodeStatusState()) {
+      : _networkCubit = networkCubit,
+        super(const NodeStatusState()) {
     _currentUrl = networkCubit.state.activeUrl;
     _connect();
     _networkSub = networkCubit.stream.listen((networkState) {
@@ -20,6 +22,8 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
     });
   }
 
+  final NetworkCubit _networkCubit;
+
   late String _currentUrl;
   StreamSubscription<NetworkState>? _networkSub;
   WebSocket? _socket;
@@ -28,6 +32,11 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
   int _generation = 0;
 
   int _reqId = 1;
+
+  // How many consecutive connection failures before asking the resolver to
+  // find a fresh node URL.
+  int _consecutiveFailures = 0;
+  static const _reResolveThreshold = 3;
 
   Future<void> _connect() async {
     final myGeneration = _generation;
@@ -42,6 +51,7 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
           }
 
           _socket = ws;
+          _consecutiveFailures = 0;
           emit(state.copyWith(connected: true, error: ''));
 
           void poll() {
@@ -57,8 +67,8 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
           }
 
           poll();
-          final timer = Stream.periodic(const Duration(seconds: 1))
-              .listen((_) => poll());
+          final timer =
+              Stream.periodic(const Duration(seconds: 1)).listen((_) => poll());
 
           await for (final raw in ws) {
             if (_generation != myGeneration) break;
@@ -67,13 +77,13 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
           await timer.cancel();
 
           if (isClosed || _generation != myGeneration) return;
-          emit(state.copyWith(connected: false, error: 'Connection closed'));
+          _onFailure(myGeneration, 'Connection closed');
         } on WebSocketException catch (e) {
           if (isClosed || _generation != myGeneration) return;
-          emit(state.copyWith(connected: false, error: e.message));
+          _onFailure(myGeneration, e.message);
         } catch (e) {
           if (isClosed || _generation != myGeneration) return;
-          emit(state.copyWith(connected: false, error: e.toString()));
+          _onFailure(myGeneration, e.toString());
         }
 
         await Future<void>.delayed(const Duration(seconds: 3));
@@ -85,9 +95,20 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
     });
   }
 
+  void _onFailure(int myGeneration, String errorMessage) {
+    if (isClosed || _generation != myGeneration) return;
+    emit(state.copyWith(connected: false, error: errorMessage));
+    _consecutiveFailures++;
+    if (_consecutiveFailures >= _reResolveThreshold) {
+      _consecutiveFailures = 0;
+      unawaited(_networkCubit.triggerResolve());
+    }
+  }
+
   Future<void> _reconnect(String newUrl) async {
-    _generation++;          // invalidates all in-flight _connect() loops
+    _generation++; // invalidates all in-flight _connect() loops
     _currentUrl = newUrl;
+    _consecutiveFailures = 0;
     await _socket?.close();
     _socket = null;
     emit(const NodeStatusState());
@@ -102,8 +123,7 @@ class NodeStatusCubit extends Cubit<NodeStatusState> {
       final score = params?['virtualDaaScore'];
       if (score == null) return;
       final now = DateTime.now();
-      final timeStr =
-          '${now.hour.toString().padLeft(2, '0')}:'
+      final timeStr = '${now.hour.toString().padLeft(2, '0')}:'
           '${now.minute.toString().padLeft(2, '0')}:'
           '${now.second.toString().padLeft(2, '0')}';
       emit(state.copyWith(

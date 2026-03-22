@@ -22,7 +22,6 @@ class _NetworkPageState extends State<NetworkPage>
 
   late final TextEditingController _mainnetUrlController;
   late final TextEditingController _testnet10UrlController;
-  final _formKey = GlobalKey<FormState>();
   bool _urlsExpanded = false;
 
   @override
@@ -34,11 +33,14 @@ class _NetworkPageState extends State<NetworkPage>
     );
     final networkState = context.read<NetworkCubit>().state;
     _mainnetUrlController = TextEditingController(
-      text: networkState.mainnetUrl,
+      text: networkState.mainnetCustomUrl ?? '',
     );
     _testnet10UrlController = TextEditingController(
-      text: networkState.testnet10Url,
+      text: networkState.testnet10CustomUrl ?? '',
     );
+    // Rebuild when controller text changes so suffix icons update.
+    _mainnetUrlController.addListener(() => setState(() {}));
+    _testnet10UrlController.addListener(() => setState(() {}));
   }
 
   @override
@@ -50,10 +52,11 @@ class _NetworkPageState extends State<NetworkPage>
   }
 
   Future<void> _saveUrls() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
     final cubit = context.read<NetworkCubit>();
-    await cubit.setMainnetUrl(_mainnetUrlController.text.trim());
-    await cubit.setTestnet10Url(_testnet10UrlController.text.trim());
+    final mainnet = _mainnetUrlController.text.trim();
+    final testnet = _testnet10UrlController.text.trim();
+    if (mainnet.isNotEmpty) await cubit.setCustomMainnetUrl(mainnet);
+    if (testnet.isNotEmpty) await cubit.setCustomTestnet10Url(testnet);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -63,24 +66,46 @@ class _NetworkPageState extends State<NetworkPage>
     );
   }
 
+  Future<void> _resetToAuto(KaspaNetwork network) async {
+    await context.read<NetworkCubit>().resetToAuto(network);
+    if (network == KaspaNetwork.mainnet) {
+      _mainnetUrlController.clear();
+    } else {
+      _testnet10UrlController.clear();
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.networkResetToAutoSnackbar),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<NetworkCubit, NetworkState>(
-      listenWhen: (prev, curr) => prev.activeUrl != curr.activeUrl,
+      listenWhen: (prev, curr) =>
+          prev.activeUrl != curr.activeUrl ||
+          prev.isAutoMode != curr.isAutoMode ||
+          prev.activeResolvedUrl != curr.activeResolvedUrl,
       listener: (context, state) {
-        _mainnetUrlController.text = state.mainnetUrl;
-        _testnet10UrlController.text = state.testnet10Url;
+        _mainnetUrlController.text = state.mainnetCustomUrl ?? '';
+        _testnet10UrlController.text = state.testnet10CustomUrl ?? '';
       },
       child: BlocListener<NodeStatusCubit, NodeStatusState>(
         listenWhen: (prev, curr) => prev.daaScore != curr.daaScore,
         listener: (context, _) => _pulseController.forward(from: 0),
         child: Scaffold(
-          appBar: BlurAppBar(title: Text(context.l10n.networkTitle), centerTitle: true),
+          appBar: BlurAppBar(
+              title: Text(context.l10n.networkTitle), centerTitle: true),
           body: BlocBuilder<NetworkCubit, NetworkState>(
             builder: (context, networkState) {
               return BlocBuilder<NodeStatusCubit, NodeStatusState>(
                 builder: (context, nodeState) {
                   final l10n = context.l10n;
+                  final theme = Theme.of(context);
+                  final colorScheme = theme.colorScheme;
                   return Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 540),
@@ -100,8 +125,7 @@ class _NetworkPageState extends State<NetworkPage>
                                 _NetworkOption(
                                   label: l10n.networkMainnet,
                                   subtitle: l10n.networkMainnetSubtitle,
-                                  selected:
-                                      networkState.network ==
+                                  selected: networkState.network ==
                                       KaspaNetwork.mainnet,
                                   onTap: () => context
                                       .read<NetworkCubit>()
@@ -115,8 +139,7 @@ class _NetworkPageState extends State<NetworkPage>
                                 _NetworkOption(
                                   label: l10n.networkTestnet10,
                                   subtitle: l10n.networkTestnet10Subtitle,
-                                  selected:
-                                      networkState.network ==
+                                  selected: networkState.network ==
                                       KaspaNetwork.testnet10,
                                   onTap: () => context
                                       .read<NetworkCubit>()
@@ -141,40 +164,31 @@ class _NetworkPageState extends State<NetworkPage>
                                   Row(
                                     children: [
                                       _ConnectionDot(
-                                        connected: nodeState.connected,
-                                      ),
+                                          connected: nodeState.connected),
                                       const SizedBox(width: 8),
                                       Text(
                                         nodeState.connected
                                             ? l10n.networkConnected
                                             : l10n.networkDisconnected,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
+                                        style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              color: nodeState.connected
-                                                  ? Colors.green
-                                                  : Theme.of(
-                                                      context,
-                                                    ).colorScheme.error,
-                                            ),
+                                          fontWeight: FontWeight.w600,
+                                          color: nodeState.connected
+                                              ? Colors.green
+                                              : colorScheme.error,
+                                        ),
                                       ),
                                       const Spacer(),
                                       if (nodeState.lastUpdated.isNotEmpty)
                                         Text(
                                           nodeState.lastUpdated,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
+                                          style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.outline,
-                                                fontFeatures: const [
-                                                  FontFeature.tabularFigures(),
-                                                ],
-                                              ),
+                                            color: colorScheme.outline,
+                                            fontFeatures: const [
+                                              FontFeature.tabularFigures(),
+                                            ],
+                                          ),
                                         ),
                                     ],
                                   ),
@@ -184,14 +198,8 @@ class _NetworkPageState extends State<NetworkPage>
                                     const SizedBox(height: 6),
                                     Text(
                                       nodeState.error,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
-                                          ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(color: colorScheme.error),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -204,18 +212,14 @@ class _NetworkPageState extends State<NetworkPage>
                                         controller: _pulseController,
                                         child: Text(
                                           nodeState.daaScore,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .displaySmall
+                                          style: theme.textTheme.displaySmall
                                               ?.copyWith(
-                                                fontFeatures: const [
-                                                  FontFeature.tabularFigures(),
-                                                ],
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                              ),
+                                            fontFeatures: const [
+                                              FontFeature.tabularFigures(),
+                                            ],
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -224,14 +228,8 @@ class _NetworkPageState extends State<NetworkPage>
                                   Center(
                                     child: Text(
                                       l10n.networkVirtualDaaScore,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelMedium
-                                          ?.copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.outline,
-                                          ),
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(color: colorScheme.outline),
                                     ),
                                   ),
                                 ],
@@ -250,8 +248,7 @@ class _NetworkPageState extends State<NetworkPage>
                                   title: Text(
                                     l10n.networkCustomNodeUrls,
                                     style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                        fontWeight: FontWeight.w500),
                                   ),
                                   trailing: Icon(
                                     _urlsExpanded
@@ -259,58 +256,150 @@ class _NetworkPageState extends State<NetworkPage>
                                         : Icons.expand_more,
                                   ),
                                   onTap: () => setState(
-                                    () => _urlsExpanded = !_urlsExpanded,
-                                  ),
+                                      () => _urlsExpanded = !_urlsExpanded),
                                 ),
                                 if (_urlsExpanded) ...[
                                   const Divider(height: 1),
+
+                                  // Mode indicator row
                                   Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      16,
-                                      16,
-                                      20,
-                                    ),
-                                    child: Form(
-                                      key: _formKey,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          TextFormField(
-                                            controller: _mainnetUrlController,
-                                            decoration: InputDecoration(
-                                              labelText: l10n.networkMainnetUrl,
-                                              hintText: 'wss://…',
-                                              border: const OutlineInputBorder(),
-                                              isDense: true,
-                                            ),
-                                            validator: (v) =>
-                                                (v == null || v.trim().isEmpty)
-                                                ? l10n.networkRequired
-                                                : null,
-                                          ),
-                                          const SizedBox(height: 12),
-                                          TextFormField(
-                                            controller: _testnet10UrlController,
-                                            decoration: InputDecoration(
-                                              labelText: l10n.networkTestnet10Url,
-                                              hintText: 'wss://…',
-                                              border: const OutlineInputBorder(),
-                                              isDense: true,
-                                            ),
-                                            validator: (v) =>
-                                                (v == null || v.trim().isEmpty)
-                                                ? l10n.networkRequired
-                                                : null,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          FilledButton(
-                                            onPressed: _saveUrls,
-                                            child: Text(l10n.networkSave),
+                                    padding:
+                                        const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          networkState.isAutoMode
+                                              ? Icons.auto_awesome_outlined
+                                              : Icons.edit_outlined,
+                                          size: 16,
+                                          color: colorScheme.outline,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          networkState.isAutoMode
+                                              ? l10n.networkAutoMode
+                                              : l10n.networkCustomMode,
+                                          style: theme.textTheme.labelMedium
+                                              ?.copyWith(
+                                                  color: colorScheme.outline),
+                                        ),
+                                        if (!networkState.isAutoMode) ...[
+                                          const Spacer(),
+                                          TextButton(
+                                            onPressed: () => _resetToAuto(
+                                                networkState.network),
+                                            child:
+                                                Text(l10n.networkResetToAuto),
                                           ),
                                         ],
-                                      ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Resolved URL display (auto mode only)
+                                  if (networkState.isAutoMode)
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          16, 4, 16, 8),
+                                      child: networkState.activeResolvedUrl !=
+                                              null
+                                          ? Text(
+                                              l10n.networkResolvedNode(
+                                                  networkState
+                                                      .activeResolvedUrl!),
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                color: colorScheme.outline,
+                                                fontFeatures: const [
+                                                  FontFeature.tabularFigures(),
+                                                ],
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            )
+                                          : Row(
+                                              children: [
+                                                const SizedBox(
+                                                  width: 12,
+                                                  height: 12,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 1.5),
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  l10n.networkResolving,
+                                                  style: theme
+                                                      .textTheme.bodySmall
+                                                      ?.copyWith(
+                                                          color:
+                                                              colorScheme.outline),
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        16, 8, 16, 20),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        TextField(
+                                          controller: _mainnetUrlController,
+                                          decoration: InputDecoration(
+                                            labelText: l10n.networkMainnetUrl,
+                                            hintText: 'wss://…',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                            suffixIcon:
+                                                _mainnetUrlController
+                                                        .text.isNotEmpty
+                                                    ? IconButton(
+                                                        icon: const Icon(
+                                                            Icons.close,
+                                                            size: 18),
+                                                        onPressed: () =>
+                                                            _resetToAuto(
+                                                                KaspaNetwork
+                                                                    .mainnet),
+                                                      )
+                                                    : null,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        TextField(
+                                          controller: _testnet10UrlController,
+                                          decoration: InputDecoration(
+                                            labelText:
+                                                l10n.networkTestnet10Url,
+                                            hintText: 'wss://…',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                            suffixIcon:
+                                                _testnet10UrlController
+                                                        .text.isNotEmpty
+                                                    ? IconButton(
+                                                        icon: const Icon(
+                                                            Icons.close,
+                                                            size: 18),
+                                                        onPressed: () =>
+                                                            _resetToAuto(
+                                                                KaspaNetwork
+                                                                    .testnet10),
+                                                      )
+                                                    : null,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        FilledButton(
+                                          onPressed: _saveUrls,
+                                          child: Text(l10n.networkSave),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -344,8 +433,8 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        color: Theme.of(context).colorScheme.outline,
-      ),
+            color: Theme.of(context).colorScheme.outline,
+          ),
     );
   }
 }
@@ -387,15 +476,15 @@ class _NetworkOption extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: selected ? colorScheme.primary : null,
-                  ),
+                        fontWeight: FontWeight.w600,
+                        color: selected ? colorScheme.primary : null,
+                      ),
                 ),
                 Text(
                   subtitle,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.outline,
+                      ),
                 ),
               ],
             ),
@@ -417,7 +506,9 @@ class _ConnectionDot extends StatelessWidget {
       height: 10,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: connected ? Colors.green : Theme.of(context).colorScheme.error,
+        color: connected
+            ? Colors.green
+            : Theme.of(context).colorScheme.error,
       ),
     );
   }

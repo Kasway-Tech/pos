@@ -124,6 +124,15 @@
   "networkSave": "保存",
   "networkSaved": "保存しました — 再接続中…",
   "networkRequired": "必須",
+  "networkAutoMode": "自動（リゾルバー）",
+  "networkCustomMode": "カスタムノード",
+  "networkResolving": "最適なノードを検索中…",
+  "networkResolvedNode": "ノード: {url}",
+  "@networkResolvedNode": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "networkResetToAuto": "自動にリセット",
+  "networkResetToAutoSnackbar": "自動にリセット — 再接続中…",
 
   "donateTitle": "寄付",
   "donateSupportDeveloper": "開発者をサポート",

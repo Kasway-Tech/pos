@@ -377,6 +377,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get networkRequired => '必須';
 
   @override
+  String get networkAutoMode => '自動（リゾルバー）';
+
+  @override
+  String get networkCustomMode => 'カスタムノード';
+
+  @override
+  String get networkResolving => '最適なノードを検索中…';
+
+  @override
+  String networkResolvedNode(String url) {
+    return 'ノード: $url';
+  }
+
+  @override
+  String get networkResetToAuto => '自動にリセット';
+
+  @override
+  String get networkResetToAutoSnackbar => '自動にリセット — 再接続中…';
+
+  @override
   String get donateTitle => '寄付';
 
   @override

@@ -124,6 +124,15 @@
   "networkSave": "Simpan",
   "networkSaved": "Tersimpan — menghubungkan kembali…",
   "networkRequired": "Wajib diisi",
+  "networkAutoMode": "Otomatis (Resolver)",
+  "networkCustomMode": "Node Kustom",
+  "networkResolving": "Mencari node terbaik…",
+  "networkResolvedNode": "Node: {url}",
+  "@networkResolvedNode": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "networkResetToAuto": "Reset ke Otomatis",
+  "networkResetToAutoSnackbar": "Reset ke otomatis — menghubungkan kembali…",
 
   "donateTitle": "Donasi",
   "donateSupportDeveloper": "Dukung Pengembang",

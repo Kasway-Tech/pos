@@ -784,6 +784,42 @@ abstract class AppLocalizations {
   /// **'Required'**
   String get networkRequired;
 
+  /// No description provided for @networkAutoMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto (Resolver)'**
+  String get networkAutoMode;
+
+  /// No description provided for @networkCustomMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Node'**
+  String get networkCustomMode;
+
+  /// No description provided for @networkResolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving best node…'**
+  String get networkResolving;
+
+  /// No description provided for @networkResolvedNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Node: {url}'**
+  String networkResolvedNode(String url);
+
+  /// No description provided for @networkResetToAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Auto'**
+  String get networkResetToAuto;
+
+  /// No description provided for @networkResetToAutoSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to auto — reconnecting…'**
+  String get networkResetToAutoSnackbar;
+
   /// No description provided for @donateTitle.
   ///
   /// In en, this message translates to:

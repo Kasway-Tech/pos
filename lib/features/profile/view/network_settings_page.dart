@@ -21,8 +21,10 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
   void initState() {
     super.initState();
     final state = context.read<NetworkCubit>().state;
-    _mainnetUrlController = TextEditingController(text: state.mainnetUrl);
-    _testnet10UrlController = TextEditingController(text: state.testnet10Url);
+    _mainnetUrlController =
+        TextEditingController(text: state.mainnetCustomUrl ?? '');
+    _testnet10UrlController =
+        TextEditingController(text: state.testnet10CustomUrl ?? '');
   }
 
   @override
@@ -35,8 +37,10 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final cubit = context.read<NetworkCubit>();
-    await cubit.setMainnetUrl(_mainnetUrlController.text.trim());
-    await cubit.setTestnet10Url(_testnet10UrlController.text.trim());
+    final mainnet = _mainnetUrlController.text.trim();
+    final testnet = _testnet10UrlController.text.trim();
+    if (mainnet.isNotEmpty) await cubit.setCustomMainnetUrl(mainnet);
+    if (testnet.isNotEmpty) await cubit.setCustomTestnet10Url(testnet);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

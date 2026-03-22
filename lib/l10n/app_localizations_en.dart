@@ -396,6 +396,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get networkRequired => 'Required';
 
   @override
+  String get networkAutoMode => 'Auto (Resolver)';
+
+  @override
+  String get networkCustomMode => 'Custom Node';
+
+  @override
+  String get networkResolving => 'Resolving best node…';
+
+  @override
+  String networkResolvedNode(String url) {
+    return 'Node: $url';
+  }
+
+  @override
+  String get networkResetToAuto => 'Reset to Auto';
+
+  @override
+  String get networkResetToAutoSnackbar => 'Reset to auto — reconnecting…';
+
+  @override
   String get donateTitle => 'Donate';
 
   @override

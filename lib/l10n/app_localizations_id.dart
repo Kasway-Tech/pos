@@ -394,6 +394,27 @@ class AppLocalizationsId extends AppLocalizations {
   String get networkRequired => 'Wajib diisi';
 
   @override
+  String get networkAutoMode => 'Otomatis (Resolver)';
+
+  @override
+  String get networkCustomMode => 'Node Kustom';
+
+  @override
+  String get networkResolving => 'Mencari node terbaik…';
+
+  @override
+  String networkResolvedNode(String url) {
+    return 'Node: $url';
+  }
+
+  @override
+  String get networkResetToAuto => 'Reset ke Otomatis';
+
+  @override
+  String get networkResetToAutoSnackbar =>
+      'Reset ke otomatis — menghubungkan kembali…';
+
+  @override
   String get donateTitle => 'Donasi';
 
   @override

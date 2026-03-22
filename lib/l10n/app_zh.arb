@@ -124,6 +124,15 @@
   "networkSave": "保存",
   "networkSaved": "已保存 — 重新连接中…",
   "networkRequired": "必填",
+  "networkAutoMode": "自动（解析器）",
+  "networkCustomMode": "自定义节点",
+  "networkResolving": "正在查找最佳节点…",
+  "networkResolvedNode": "节点: {url}",
+  "@networkResolvedNode": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "networkResetToAuto": "重置为自动",
+  "networkResetToAutoSnackbar": "已重置为自动 — 重新连接中…",
 
   "donateTitle": "捐赠",
   "donateSupportDeveloper": "支持开发者",

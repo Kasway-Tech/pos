@@ -124,6 +124,15 @@
   "networkSave": "저장",
   "networkSaved": "저장됨 — 재연결 중…",
   "networkRequired": "필수",
+  "networkAutoMode": "자동 (리졸버)",
+  "networkCustomMode": "사용자 정의 노드",
+  "networkResolving": "최적 노드 검색 중…",
+  "networkResolvedNode": "노드: {url}",
+  "@networkResolvedNode": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "networkResetToAuto": "자동으로 초기화",
+  "networkResetToAutoSnackbar": "자동으로 초기화 — 재연결 중…",
 
   "donateTitle": "기부",
   "donateSupportDeveloper": "개발자 지원",

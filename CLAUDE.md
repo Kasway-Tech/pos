@@ -514,18 +514,15 @@ Note: The `withdrawals` DB table also stores `ref_fiat_code`, `ref_fiat_amount`,
 
 **Solution:** Use `dart:io WebSocket` directly. Dart's networking stack uses macOS-native APIs and works correctly in the Flutter sandbox.
 
-### Public node network — resolver pattern (Dart)
-```dart
-// Try each resolver in order; fall back to hardcoded URL on failure.
-const resolvers = [
-  'https://kaspa.stream/v2/kaspa/mainnet/wrpc/json',
-  'https://kaspa.red/v2/kaspa/mainnet/wrpc/json',
-  'https://kaspa.green/v2/kaspa/mainnet/wrpc/json',
-  'https://kaspa.blue/v2/kaspa/mainnet/wrpc/json',
-];
-const fallback = 'wss://public-pool.kaspa.green:18110';
-// Response JSON: {"url": "wss://..."}  (also check "address", "endpoint")
-```
+### Public node network — resolver (implemented in `KaspaResolverService`)
+The resolver is fully implemented. `NetworkCubit` calls it on startup and on demand.
+
+**Route**: `GET https://<node>.<domain>/v2/kaspa/<network>/tls/wrpc/json`
+**Response**: `{"uid": "<hex>", "url": "wss://..."}`
+**16 resolver instances** across 4 domains (kaspa.stream/.red/.green/.blue), shuffled per call.
+**Fallback** (if all resolvers fail): `wss://rose.kaspa.green/kaspa/mainnet/wrpc/json`
+
+See `lib/data/services/kaspa_resolver_service.dart` for the full implementation.
 
 ### Confirmed wire protocol (getBlockDagInfo polling, 1s interval)
 ```
@@ -536,8 +533,8 @@ Response: {"id": N, "method": "getBlockDagInfo",
 `notifyVirtualDaaScoreChanged` returns "RPC method not found" on this endpoint — use polling instead.
 DAA score field: `params["virtualDaaScore"]` (int, no quotes).
 
-### Hardcoded node URL
-`wss://rose.kaspa.green/kaspa/mainnet/wrpc/json` — DNS for `public-pool.kaspa.green` fails in this Flutter build environment.
+### Default/fallback node URL
+`wss://rose.kaspa.green/kaspa/mainnet/wrpc/json` — used only when the resolver fails. In normal operation, `NetworkCubit` resolves a better node via `KaspaResolverService` on startup.
 
 ### Dart WebSocket lifecycle pattern
 ```dart
@@ -562,22 +559,36 @@ Node status is displayed inside `/profile/network` → `NetworkPage` (combined n
 
 ## Network Switching (Mainnet / Testnet-10)
 
-Runtime network switching without app restart. `NetworkCubit` manages the active network and node URLs.
+Runtime network switching without app restart. `NetworkCubit` manages the active network and node URLs. Node discovery uses the Kaspa public resolver network (16 named resolver instances); custom URLs are only used when explicitly saved by the user.
 
 ### Files
 | File | Purpose |
 |------|---------|
-| `lib/app/network/network_state.dart` | `KaspaNetwork` enum + `NetworkState` with `activeUrl`, `networkLabel`, `kasSymbol` getters |
-| `lib/app/network/network_cubit.dart` | Persists selected network + custom URLs via SharedPreferences |
-| `lib/app/network/node_status_cubit.dart` | App-level DAA score polling; auto-reconnects on network switch |
+| `lib/data/services/kaspa_resolver_service.dart` | Queries Kaspa resolver network for the least-loaded wRPC node URL |
+| `lib/app/network/network_state.dart` | `KaspaNetwork` enum + `NetworkState` with `activeUrl`, `isAutoMode`, `activeResolvedUrl` getters |
+| `lib/app/network/network_cubit.dart` | Persists network + custom URLs; resolves node in background on startup |
+| `lib/app/network/node_status_cubit.dart` | App-level DAA score polling; triggers re-resolve after 3 consecutive failures |
 | `lib/features/profile/view/network_page.dart` | Combined network settings + live node status display |
 
-### SharedPreferences keys (via `PreferenceKeys`)
-`kaspaNetwork`, `kaspaMainnetUrl`, `kaspaTestnet10Url`
+### URL priority (per network)
+`activeUrl` = `customUrl ?? resolvedUrl ?? fallbackHardcodedUrl`
 
-### Default URLs
+- **Auto mode** (`isAutoMode == true`): no custom URL saved; resolver picks the node
+- **Custom mode**: user has explicitly saved a URL via the settings page
+
+### SharedPreferences keys (via `PreferenceKeys`)
+- `kaspaNetwork` — active network selection
+- `kaspaMainnetCustomUrl`, `kaspaTestnet10CustomUrl` — explicit custom URLs (new keys)
+- `kaspaMainnetUrl`, `kaspaTestnet10Url` — legacy keys, read-once for migration
+
+### Fallback URLs
 - Mainnet: `wss://rose.kaspa.green/kaspa/mainnet/wrpc/json`
 - Testnet-10: `wss://electron-10.kaspa.stream/kaspa/testnet-10/wrpc/json`
+
+### Resolver protocol
+`GET https://<resolver-host>/v2/kaspa/<network>/tls/wrpc/json` → `{"uid":"...", "url":"wss://..."}`
+16 resolver instances across kaspa.stream, kaspa.red, kaspa.green, kaspa.blue domains.
+`KaspaResolverService.overrideNodes` allows test injection without shuffling.
 
 ### KAS symbol
 `NetworkState.kasSymbol` returns `'KAS'` on mainnet and `'TKAS'` on testnet-10.

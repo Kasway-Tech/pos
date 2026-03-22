@@ -124,6 +124,15 @@
   "networkSave": "Simpan",
   "networkSaved": "Tersimpan — menyambung semula…",
   "networkRequired": "Diperlukan",
+  "networkAutoMode": "Auto (Penyelesai)",
+  "networkCustomMode": "Nod Tersuai",
+  "networkResolving": "Mencari nod terbaik…",
+  "networkResolvedNode": "Nod: {url}",
+  "@networkResolvedNode": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "networkResetToAuto": "Set Semula ke Auto",
+  "networkResetToAutoSnackbar": "Set semula ke auto — menyambung semula…",
 
   "donateTitle": "Derma",
   "donateSupportDeveloper": "Sokong Pembangun",
