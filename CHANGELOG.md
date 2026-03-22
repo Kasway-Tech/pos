@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/furatamasensei/pos/compare/kasway-v1.3.1...kasway-v1.4.0) (2026-03-22)
+
+
+### Features
+
+* migrate wRPC node discovery to Kaspa public resolver network ([58a2a73](https://github.com/furatamasensei/pos/commit/58a2a73f5ef11c1cfd991818e3898db66ccd6bff))
+
 ## [1.3.1](https://github.com/furatamasensei/pos/compare/kasway-v1.3.0...kasway-v1.3.1) (2026-03-21)
 
 
