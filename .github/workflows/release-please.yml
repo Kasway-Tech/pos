@@ -116,13 +116,11 @@ jobs:
             -e 's/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = "";/g' \
             -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' \
             macos/Runner.xcodeproj/project.pbxproj
+          printf '\nCODE_SIGNING_ALLOWED = NO\nCODE_SIGNING_REQUIRED = NO\n' \
+            >> macos/Runner/Configs/Release.xcconfig
 
       - name: Build macOS release
         run: flutter build macos --release
-        env:
-          CODE_SIGN_IDENTITY: "-"
-          CODE_SIGNING_REQUIRED: "NO"
-          CODE_SIGNING_ALLOWED: "NO"
 
       - name: Create DMG
         run: |
