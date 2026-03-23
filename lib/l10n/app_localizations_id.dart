@@ -114,7 +114,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get currencyHint =>
-      'Anda dapat mengubah ini kapan saja di Pengaturan.';
+      'Harga produk Anda disimpan dalam mata uang ini. Jumlah KAS dihitung darinya saat checkout.';
 
   @override
   String get currencyContinue => 'Lanjutkan';

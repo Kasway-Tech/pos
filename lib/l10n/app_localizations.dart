@@ -295,7 +295,7 @@ abstract class AppLocalizations {
   /// No description provided for @currencyHint.
   ///
   /// In en, this message translates to:
-  /// **'You can change this at any time in Settings.'**
+  /// **'Your product prices are stored in this currency. KAS amounts are calculated from it at checkout.'**
   String get currencyHint;
 
   /// No description provided for @currencyContinue.

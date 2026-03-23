@@ -35,7 +35,7 @@
 
   "currencyTitle": "选择货币",
   "currencyQuestion": "您用什么货币进行销售？",
-  "currencyHint": "您可以随时在设置中更改。",
+  "currencyHint": "您的商品价格以此货币存储。结账时将据此计算KAS金额。",
   "currencyContinue": "继续",
 
   "loginTitle": "登录",

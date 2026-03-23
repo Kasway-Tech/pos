@@ -53,10 +53,8 @@ class OnboardingCurrencyPage extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: BlocBuilder<CurrencyCubit, CurrencyState>(
                     builder: (context, state) {
-                      return ListView.separated(
+                      return ListView.builder(
                         itemCount: CurrencyState.allCurrencies.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final currency = CurrencyState.allCurrencies[index];
                           final isSelected =
@@ -87,12 +85,17 @@ class OnboardingCurrencyPage extends StatelessWidget {
                 ),
               ),
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              child: FilledButton(
-                onPressed: () => context.go('/onboarding'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: FilledButton(
+                    onPressed: () => context.go('/onboarding'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    child: Text(l10n.currencyContinue),
+                  ),
                 ),
-                child: Text(l10n.currencyContinue),
               ),
             ),
           ],
@@ -103,16 +106,7 @@ class OnboardingCurrencyPage extends StatelessWidget {
 
   Widget _buildLeading(BuildContext context, Currency currency) {
     if (currency.isCrypto && currency.iconPath != null) {
-      return Container(
-        width: 40,
-        height: 40,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: SvgPicture.asset(currency.iconPath!),
-      );
+      return SvgPicture.asset(currency.iconPath!, width: 48, height: 48);
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),

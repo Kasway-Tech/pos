@@ -108,7 +108,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get currencyQuestion => '您用什么货币进行销售？';
 
   @override
-  String get currencyHint => '您可以随时在设置中更改。';
+  String get currencyHint => '您的商品价格以此货币存储。结账时将据此计算KAS金额。';
 
   @override
   String get currencyContinue => '继续';

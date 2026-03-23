@@ -111,7 +111,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get currencyQuestion => 'どの通貨で販売していますか？';
 
   @override
-  String get currencyHint => '設定からいつでも変更できます。';
+  String get currencyHint => '商品価格はこの通貨で保存されます。チェックアウト時にKAS金額が計算されます。';
 
   @override
   String get currencyContinue => '続ける';

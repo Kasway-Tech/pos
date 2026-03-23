@@ -82,85 +82,90 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
               ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      color: colorScheme.onErrorContainer,
-                      size: 20,
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    const SizedBox(width: 8.0),
-                    Expanded(
-                      child: Text(
-                        l10n.seedPhraseWarning,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
                           color: colorScheme.onErrorContainer,
+                          size: 20,
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24.0),
-              Expanded(
-                child: _error.isNotEmpty
-                    ? Center(
-                        child: Text(
-                          l10n.seedPhraseError(_error),
-                          style: TextStyle(color: colorScheme.error),
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : _words.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 8.0,
-                          crossAxisSpacing: 8.0,
-                          childAspectRatio: 2.2,
-                        ),
-                        itemCount: _words.length,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            elevation: 0,
-                            color: colorScheme.surfaceContainerHighest,
-                            child: Center(
-                              child: Text(
-                                '${index + 1}. ${_words[index]}',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: Text(
+                            l10n.seedPhraseWarning,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onErrorContainer,
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  Expanded(
+                    child: _error.isNotEmpty
+                        ? Center(
+                            child: Text(
+                              l10n.seedPhraseError(_error),
+                              style: TextStyle(color: colorScheme.error),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : _words.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 8.0,
+                              crossAxisSpacing: 8.0,
+                              childAspectRatio: 2.2,
+                            ),
+                            itemCount: _words.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+                                elevation: 0,
+                                color: colorScheme.surfaceContainerHighest,
+                                child: Center(
+                                  child: Text(
+                                    '${index + 1}. ${_words[index]}',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  FilledButton(
+                    onPressed: _words.isEmpty ? null : _continue,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    child: Text(l10n.seedPhraseConfirm),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24.0),
-              FilledButton(
-                onPressed: _words.isEmpty ? null : _continue,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: Text(l10n.seedPhraseConfirm),
-              ),
-            ],
+            ),
           ),
         ),
       ),

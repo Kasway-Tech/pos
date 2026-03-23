@@ -35,7 +35,7 @@
 
   "currencyTitle": "Pilih Mata Wang",
   "currencyQuestion": "Mata wang apa yang anda gunakan?",
-  "currencyHint": "Anda boleh menukarnya pada bila-bila masa dalam Tetapan.",
+  "currencyHint": "Harga produk anda disimpan dalam mata wang ini. Jumlah KAS dikira daripadanya semasa checkout.",
   "currencyContinue": "Teruskan",
 
   "loginTitle": "Log Masuk",

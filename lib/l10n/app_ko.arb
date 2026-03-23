@@ -35,7 +35,7 @@
 
   "currencyTitle": "통화 선택",
   "currencyQuestion": "어떤 통화로 판매하시나요?",
-  "currencyHint": "설정에서 언제든지 변경할 수 있습니다.",
+  "currencyHint": "상품 가격은 이 통화로 저장됩니다. 결제 시 KAS 금액이 이를 기준으로 계산됩니다.",
   "currencyContinue": "계속",
 
   "loginTitle": "로그인",

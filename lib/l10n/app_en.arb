@@ -38,7 +38,7 @@
 
   "currencyTitle": "Choose Currency",
   "currencyQuestion": "What currency do you sell in?",
-  "currencyHint": "You can change this at any time in Settings.",
+  "currencyHint": "Your product prices are stored in this currency. KAS amounts are calculated from it at checkout.",
   "currencyContinue": "Continue",
 
   "loginTitle": "Log In",

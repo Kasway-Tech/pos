@@ -113,7 +113,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyQuestion => 'What currency do you sell in?';
 
   @override
-  String get currencyHint => 'You can change this at any time in Settings.';
+  String get currencyHint =>
+      'Your product prices are stored in this currency. KAS amounts are calculated from it at checkout.';
 
   @override
   String get currencyContinue => 'Continue';

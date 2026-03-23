@@ -88,43 +88,48 @@ class _OnboardingPageState extends State<OnboardingPage> {
         body: SafeArea(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
-              : Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 16.0),
-                      Text(
-                        l10n.onboardingTitle,
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
+              : Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 16.0),
+                          Text(
+                            l10n.onboardingTitle,
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(
+                            l10n.onboardingSubtitle,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.outline,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const Spacer(),
+                          _OnboardingCard(
+                            icon: Icons.download,
+                            title: l10n.onboardingImportTitle,
+                            subtitle: l10n.onboardingImportSubtitle,
+                            onTap: _importCatalog,
+                          ),
+                          const SizedBox(height: 16.0),
+                          _OnboardingCard(
+                            icon: Icons.inventory_2_outlined,
+                            title: l10n.onboardingManualTitle,
+                            subtitle: l10n.onboardingManualSubtitle,
+                            onTap: _startFresh,
+                          ),
+                          const Spacer(),
+                        ],
                       ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        l10n.onboardingSubtitle,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.outline,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const Spacer(),
-                      _OnboardingCard(
-                        icon: Icons.download,
-                        title: l10n.onboardingImportTitle,
-                        subtitle: l10n.onboardingImportSubtitle,
-                        onTap: _importCatalog,
-                      ),
-                      const SizedBox(height: 16.0),
-                      _OnboardingCard(
-                        icon: Icons.inventory_2_outlined,
-                        title: l10n.onboardingManualTitle,
-                        subtitle: l10n.onboardingManualSubtitle,
-                        onTap: _startFresh,
-                      ),
-                      const Spacer(),
-                    ],
+                    ),
                   ),
                 ),
         ),

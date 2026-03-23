@@ -114,7 +114,7 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get currencyHint =>
-      'Anda boleh menukarnya pada bila-bila masa dalam Tetapan.';
+      'Harga produk anda disimpan dalam mata wang ini. Jumlah KAS dikira daripadanya semasa checkout.';
 
   @override
   String get currencyContinue => 'Teruskan';
