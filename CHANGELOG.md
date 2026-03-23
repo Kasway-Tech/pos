@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.0](https://github.com/Kasway-Tech/pos/compare/kasway-v1.5.0...kasway-v1.6.0) (2026-03-23)
+
+
+### Features
+
+* add configurable Kaspa payment confirmation setting ([8909598](https://github.com/Kasway-Tech/pos/commit/890959844853a0eba0ca9a1d6e8a342d64a1c844))
+* add gradient video background to auth/onboarding pages ([6170615](https://github.com/Kasway-Tech/pos/commit/6170615e1f3f6b203299db809bef6005aba8347d))
+* add print invoice system and trim CLAUDE.md ([4c9f6fe](https://github.com/Kasway-Tech/pos/commit/4c9f6fec98de33085dd2d27c97c247cc2f863b27))
+
+
+### Bug Fixes
+
+* add video_player_platform_interface as explicit dev dep ([3c9e34c](https://github.com/Kasway-Tech/pos/commit/3c9e34c6ee36ef1fa71bf6ae218156b57a056d7f))
+
 ## [1.5.0](https://github.com/Kasway-Tech/pos/compare/kasway-v1.4.0...kasway-v1.5.0) (2026-03-23)
 
 
