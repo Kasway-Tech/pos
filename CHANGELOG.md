@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0](https://github.com/Kasway-Tech/pos/compare/kasway-v1.4.0...kasway-v1.5.0) (2026-03-23)
+
+
+### Features
+
+* migrate wallet mnemonic to flutter_secure_storage ([2c22c37](https://github.com/Kasway-Tech/pos/commit/2c22c373afa9ae7e2f0e72cc3f20ab3873099fa2))
+* optimize onboarding/auth pages for tablet and polish currency UI ([d748e83](https://github.com/Kasway-Tech/pos/commit/d748e83d3a5f2891f0e545a03b0197d126e6aed1))
+* UI polish, ToS, node URL, donation explorer, onboarding bug fix ([36956fd](https://github.com/Kasway-Tech/pos/commit/36956fd8a7f9bab318830dd2d001d640ea4149cf))
+
 ## [1.4.0](https://github.com/furatamasensei/pos/compare/kasway-v1.3.1...kasway-v1.4.0) (2026-03-22)
 
 
