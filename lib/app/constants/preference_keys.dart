@@ -42,6 +42,10 @@ abstract final class PreferenceKeys {
   // ── Table Layout ───────────────────────────────────────────────────────────
   static const String tableLayoutEnabled = 'table_layout_enabled';
 
+  // ── Confirmation ───────────────────────────────────────────────────────────
+  static const String confirmationEnabled = 'confirmation_enabled';
+  static const String confirmationRequired = 'confirmation_required';
+
   // ── Invoice ────────────────────────────────────────────────────────────────
   static const String invoiceEnabled = 'invoice_enabled';
   static const String invoiceBusinessName = 'invoice_business_name';

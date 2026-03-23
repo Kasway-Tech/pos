@@ -1064,4 +1064,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get invoicePdfVerify => '扫码在Kaspa区块链上验证';
+
+  @override
+  String get settingsPaymentConfirmation => 'Payment Confirmation';
+
+  @override
+  String get confirmationSettingsTitle => 'Payment Confirmation';
+
+  @override
+  String get confirmationSettingsEnabled => 'Require confirmations';
+
+  @override
+  String get confirmationSettingsEnabledSubtitle =>
+      'Wait for DAA score confirmations before completing the order';
+
+  @override
+  String get confirmationSettingsDisabledHint =>
+      'Disabled — instant completion';
+
+  @override
+  String get confirmationSettingsRequiredLabel => 'Required confirmations';
+
+  @override
+  String get confirmationSettingsRequiredHint => 'Minimum 50';
+
+  @override
+  String get confirmationSettingsMinError => 'Must be at least 50';
+
+  @override
+  String get confirmationSettingsSaved => 'Settings saved';
 }

@@ -3,10 +3,18 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:go_router/go_router.dart';
+import 'package:kasway/app/confirmation/confirmation_cubit.dart';
 import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
+import 'package:kasway/app/invoice/invoice_cubit.dart';
+import 'package:kasway/app/invoice/invoice_state.dart';
 import 'package:kasway/app/l10n.dart';
+import 'package:kasway/app/table/table_cubit.dart';
+import 'package:kasway/data/repositories/donation_repository.dart';
+import 'package:kasway/data/services/invoice_service.dart';
+import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/data/services/payload_codec.dart';
 
 import 'package:flutter/material.dart';
@@ -23,7 +31,9 @@ import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
+import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/view/kaspa_confirmation_page.dart';
+import 'package:kasway/features/home/view/widgets/order_side_view.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class KaspaPaymentPage extends StatefulWidget {
@@ -80,6 +90,13 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
       kasSum += k;
     }
     _storedTotalKas = allHaveKas && _cartItems.isNotEmpty ? kasSum : null;
+
+    // Snapshot from live rate so the QR stays stable for the whole session.
+    if (_storedTotalKas == null && _cartItems.isNotEmpty) {
+      final kasIdr =
+          context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+      if (kasIdr > 0) _storedTotalKas = _totalIdr / kasIdr;
+    }
 
     _merchantAddress = context.read<WalletCubit>().state.address;
     Future.microtask(_connectWrpc);
@@ -221,22 +238,175 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
 
         if (mounted) {
           _clearDisplay();
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => KaspaConfirmationPage(
-                detectedDaaScore: _lastDaaScore,
-                totalIdr: _totalIdr,
-                cartItems: _cartItems,
-                txId: _lastTxId,
+          final confirmState = context.read<ConfirmationCubit>().state;
+          if (confirmState.enabled) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => KaspaConfirmationPage(
+                  detectedDaaScore: _lastDaaScore,
+                  totalIdr: _totalIdr,
+                  cartItems: _cartItems,
+                  txId: _lastTxId,
+                  requiredConfirmations: confirmState.requiredConfirmations,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            _completeOrderImmediately();
+          }
         }
       } else {
         setState(() {}); // partial — update remaining amount in UI
       }
     } catch (e) {
       debugPrint('[wRPC] parse error: $e');
+    }
+  }
+
+  void _completeOrderImmediately() {
+    if (!mounted) return;
+    final networkState = context.read<NetworkCubit>().state;
+    final network = networkState.network.name;
+    _tryAutoDonate(network: network, networkState: networkState);
+
+    final currencyState = context.read<CurrencyCubit>().state;
+    final kasIdr = currencyState.exchangeRates['idr'] ?? 0.0;
+    final kasAmount = kasIdr > 0 ? _totalIdr / kasIdr : 0.0;
+    final tableCubit = context.read<TableCubit>();
+    final tableLabel = tableCubit.state.selectedTable?.label ?? '';
+
+    final invoiceState = context.read<InvoiceCubit>().state;
+    if (invoiceState.enabled && invoiceState.isConfigured) {
+      _tryPrintInvoice(
+        invoiceState: invoiceState,
+        networkState: networkState,
+        currencyState: currencyState,
+        kasAmount: kasAmount,
+        kasIdrRate: kasIdr,
+        tableLabel: tableLabel.isEmpty ? null : tableLabel,
+      );
+    }
+
+    context.read<HomeBloc>()
+      ..add(
+        HomeOrderCompleted(
+          totalIdr: _totalIdr,
+          cartItems: _cartItems,
+          kasAmount: kasAmount,
+          kasIdrRate: kasIdr,
+          txId: _lastTxId,
+          network: network,
+          tableLabel: tableLabel,
+        ),
+      )
+      ..add(HomeCartCleared());
+    tableCubit.clearSelection();
+    context.go('/payment-success');
+  }
+
+  void _tryPrintInvoice({
+    required InvoiceState invoiceState,
+    required NetworkState networkState,
+    required CurrencyState currencyState,
+    required double kasAmount,
+    required double kasIdrRate,
+    String? tableLabel,
+  }) {
+    final l10n = context.l10n;
+    final strings = InvoiceStrings(
+      date: l10n.invoicePdfDate,
+      table: l10n.invoicePdfTable,
+      txId: l10n.invoicePdfTxId,
+      item: l10n.invoicePdfItem,
+      qty: l10n.invoicePdfQty,
+      unitPrice: l10n.invoicePdfUnit,
+      total: l10n.invoicePdfTotal,
+      grandTotal: l10n.invoicePdfGrandTotal,
+      kasPaid: l10n.invoicePdfKasPaid,
+      verify: l10n.invoicePdfVerify,
+      invoiceLabel: l10n.invoiceTitle,
+    );
+    unawaited(
+      InvoiceService()
+          .printInvoice(
+            settings: invoiceState,
+            cartItems: _cartItems,
+            totalIdr: _totalIdr,
+            txId: _lastTxId,
+            kasAmount: kasAmount,
+            kasIdrRate: kasIdrRate,
+            kasSymbol: networkState.kasSymbol,
+            isCryptoMode: currencyState.selectedCurrency.isCrypto,
+            formatPrice: (idr) => currencyState.formatPrice(
+              idr,
+              kasSymbol: networkState.kasSymbol,
+            ),
+            explorerUrl: '${networkState.explorerBaseUrl}$_lastTxId',
+            tableLabel: tableLabel,
+            strings: strings,
+          )
+          .catchError((Object e) {
+            debugPrint('[invoice] print error: $e');
+          }),
+    );
+  }
+
+  void _tryAutoDonate({
+    required String network,
+    required NetworkState networkState,
+  }) {
+    final donationState = context.read<DonationCubit>().state;
+    if (!donationState.autoEnabled) return;
+    final hrp = networkState.addressHrp;
+    final walletState = context.read<WalletCubit>().state;
+    if (walletState.mnemonic.isEmpty) return;
+    final kasIdr =
+        context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+    if (kasIdr <= 0) return;
+
+    final double donationKas;
+    if (donationState.mode == DonationMode.percentage) {
+      final totalKas = _totalIdr / kasIdr;
+      donationKas = totalKas * (donationState.percentageValue / 100);
+    } else {
+      donationKas = donationState.fixedKasAmount;
+    }
+    if (donationKas <= 0) return;
+
+    final repo = context.read<DonationRepository>();
+    _doAutoDonate(
+      mnemonic: walletState.mnemonic,
+      donationKas: donationKas,
+      hrp: hrp,
+      activeUrl: networkState.activeUrl,
+      network: network,
+      repo: repo,
+    );
+  }
+
+  Future<void> _doAutoDonate({
+    required String mnemonic,
+    required double donationKas,
+    required String hrp,
+    required String activeUrl,
+    required String network,
+    required DonationRepository repo,
+  }) async {
+    final result = await KaspaWalletService().sendTransaction(
+      mnemonic: mnemonic,
+      toAddress: DonationConstants.addressForHrp(hrp),
+      amountSompi: (donationKas * 1e8).toInt(),
+      payloadNote: 'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',
+      hrp: hrp,
+      activeUrl: activeUrl,
+    );
+    if (result.error.isEmpty) {
+      await repo.recordDonation(
+        txId: result.txId,
+        amountKas: donationKas,
+        isAuto: true,
+        network: network,
+      );
     }
   }
 
@@ -302,7 +472,6 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   Widget build(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-      appBar: AppBar(title: Text(context.l10n.paymentTitle)),
       body: BlocListener<WalletCubit, WalletState>(
         listenWhen: (prev, curr) => prev.address != curr.address,
         listener: (context, walletState) {
@@ -344,6 +513,13 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                   ),
                 ),
               );
+            }
+
+            // Snapshot once when rates first become available (handles the
+            // case where the splash 3-second timeout fires before CoinGecko
+            // responds, leaving exchangeRates empty at didChangeDependencies).
+            if (_storedTotalKas == null && kasIdr > 0 && _cartItems.isNotEmpty) {
+              _storedTotalKas = _totalIdr / kasIdr;
             }
 
             final effectiveTotalKas =
@@ -397,7 +573,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
               _totalIdr,
             );
 
-            return BlocBuilder<NetworkCubit, NetworkState>(
+          return BlocBuilder<NetworkCubit, NetworkState>(
               builder: (context, networkState) {
                 final kasSymbol = networkState.kasSymbol;
 
@@ -618,93 +794,67 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                     final isWide = constraints.maxWidth > 720;
 
                     if (isWide) {
-                      // Two-panel layout: 70% left / 30% right
+                      // Two-panel layout: left scrollable / right OrderSideView
                       return SafeArea(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Left — scrollable, content centered at 400px max
+                            // Left — back button + scrollable content
                             Expanded(
                               flex: 7,
-                              child: SingleChildScrollView(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                  vertical: 24,
-                                ),
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight - 48,
-                                  ),
-                                  child: Center(
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: 400,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 8,
+                                      top: 4,
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: IconButton(
+                                        icon: const Icon(Icons.arrow_back),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
                                       ),
-                                      child: Column(children: leftChildren),
                                     ),
                                   ),
-                                ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 32,
+                                        vertical: 8,
+                                      ),
+                                      child: Center(
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                            maxWidth: 400,
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: leftChildren,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            // Right — full-height card with scrollable list
+                            VerticalDivider(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant,
+                            ),
+                            // Right — full-height OrderSideView (no proceed button)
                             Expanded(
                               flex: 3,
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  8,
-                                  24,
-                                  24,
-                                  24,
-                                ),
-                                child: Card(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          16,
-                                          16,
-                                          16,
-                                          8,
-                                        ),
-                                        child: Text(
-                                          context.l10n.paymentOrderList,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: ListView(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8,
-                                          ),
-                                          children: _cartItems
-                                              .map(
-                                                (item) => LineItemRow(
-                                                  productName:
-                                                      item.product.name,
-                                                  quantity: item.quantity,
-                                                  lineTotal: item.totalPrice,
-                                                  additions: item
-                                                      .selectedAdditions
-                                                      .map(
-                                                        (a) => (
-                                                          name: a.name,
-                                                          price: a.price,
-                                                        ),
-                                                      )
-                                                      .toList(),
-                                                ),
-                                              )
-                                              .toList(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              child: OrderSideView(
+                                showAppBar: false,
+                                showProceedButton: false,
+                                readOnly: true,
                               ),
                             ),
                           ],
@@ -713,21 +863,29 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                     }
 
                     // Single-column layout (mobile / portrait tablet)
-                    return SafeArea(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
+                    return Column(
+                      children: [
+                        AppBar(title: Text(context.l10n.paymentTitle)),
+                        Expanded(
+                          child: SafeArea(
+                            top: false,
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                              child: Column(
+                                children: [
+                                  ...leftChildren,
+                                  const SizedBox(height: 8),
+                                  itemsCard,
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Column(
-                          children: [
-                            ...leftChildren,
-                            const SizedBox(height: 8),
-                            itemsCard,
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      ),
+                      ],
                     );
                   },
                 );

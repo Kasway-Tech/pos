@@ -472,5 +472,15 @@
       "amount": { "type": "String" }
     }
   },
-  "invoicePdfVerify": "Scan to verify on Kaspa blockchain"
+  "invoicePdfVerify": "Scan to verify on Kaspa blockchain",
+
+  "settingsPaymentConfirmation": "Payment Confirmation",
+  "confirmationSettingsTitle": "Payment Confirmation",
+  "confirmationSettingsEnabled": "Require confirmations",
+  "confirmationSettingsEnabledSubtitle": "Wait for DAA score confirmations before completing the order",
+  "confirmationSettingsDisabledHint": "Disabled — instant completion",
+  "confirmationSettingsRequiredLabel": "Required confirmations",
+  "confirmationSettingsRequiredHint": "Minimum 50",
+  "confirmationSettingsMinError": "Must be at least 50",
+  "confirmationSettingsSaved": "Settings saved"
 }

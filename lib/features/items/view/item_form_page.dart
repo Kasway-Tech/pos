@@ -26,7 +26,6 @@ class _ItemFormPageState extends State<ItemFormPage> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _priceCtrl;
   late final TextEditingController _kasCtrl;
-  late final TextEditingController _descCtrl;
   late String _selectedCategory;
   late List<Addition> _additions;
   late CurrencyState _lastCurrencyState;
@@ -75,7 +74,6 @@ class _ItemFormPageState extends State<ItemFormPage> {
       text: kasPrice != null ? _rawKas(kasPrice) : '',
     );
 
-    _descCtrl = TextEditingController(text: p?.description ?? '');
     _additions = List<Addition>.from(p?.additions ?? []);
     final categories = context.read<HomeBloc>().state.categories;
     _selectedCategory =
@@ -91,7 +89,6 @@ class _ItemFormPageState extends State<ItemFormPage> {
     _nameCtrl.dispose();
     _priceCtrl.dispose();
     _kasCtrl.dispose();
-    _descCtrl.dispose();
     super.dispose();
   }
 
@@ -272,14 +269,6 @@ class _ItemFormPageState extends State<ItemFormPage> {
                           },
                         );
                       },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descCtrl,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.itemFormDescription,
-                      ),
-                      maxLines: 3,
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -502,7 +491,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
       name: _nameCtrl.text.trim(),
       price: idrPrice,
       kasPrice: kasPrice,
-      description: _descCtrl.text.trim(),
+      description: widget.product?.description ?? '',
       additions: _additions,
     );
     final bloc = context.read<HomeBloc>();

@@ -8,9 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OrderCartItemTile extends StatefulWidget {
-  const OrderCartItemTile({super.key, required this.cartItem});
+  const OrderCartItemTile({
+    super.key,
+    required this.cartItem,
+    this.readOnly = false,
+  });
 
   final CartItem cartItem;
+  final bool readOnly;
 
   @override
   State<OrderCartItemTile> createState() => _OrderCartItemTileState();
@@ -71,6 +76,7 @@ class _OrderCartItemTileState extends State<OrderCartItemTile>
             builder: (context, quantity) {
               return NumericInputGroup(
                 value: quantity,
+                readOnly: widget.readOnly,
                 onChanged: (newQty) {
                   context.read<HomeBloc>().add(
                     HomeCartQuantityUpdated(

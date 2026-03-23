@@ -17,10 +17,14 @@ class OrderSideView extends StatefulWidget {
     super.key,
     this.onProceedToPayment,
     this.showAppBar = false,
+    this.showProceedButton = true,
+    this.readOnly = false,
   });
 
   final VoidCallback? onProceedToPayment;
   final bool showAppBar;
+  final bool showProceedButton;
+  final bool readOnly;
 
   @override
   State<OrderSideView> createState() => _OrderSideViewState();
@@ -146,15 +150,9 @@ class _OrderSideViewState extends State<OrderSideView> {
                   ],
                 ),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHigh,
-                      ),
-                    ),
+                child: MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: const TextScaler.linear(0.85),
                   ),
                   child: ListView.builder(
                     key: const PageStorageKey('order_list'),
@@ -163,7 +161,10 @@ class _OrderSideViewState extends State<OrderSideView> {
                     itemCount: state.cartItems.length,
                     itemBuilder: (context, index) {
                       final item = state.cartItems[index];
-                      return OrderCartItemTile(cartItem: item);
+                      return OrderCartItemTile(
+                        cartItem: item,
+                        readOnly: widget.readOnly,
+                      );
                     },
                   ),
                 ),
@@ -292,7 +293,8 @@ class _OrderSideViewState extends State<OrderSideView> {
                     ],
                   ),
                 ),
-              if (state.cartItems.isNotEmpty || screenWidth >= 800)
+              if (widget.showProceedButton &&
+                  (state.cartItems.isNotEmpty || screenWidth >= 800))
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,

@@ -2061,6 +2061,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scan to verify on Kaspa blockchain'**
   String get invoicePdfVerify;
+
+  /// No description provided for @settingsPaymentConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Confirmation'**
+  String get settingsPaymentConfirmation;
+
+  /// No description provided for @confirmationSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Confirmation'**
+  String get confirmationSettingsTitle;
+
+  /// No description provided for @confirmationSettingsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Require confirmations'**
+  String get confirmationSettingsEnabled;
+
+  /// No description provided for @confirmationSettingsEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for DAA score confirmations before completing the order'**
+  String get confirmationSettingsEnabledSubtitle;
+
+  /// No description provided for @confirmationSettingsDisabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled — instant completion'**
+  String get confirmationSettingsDisabledHint;
+
+  /// No description provided for @confirmationSettingsRequiredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Required confirmations'**
+  String get confirmationSettingsRequiredLabel;
+
+  /// No description provided for @confirmationSettingsRequiredHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum 50'**
+  String get confirmationSettingsRequiredHint;
+
+  /// No description provided for @confirmationSettingsMinError.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be at least 50'**
+  String get confirmationSettingsMinError;
+
+  /// No description provided for @confirmationSettingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings saved'**
+  String get confirmationSettingsSaved;
 }
 
 class _AppLocalizationsDelegate

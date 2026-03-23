@@ -110,10 +110,17 @@ jobs:
       - name: Generate localizations
         run: flutter gen-l10n
 
+      - name: Disable code signing for CI
+        run: |
+          sed -i '' \
+            -e 's/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = "";/g' \
+            -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' \
+            macos/Runner.xcodeproj/project.pbxproj
+
       - name: Build macOS release
         run: flutter build macos --release
         env:
-          CODE_SIGN_IDENTITY: ""
+          CODE_SIGN_IDENTITY: "-"
           CODE_SIGNING_REQUIRED: "NO"
           CODE_SIGNING_ALLOWED: "NO"
 

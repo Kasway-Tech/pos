@@ -74,10 +74,9 @@ class _SecondaryPaymentScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     'Kasway POS',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -86,10 +85,9 @@ class _SecondaryPaymentScreen extends StatelessWidget {
               if (kas != null)
                 Text(
                   kas,
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
 
@@ -98,8 +96,8 @@ class _SecondaryPaymentScreen extends StatelessWidget {
                 Text(
                   idr,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -124,15 +122,14 @@ class _SecondaryPaymentScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Order',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                ...rawItems.map((raw) => _OrderItemRow(
-                      item: raw as Map<dynamic, dynamic>,
-                    )),
+                ...rawItems.map(
+                  (raw) => _OrderItemRow(item: raw as Map<dynamic, dynamic>),
+                ),
               ],
 
               const SizedBox(height: 32),
@@ -140,8 +137,8 @@ class _SecondaryPaymentScreen extends StatelessWidget {
               Text(
                 'Scan QR code to pay',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               ),
             ],
           ),
@@ -170,10 +167,9 @@ class _OrderItemRow extends StatelessWidget {
         children: [
           Text(
             '$qty×',
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -185,8 +181,8 @@ class _OrderItemRow extends StatelessWidget {
                   Text(
                     additions.join(', '),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
               ],
             ),
@@ -216,17 +212,16 @@ class _WaitingScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               'Kasway POS',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Waiting for payment…',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
           ],
         ),

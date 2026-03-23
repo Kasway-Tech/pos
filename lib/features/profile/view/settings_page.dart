@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kasway/app/confirmation/confirmation_cubit.dart';
+import 'package:kasway/app/confirmation/confirmation_state.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/l10n.dart';
@@ -56,6 +58,18 @@ class SettingsPage extends StatelessWidget {
                               .setDynamicPricing(val),
                   );
                 },
+              ),
+              BlocBuilder<ConfirmationCubit, ConfirmationState>(
+                builder: (context, state) => ListTile(
+                  title: Text(l10n.settingsPaymentConfirmation),
+                  subtitle: Text(
+                    state.enabled
+                        ? '${state.requiredConfirmations} confirmations'
+                        : l10n.confirmationSettingsDisabledHint,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/profile/confirmation'),
+                ),
               ),
               const Divider(),
               Padding(

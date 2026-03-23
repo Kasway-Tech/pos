@@ -2,6 +2,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kasway/app/confirmation/confirmation_cubit.dart';
+import 'package:kasway/app/confirmation/confirmation_state.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/l10n.dart';
@@ -15,13 +17,18 @@ class MockCurrencyCubit extends MockCubit<CurrencyState>
 
 class MockLocaleCubit extends MockCubit<LocaleState> implements LocaleCubit {}
 
+class MockConfirmationCubit extends MockCubit<ConfirmationState>
+    implements ConfirmationCubit {}
+
 void main() {
   late MockCurrencyCubit currencyCubit;
   late MockLocaleCubit localeCubit;
+  late MockConfirmationCubit confirmationCubit;
 
   setUp(() {
     currencyCubit = MockCurrencyCubit();
     localeCubit = MockLocaleCubit();
+    confirmationCubit = MockConfirmationCubit();
 
     when(() => currencyCubit.state).thenReturn(
       const CurrencyState(
@@ -33,6 +40,7 @@ void main() {
       ),
     );
     when(() => localeCubit.state).thenReturn(const LocaleState());
+    when(() => confirmationCubit.state).thenReturn(const ConfirmationState());
   });
 
   Widget buildWidget() {
@@ -40,6 +48,7 @@ void main() {
       providers: [
         BlocProvider<CurrencyCubit>.value(value: currencyCubit),
         BlocProvider<LocaleCubit>.value(value: localeCubit),
+        BlocProvider<ConfirmationCubit>.value(value: confirmationCubit),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,

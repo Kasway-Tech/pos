@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
-
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
@@ -24,6 +22,7 @@ import 'package:kasway/data/services/invoice_service.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
+import 'package:lottie/lottie.dart';
 
 class KaspaConfirmationPage extends StatefulWidget {
   const KaspaConfirmationPage({
@@ -32,19 +31,21 @@ class KaspaConfirmationPage extends StatefulWidget {
     required this.totalIdr,
     required this.cartItems,
     required this.txId,
+    required this.requiredConfirmations,
   });
 
   final int detectedDaaScore;
   final double totalIdr;
   final List<CartItem> cartItems;
   final String txId;
+  final int requiredConfirmations;
 
   @override
   State<KaspaConfirmationPage> createState() => _KaspaConfirmationPageState();
 }
 
 class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
-  static const int _required = 10;
+  int get _required => widget.requiredConfirmations;
 
   WebSocket? _ws;
   bool _wsDisposed = false;
@@ -75,49 +76,55 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     if (!mounted) return;
     final jsonUrl = context.read<NetworkCubit>().state.activeUrl;
 
-    await runZonedGuarded(() async {
-    while (!_wsDisposed) {
-      try {
-        final ws = await WebSocket.connect(jsonUrl);
-        if (_wsDisposed) {
-          await ws.close();
-          return;
-        }
-        _ws = ws;
+    await runZonedGuarded(
+      () async {
+        while (!_wsDisposed) {
+          try {
+            final ws = await WebSocket.connect(jsonUrl);
+            if (_wsDisposed) {
+              await ws.close();
+              return;
+            }
+            _ws = ws;
 
-        void send() {
-          if (!_wsDisposed) {
-            ws.add(jsonEncode({
-              'id': _reqId++,
-              'method': 'getBlockDagInfo',
-              'params': {},
-            }));
+            void send() {
+              if (!_wsDisposed) {
+                ws.add(
+                  jsonEncode({
+                    'id': _reqId++,
+                    'method': 'getBlockDagInfo',
+                    'params': {},
+                  }),
+                );
+              }
+            }
+
+            send();
+            _pollSub = Stream.periodic(
+              const Duration(seconds: 1),
+            ).listen((_) => send());
+
+            await for (final raw in ws) {
+              if (_wsDisposed) break;
+              if (raw is String) _handleResponse(raw);
+            }
+          } catch (e) {
+            debugPrint('[confirm] error: $e');
+          } finally {
+            await _pollSub?.cancel();
+            _pollSub = null;
           }
+
+          if (_wsDisposed) return;
+          await Future<void>.delayed(const Duration(seconds: 3));
         }
-
-        send();
-        _pollSub =
-            Stream.periodic(const Duration(seconds: 1)).listen((_) => send());
-
-        await for (final raw in ws) {
-          if (_wsDisposed) break;
-          if (raw is String) _handleResponse(raw);
-        }
-      } catch (e) {
-        debugPrint('[confirm] error: $e');
-      } finally {
-        await _pollSub?.cancel();
-        _pollSub = null;
-      }
-
-      if (_wsDisposed) return;
-      await Future<void>.delayed(const Duration(seconds: 3));
-    }
-    }, (e, _) {
-      // SocketException thrown by dart:io internals after socket close;
-      // not catchable by regular try/catch — silently swallow.
-      if (e is! SocketException) debugPrint('[confirm] zone: $e');
-    });
+      },
+      (e, _) {
+        // SocketException thrown by dart:io internals after socket close;
+        // not catchable by regular try/catch — silently swallow.
+        if (e is! SocketException) debugPrint('[confirm] zone: $e');
+      },
+    );
   }
 
   void _handleResponse(String raw) {
@@ -128,8 +135,9 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       if (params == null) return;
       final scoreRaw = params['virtualDaaScore'];
       if (scoreRaw == null) return;
-      final score =
-          scoreRaw is int ? scoreRaw : int.tryParse(scoreRaw.toString()) ?? 0;
+      final score = scoreRaw is int
+          ? scoreRaw
+          : int.tryParse(scoreRaw.toString()) ?? 0;
       setState(() => _currentDaaScore = score);
       if (_confirmations >= _required) _onConfirmed();
     } catch (e) {
@@ -164,15 +172,17 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     }
 
     context.read<HomeBloc>()
-      ..add(HomeOrderCompleted(
-        totalIdr: widget.totalIdr,
-        cartItems: widget.cartItems,
-        kasAmount: kasAmount,
-        kasIdrRate: kasIdr,
-        txId: widget.txId,
-        network: network,
-        tableLabel: tableLabel,
-      ))
+      ..add(
+        HomeOrderCompleted(
+          totalIdr: widget.totalIdr,
+          cartItems: widget.cartItems,
+          kasAmount: kasAmount,
+          kasIdrRate: kasIdr,
+          txId: widget.txId,
+          network: network,
+          tableLabel: tableLabel,
+        ),
+      )
       ..add(HomeCartCleared());
     tableCubit.clearSelection();
     context.go('/payment-success');
@@ -203,25 +213,25 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     unawaited(
       InvoiceService()
           .printInvoice(
-        settings: invoiceState,
-        cartItems: widget.cartItems,
-        totalIdr: widget.totalIdr,
-        txId: widget.txId,
-        kasAmount: kasAmount,
-        kasIdrRate: kasIdrRate,
-        kasSymbol: networkState.kasSymbol,
-        isCryptoMode: currencyState.selectedCurrency.isCrypto,
-        formatPrice: (idr) => currencyState.formatPrice(
-          idr,
-          kasSymbol: networkState.kasSymbol,
-        ),
-        explorerUrl: '${networkState.explorerBaseUrl}${widget.txId}',
-        tableLabel: tableLabel,
-        strings: strings,
-      )
+            settings: invoiceState,
+            cartItems: widget.cartItems,
+            totalIdr: widget.totalIdr,
+            txId: widget.txId,
+            kasAmount: kasAmount,
+            kasIdrRate: kasIdrRate,
+            kasSymbol: networkState.kasSymbol,
+            isCryptoMode: currencyState.selectedCurrency.isCrypto,
+            formatPrice: (idr) => currencyState.formatPrice(
+              idr,
+              kasSymbol: networkState.kasSymbol,
+            ),
+            explorerUrl: '${networkState.explorerBaseUrl}${widget.txId}',
+            tableLabel: tableLabel,
+            strings: strings,
+          )
           .catchError((Object e) {
-        debugPrint('[invoice] print error: $e');
-      }),
+            debugPrint('[invoice] print error: $e');
+          }),
     );
   }
 
@@ -269,8 +279,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       mnemonic: mnemonic,
       toAddress: DonationConstants.addressForHrp(hrp),
       amountSompi: (donationKas * 1e8).toInt(),
-      payloadNote:
-          'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',
+      payloadNote: 'kasway:donate:${DateTime.now().toUtc().toIso8601String()}',
       hrp: hrp,
       activeUrl: activeUrl,
     );
@@ -324,17 +333,17 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
             const SizedBox(height: 16),
             Text(
               'Confirming Payment',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Please wait while we verify your transaction on the Kaspa network.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 24),
             LinearProgressIndicator(value: value, minHeight: 8),

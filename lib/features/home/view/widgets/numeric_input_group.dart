@@ -8,12 +8,14 @@ class NumericInputGroup extends StatefulWidget {
     required this.onChanged,
     this.min = 0,
     this.max = 99,
+    this.readOnly = false,
   });
 
   final int value;
   final ValueChanged<int> onChanged;
   final int min;
   final int max;
+  final bool readOnly;
 
   @override
   State<NumericInputGroup> createState() => _NumericInputGroupState();
@@ -67,7 +69,7 @@ class _NumericInputGroupState extends State<NumericInputGroup> {
           _ActionButton(
             icon: Icons.remove,
             color: Colors.red,
-            onPressed: widget.value > widget.min
+            onPressed: !widget.readOnly && widget.value > widget.min
                 ? () => _updateValue(widget.value - 1)
                 : null,
             isLeft: true,
@@ -78,6 +80,7 @@ class _NumericInputGroupState extends State<NumericInputGroup> {
             decoration: BoxDecoration(color: colorScheme.surfaceContainerLow),
             child: TextField(
               controller: _controller,
+              readOnly: widget.readOnly,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               style: Theme.of(
@@ -89,26 +92,28 @@ class _NumericInputGroupState extends State<NumericInputGroup> {
                 border: InputBorder.none,
               ),
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (text) {
-                final newValue = int.tryParse(text);
-                if (newValue != null) {
-                  if (newValue > widget.max) {
-                    _controller.text = widget.max.toString();
-                    _controller.selection = TextSelection.fromPosition(
-                      TextPosition(offset: _controller.text.length),
-                    );
-                    _updateValue(widget.max);
-                  } else {
-                    _updateValue(newValue);
-                  }
-                }
-              },
+              onChanged: widget.readOnly
+                  ? null
+                  : (text) {
+                      final newValue = int.tryParse(text);
+                      if (newValue != null) {
+                        if (newValue > widget.max) {
+                          _controller.text = widget.max.toString();
+                          _controller.selection = TextSelection.fromPosition(
+                            TextPosition(offset: _controller.text.length),
+                          );
+                          _updateValue(widget.max);
+                        } else {
+                          _updateValue(newValue);
+                        }
+                      }
+                    },
             ),
           ),
           _ActionButton(
             icon: Icons.add,
             color: Theme.of(context).colorScheme.primary,
-            onPressed: widget.value < widget.max
+            onPressed: !widget.readOnly && widget.value < widget.max
                 ? () => _updateValue(widget.value + 1)
                 : null,
             isLeft: false,
