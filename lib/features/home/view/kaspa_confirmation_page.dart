@@ -8,13 +8,19 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import 'package:kasway/app/currency/currency_cubit.dart';
+import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
 import 'package:kasway/app/donation/donation_state.dart';
+import 'package:kasway/app/invoice/invoice_cubit.dart';
+import 'package:kasway/app/invoice/invoice_state.dart';
+import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
+import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/table/table_cubit.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/data/models/cart_item.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
+import 'package:kasway/data/services/invoice_service.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
@@ -38,7 +44,7 @@ class KaspaConfirmationPage extends StatefulWidget {
 }
 
 class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
-  static const int _required = 50;
+  static const int _required = 10;
 
   WebSocket? _ws;
   bool _wsDisposed = false;
@@ -134,13 +140,29 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
   void _onConfirmed() {
     if (!mounted) return;
     _wsDisposed = true; // stop polling
-    final network = context.read<NetworkCubit>().state.network.name;
+    final networkState = context.read<NetworkCubit>().state;
+    final network = networkState.network.name;
     _tryAutoDonate(network: network);
-    final kasIdr =
-        context.read<CurrencyCubit>().state.exchangeRates['idr'] ?? 0.0;
+
+    final currencyState = context.read<CurrencyCubit>().state;
+    final kasIdr = currencyState.exchangeRates['idr'] ?? 0.0;
     final kasAmount = kasIdr > 0 ? widget.totalIdr / kasIdr : 0.0;
     final tableCubit = context.read<TableCubit>();
     final tableLabel = tableCubit.state.selectedTable?.label ?? '';
+
+    // Fire-and-forget invoice print (before navigation so context is still valid).
+    final invoiceState = context.read<InvoiceCubit>().state;
+    if (invoiceState.enabled && invoiceState.isConfigured) {
+      _tryPrintInvoice(
+        invoiceState: invoiceState,
+        networkState: networkState,
+        currencyState: currencyState,
+        kasAmount: kasAmount,
+        kasIdrRate: kasIdr,
+        tableLabel: tableLabel.isEmpty ? null : tableLabel,
+      );
+    }
+
     context.read<HomeBloc>()
       ..add(HomeOrderCompleted(
         totalIdr: widget.totalIdr,
@@ -154,6 +176,53 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
       ..add(HomeCartCleared());
     tableCubit.clearSelection();
     context.go('/payment-success');
+  }
+
+  void _tryPrintInvoice({
+    required InvoiceState invoiceState,
+    required NetworkState networkState,
+    required CurrencyState currencyState,
+    required double kasAmount,
+    required double kasIdrRate,
+    String? tableLabel,
+  }) {
+    final l10n = context.l10n;
+    final strings = InvoiceStrings(
+      date: l10n.invoicePdfDate,
+      table: l10n.invoicePdfTable,
+      txId: l10n.invoicePdfTxId,
+      item: l10n.invoicePdfItem,
+      qty: l10n.invoicePdfQty,
+      unitPrice: l10n.invoicePdfUnit,
+      total: l10n.invoicePdfTotal,
+      grandTotal: l10n.invoicePdfGrandTotal,
+      kasPaid: l10n.invoicePdfKasPaid,
+      verify: l10n.invoicePdfVerify,
+      invoiceLabel: l10n.invoiceTitle,
+    );
+    unawaited(
+      InvoiceService()
+          .printInvoice(
+        settings: invoiceState,
+        cartItems: widget.cartItems,
+        totalIdr: widget.totalIdr,
+        txId: widget.txId,
+        kasAmount: kasAmount,
+        kasIdrRate: kasIdrRate,
+        kasSymbol: networkState.kasSymbol,
+        isCryptoMode: currencyState.selectedCurrency.isCrypto,
+        formatPrice: (idr) => currencyState.formatPrice(
+          idr,
+          kasSymbol: networkState.kasSymbol,
+        ),
+        explorerUrl: '${networkState.explorerBaseUrl}${widget.txId}',
+        tableLabel: tableLabel,
+        strings: strings,
+      )
+          .catchError((Object e) {
+        debugPrint('[invoice] print error: $e');
+      }),
+    );
   }
 
   void _tryAutoDonate({required String network}) {
@@ -239,7 +308,7 @@ class _KaspaConfirmationPageState extends State<KaspaConfirmationPage> {
     return TweenAnimationBuilder<double>(
       tween: Tween(end: targetProgress),
       // 1200ms > 1s poll interval → feels like continuous linear motion
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 600),
       curve: Curves.linear,
       builder: (context, value, _) {
         final count = (value * _required).round();

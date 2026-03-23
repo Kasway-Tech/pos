@@ -313,6 +313,7 @@
   "itemFormAdditionName": "追加オプション名",
   "itemFormAdditionPriceLabel": "追加料金（{code}、0=無料）",
   "itemFormCancel": "キャンセル",
+  "itemFormKasPrice": "KAS価格",
 
   "categoryManageTitle": "カテゴリ",
   "categoryAddCategory": "カテゴリを追加",
@@ -328,5 +329,38 @@
   "categoryDelete": "削除",
   "categoryItemCount": "{count}件{plural}",
 
-  "itemManageCreate": "作成"
+  "itemManageCreate": "作成",
+
+  "profileInvoice": "領収書印刷",
+
+  "invoiceTitle": "領収書印刷",
+  "invoiceBusinessInfoTitle": "事業者情報",
+  "invoiceBusinessName": "事業者名",
+  "invoiceBusinessAddress": "住所",
+  "invoiceBusinessPhone": "電話番号",
+  "invoiceFooter": "フッター / キャッチコピー（任意）",
+  "invoiceSave": "保存",
+  "invoiceSaved": "事業者情報を保存しました",
+  "invoiceRequiredField": "必須",
+  "invoicePrintSettings": "印刷設定",
+  "invoiceEnablePrint": "支払い後に領収書を印刷",
+  "invoiceEnableRequiresBiz": "上の事業者情報を入力して有効にしてください",
+
+  "invoicePdfDate": "日付",
+  "invoicePdfTable": "テーブル",
+  "invoicePdfTxId": "TX",
+  "invoicePdfItem": "商品",
+  "invoicePdfQty": "数量",
+  "invoicePdfUnit": "単価",
+  "invoicePdfTotal": "小計",
+  "invoicePdfGrandTotal": "合計",
+  "invoicePdfKasPaid": "KAS支払済",
+  "invoicePdfRate": "1 {kasSymbol} = {amount}",
+  "@invoicePdfRate": {
+    "placeholders": {
+      "kasSymbol": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "invoicePdfVerify": "スキャンしてKaspaブロックチェーンで確認"
 }

@@ -30,6 +30,7 @@ import 'package:kasway/features/profile/view/order_history_page.dart';
 import 'package:kasway/features/profile/view/settings_page.dart';
 import 'package:kasway/features/profile/view/table_layout_page.dart';
 import 'package:kasway/features/profile/view/theme_settings_page.dart';
+import 'package:kasway/features/profile/view/invoice_settings_page.dart';
 import 'package:kasway/features/profile/view/withdrawal_history_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,6 +45,7 @@ enum _ProfileSection {
   dataTransfer,
   network,
   display,
+  invoice,
   theme,
   settings,
   donate,
@@ -58,6 +60,7 @@ extension _ProfileSectionWidget on _ProfileSection {
     _ProfileSection.dataTransfer => const DataTransferPage(),
     _ProfileSection.network => const NetworkPage(),
     _ProfileSection.display => const DisplaySettingsPage(),
+    _ProfileSection.invoice => const InvoiceSettingsPage(),
     _ProfileSection.theme => const ThemeSettingsPage(),
     _ProfileSection.settings => const SettingsPage(),
     _ProfileSection.donate => const DonationPage(),
@@ -219,6 +222,12 @@ class _ProfilePageState extends State<ProfilePage> {
         title: l10n.profileDisplay,
         isSelected: isSelected(_ProfileSection.display),
         onTap: () => navigate(_ProfileSection.display, '/profile/display'),
+      ),
+      _ProfileMenuItem(
+        icon: Icons.receipt_long_outlined,
+        title: l10n.profileInvoice,
+        isSelected: isSelected(_ProfileSection.invoice),
+        onTap: () => navigate(_ProfileSection.invoice, '/profile/invoice'),
       ),
       _ProfileMenuItem(
         icon: Icons.palette_outlined,

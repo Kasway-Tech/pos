@@ -438,5 +438,39 @@
     }
   },
 
-  "itemManageCreate": "Create"
+  "itemManageCreate": "Create",
+  "itemFormKasPrice": "KAS Price",
+
+  "profileInvoice": "Print Invoice",
+
+  "invoiceTitle": "Print Invoice",
+  "invoiceBusinessInfoTitle": "Business Information",
+  "invoiceBusinessName": "Business Name",
+  "invoiceBusinessAddress": "Address",
+  "invoiceBusinessPhone": "Phone Number",
+  "invoiceFooter": "Footer / Tagline (optional)",
+  "invoiceSave": "Save",
+  "invoiceSaved": "Business info saved",
+  "invoiceRequiredField": "Required",
+  "invoicePrintSettings": "Print Settings",
+  "invoiceEnablePrint": "Print Invoice After Payment",
+  "invoiceEnableRequiresBiz": "Fill in business information above to enable",
+
+  "invoicePdfDate": "Date",
+  "invoicePdfTable": "Table",
+  "invoicePdfTxId": "TX",
+  "invoicePdfItem": "Item",
+  "invoicePdfQty": "Qty",
+  "invoicePdfUnit": "Unit Price",
+  "invoicePdfTotal": "Total",
+  "invoicePdfGrandTotal": "GRAND TOTAL",
+  "invoicePdfKasPaid": "KAS Paid",
+  "invoicePdfRate": "1 {kasSymbol} = {amount}",
+  "@invoicePdfRate": {
+    "placeholders": {
+      "kasSymbol": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "invoicePdfVerify": "Scan to verify on Kaspa blockchain"
 }

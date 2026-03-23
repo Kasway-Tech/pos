@@ -1911,6 +1911,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create'**
   String get itemManageCreate;
+
+  /// No description provided for @itemFormKasPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'KAS Price'**
+  String get itemFormKasPrice;
+
+  /// No description provided for @profileInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Invoice'**
+  String get profileInvoice;
+
+  /// No description provided for @invoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Invoice'**
+  String get invoiceTitle;
+
+  /// No description provided for @invoiceBusinessInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Information'**
+  String get invoiceBusinessInfoTitle;
+
+  /// No description provided for @invoiceBusinessName.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Name'**
+  String get invoiceBusinessName;
+
+  /// No description provided for @invoiceBusinessAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get invoiceBusinessAddress;
+
+  /// No description provided for @invoiceBusinessPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get invoiceBusinessPhone;
+
+  /// No description provided for @invoiceFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Footer / Tagline (optional)'**
+  String get invoiceFooter;
+
+  /// No description provided for @invoiceSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get invoiceSave;
+
+  /// No description provided for @invoiceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Business info saved'**
+  String get invoiceSaved;
+
+  /// No description provided for @invoiceRequiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get invoiceRequiredField;
+
+  /// No description provided for @invoicePrintSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Settings'**
+  String get invoicePrintSettings;
+
+  /// No description provided for @invoiceEnablePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Invoice After Payment'**
+  String get invoiceEnablePrint;
+
+  /// No description provided for @invoiceEnableRequiresBiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in business information above to enable'**
+  String get invoiceEnableRequiresBiz;
+
+  /// No description provided for @invoicePdfDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get invoicePdfDate;
+
+  /// No description provided for @invoicePdfTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get invoicePdfTable;
+
+  /// No description provided for @invoicePdfTxId.
+  ///
+  /// In en, this message translates to:
+  /// **'TX'**
+  String get invoicePdfTxId;
+
+  /// No description provided for @invoicePdfItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get invoicePdfItem;
+
+  /// No description provided for @invoicePdfQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty'**
+  String get invoicePdfQty;
+
+  /// No description provided for @invoicePdfUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Price'**
+  String get invoicePdfUnit;
+
+  /// No description provided for @invoicePdfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get invoicePdfTotal;
+
+  /// No description provided for @invoicePdfGrandTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'GRAND TOTAL'**
+  String get invoicePdfGrandTotal;
+
+  /// No description provided for @invoicePdfKasPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'KAS Paid'**
+  String get invoicePdfKasPaid;
+
+  /// No description provided for @invoicePdfRate.
+  ///
+  /// In en, this message translates to:
+  /// **'1 {kasSymbol} = {amount}'**
+  String invoicePdfRate(String kasSymbol, String amount);
+
+  /// No description provided for @invoicePdfVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to verify on Kaspa blockchain'**
+  String get invoicePdfVerify;
 }
 
 class _AppLocalizationsDelegate

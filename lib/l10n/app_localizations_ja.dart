@@ -992,4 +992,81 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get itemManageCreate => '作成';
+
+  @override
+  String get itemFormKasPrice => 'KAS価格';
+
+  @override
+  String get profileInvoice => '領収書印刷';
+
+  @override
+  String get invoiceTitle => '領収書印刷';
+
+  @override
+  String get invoiceBusinessInfoTitle => '事業者情報';
+
+  @override
+  String get invoiceBusinessName => '事業者名';
+
+  @override
+  String get invoiceBusinessAddress => '住所';
+
+  @override
+  String get invoiceBusinessPhone => '電話番号';
+
+  @override
+  String get invoiceFooter => 'フッター / キャッチコピー（任意）';
+
+  @override
+  String get invoiceSave => '保存';
+
+  @override
+  String get invoiceSaved => '事業者情報を保存しました';
+
+  @override
+  String get invoiceRequiredField => '必須';
+
+  @override
+  String get invoicePrintSettings => '印刷設定';
+
+  @override
+  String get invoiceEnablePrint => '支払い後に領収書を印刷';
+
+  @override
+  String get invoiceEnableRequiresBiz => '上の事業者情報を入力して有効にしてください';
+
+  @override
+  String get invoicePdfDate => '日付';
+
+  @override
+  String get invoicePdfTable => 'テーブル';
+
+  @override
+  String get invoicePdfTxId => 'TX';
+
+  @override
+  String get invoicePdfItem => '商品';
+
+  @override
+  String get invoicePdfQty => '数量';
+
+  @override
+  String get invoicePdfUnit => '単価';
+
+  @override
+  String get invoicePdfTotal => '小計';
+
+  @override
+  String get invoicePdfGrandTotal => '合計';
+
+  @override
+  String get invoicePdfKasPaid => 'KAS支払済';
+
+  @override
+  String invoicePdfRate(String kasSymbol, String amount) {
+    return '1 $kasSymbol = $amount';
+  }
+
+  @override
+  String get invoicePdfVerify => 'スキャンしてKaspaブロックチェーンで確認';
 }

@@ -992,4 +992,81 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get itemManageCreate => '만들기';
+
+  @override
+  String get itemFormKasPrice => 'KAS 가격';
+
+  @override
+  String get profileInvoice => '영수증 인쇄';
+
+  @override
+  String get invoiceTitle => '영수증 인쇄';
+
+  @override
+  String get invoiceBusinessInfoTitle => '사업자 정보';
+
+  @override
+  String get invoiceBusinessName => '상호명';
+
+  @override
+  String get invoiceBusinessAddress => '주소';
+
+  @override
+  String get invoiceBusinessPhone => '전화번호';
+
+  @override
+  String get invoiceFooter => '푸터 / 태그라인 (선택)';
+
+  @override
+  String get invoiceSave => '저장';
+
+  @override
+  String get invoiceSaved => '사업자 정보가 저장되었습니다';
+
+  @override
+  String get invoiceRequiredField => '필수 입력';
+
+  @override
+  String get invoicePrintSettings => '인쇄 설정';
+
+  @override
+  String get invoiceEnablePrint => '결제 후 영수증 인쇄';
+
+  @override
+  String get invoiceEnableRequiresBiz => '위의 사업자 정보를 입력하면 활성화됩니다';
+
+  @override
+  String get invoicePdfDate => '날짜';
+
+  @override
+  String get invoicePdfTable => '테이블';
+
+  @override
+  String get invoicePdfTxId => 'TX';
+
+  @override
+  String get invoicePdfItem => '상품';
+
+  @override
+  String get invoicePdfQty => '수량';
+
+  @override
+  String get invoicePdfUnit => '단가';
+
+  @override
+  String get invoicePdfTotal => '소계';
+
+  @override
+  String get invoicePdfGrandTotal => '합계';
+
+  @override
+  String get invoicePdfKasPaid => 'KAS 결제액';
+
+  @override
+  String invoicePdfRate(String kasSymbol, String amount) {
+    return '1 $kasSymbol = $amount';
+  }
+
+  @override
+  String get invoicePdfVerify => '스캔하여 Kaspa 블록체인에서 확인';
 }

@@ -25,6 +25,7 @@ import '../features/profile/view/network_page.dart';
 import '../features/auth/view/onboarding_currency_page.dart';
 import '../features/profile/view/donation_page.dart';
 import '../features/profile/view/display_settings_page.dart';
+import '../features/profile/view/invoice_settings_page.dart';
 import '../features/profile/view/table_layout_page.dart';
 import '../features/home/view/table_selection_page.dart';
 import '../features/splash/view/splash_page.dart';
@@ -125,6 +126,10 @@ class AppRouter {
             GoRoute(
               path: 'table-layout',
               builder: (context, state) => const TableLayoutPage(),
+            ),
+            GoRoute(
+              path: 'invoice',
+              builder: (context, state) => const InvoiceSettingsPage(),
             ),
           ],
         ),

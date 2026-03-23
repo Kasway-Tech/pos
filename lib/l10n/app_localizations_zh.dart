@@ -987,4 +987,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get itemManageCreate => '创建';
+
+  @override
+  String get itemFormKasPrice => 'KAS价格';
+
+  @override
+  String get profileInvoice => '打印发票';
+
+  @override
+  String get invoiceTitle => '打印发票';
+
+  @override
+  String get invoiceBusinessInfoTitle => '商家信息';
+
+  @override
+  String get invoiceBusinessName => '商家名称';
+
+  @override
+  String get invoiceBusinessAddress => '地址';
+
+  @override
+  String get invoiceBusinessPhone => '电话号码';
+
+  @override
+  String get invoiceFooter => '页脚 / 标语（可选）';
+
+  @override
+  String get invoiceSave => '保存';
+
+  @override
+  String get invoiceSaved => '商家信息已保存';
+
+  @override
+  String get invoiceRequiredField => '必填';
+
+  @override
+  String get invoicePrintSettings => '打印设置';
+
+  @override
+  String get invoiceEnablePrint => '付款后打印发票';
+
+  @override
+  String get invoiceEnableRequiresBiz => '请先填写上方的商家信息以启用';
+
+  @override
+  String get invoicePdfDate => '日期';
+
+  @override
+  String get invoicePdfTable => '桌号';
+
+  @override
+  String get invoicePdfTxId => '交易';
+
+  @override
+  String get invoicePdfItem => '商品';
+
+  @override
+  String get invoicePdfQty => '数量';
+
+  @override
+  String get invoicePdfUnit => '单价';
+
+  @override
+  String get invoicePdfTotal => '小计';
+
+  @override
+  String get invoicePdfGrandTotal => '合计';
+
+  @override
+  String get invoicePdfKasPaid => '已支付KAS';
+
+  @override
+  String invoicePdfRate(String kasSymbol, String amount) {
+    return '1 $kasSymbol = $amount';
+  }
+
+  @override
+  String get invoicePdfVerify => '扫码在Kaspa区块链上验证';
 }

@@ -1,4 +1,4 @@
-# Kasway — Kaspa Point of Sale
+# Kasway POS — Kaspa Point of Sale
 
 A Flutter-based point-of-sale terminal that accepts **Kaspa (KAS)** payments via QR code. Built for merchants who want to accept crypto at the counter without a payment processor or third-party custodian.
 

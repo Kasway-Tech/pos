@@ -313,6 +313,7 @@
   "itemFormAdditionName": "附加项名称",
   "itemFormAdditionPriceLabel": "额外价格（{code}，0=免费）",
   "itemFormCancel": "取消",
+  "itemFormKasPrice": "KAS价格",
 
   "categoryManageTitle": "分类",
   "categoryAddCategory": "添加分类",
@@ -328,5 +329,38 @@
   "categoryDelete": "删除",
   "categoryItemCount": "{count}个商品{plural}",
 
-  "itemManageCreate": "创建"
+  "itemManageCreate": "创建",
+
+  "profileInvoice": "打印发票",
+
+  "invoiceTitle": "打印发票",
+  "invoiceBusinessInfoTitle": "商家信息",
+  "invoiceBusinessName": "商家名称",
+  "invoiceBusinessAddress": "地址",
+  "invoiceBusinessPhone": "电话号码",
+  "invoiceFooter": "页脚 / 标语（可选）",
+  "invoiceSave": "保存",
+  "invoiceSaved": "商家信息已保存",
+  "invoiceRequiredField": "必填",
+  "invoicePrintSettings": "打印设置",
+  "invoiceEnablePrint": "付款后打印发票",
+  "invoiceEnableRequiresBiz": "请先填写上方的商家信息以启用",
+
+  "invoicePdfDate": "日期",
+  "invoicePdfTable": "桌号",
+  "invoicePdfTxId": "交易",
+  "invoicePdfItem": "商品",
+  "invoicePdfQty": "数量",
+  "invoicePdfUnit": "单价",
+  "invoicePdfTotal": "小计",
+  "invoicePdfGrandTotal": "合计",
+  "invoicePdfKasPaid": "已支付KAS",
+  "invoicePdfRate": "1 {kasSymbol} = {amount}",
+  "@invoicePdfRate": {
+    "placeholders": {
+      "kasSymbol": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "invoicePdfVerify": "扫码在Kaspa区块链上验证"
 }

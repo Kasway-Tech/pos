@@ -1021,4 +1021,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get itemManageCreate => 'Create';
+
+  @override
+  String get itemFormKasPrice => 'KAS Price';
+
+  @override
+  String get profileInvoice => 'Print Invoice';
+
+  @override
+  String get invoiceTitle => 'Print Invoice';
+
+  @override
+  String get invoiceBusinessInfoTitle => 'Business Information';
+
+  @override
+  String get invoiceBusinessName => 'Business Name';
+
+  @override
+  String get invoiceBusinessAddress => 'Address';
+
+  @override
+  String get invoiceBusinessPhone => 'Phone Number';
+
+  @override
+  String get invoiceFooter => 'Footer / Tagline (optional)';
+
+  @override
+  String get invoiceSave => 'Save';
+
+  @override
+  String get invoiceSaved => 'Business info saved';
+
+  @override
+  String get invoiceRequiredField => 'Required';
+
+  @override
+  String get invoicePrintSettings => 'Print Settings';
+
+  @override
+  String get invoiceEnablePrint => 'Print Invoice After Payment';
+
+  @override
+  String get invoiceEnableRequiresBiz =>
+      'Fill in business information above to enable';
+
+  @override
+  String get invoicePdfDate => 'Date';
+
+  @override
+  String get invoicePdfTable => 'Table';
+
+  @override
+  String get invoicePdfTxId => 'TX';
+
+  @override
+  String get invoicePdfItem => 'Item';
+
+  @override
+  String get invoicePdfQty => 'Qty';
+
+  @override
+  String get invoicePdfUnit => 'Unit Price';
+
+  @override
+  String get invoicePdfTotal => 'Total';
+
+  @override
+  String get invoicePdfGrandTotal => 'GRAND TOTAL';
+
+  @override
+  String get invoicePdfKasPaid => 'KAS Paid';
+
+  @override
+  String invoicePdfRate(String kasSymbol, String amount) {
+    return '1 $kasSymbol = $amount';
+  }
+
+  @override
+  String get invoicePdfVerify => 'Scan to verify on Kaspa blockchain';
 }

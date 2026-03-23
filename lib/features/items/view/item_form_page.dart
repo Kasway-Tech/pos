@@ -25,10 +25,14 @@ class _ItemFormPageState extends State<ItemFormPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameCtrl;
   late final TextEditingController _priceCtrl;
+  late final TextEditingController _kasCtrl;
   late final TextEditingController _descCtrl;
   late String _selectedCategory;
   late List<Addition> _additions;
   late CurrencyState _lastCurrencyState;
+
+  bool _updatingFromKas = false;
+  bool _updatingFromFiat = false;
 
   static String _rawPrice(double amount, CurrencyState state) {
     final code = state.selectedCurrency.code.toLowerCase();
@@ -37,34 +41,84 @@ class _ItemFormPageState extends State<ItemFormPage> {
     return amount.toStringAsFixed(2);
   }
 
+  static String _rawKas(double kas) {
+    final s = kas.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '');
+    return s.endsWith('.') ? '${s}0' : s;
+  }
+
   @override
   void initState() {
     super.initState();
     final p = widget.product;
     _lastCurrencyState = context.read<CurrencyCubit>().state;
+    final isCrypto = _lastCurrencyState.selectedCurrency.isCrypto;
+
+    // Fiat display price
     final displayPrice = p != null
         ? _lastCurrencyState.idrToDisplay(p.price, kasPrice: p.kasPrice)
         : null;
+
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _priceCtrl = TextEditingController(
-      text: displayPrice != null
+      text: displayPrice != null && !isCrypto
           ? _rawPrice(displayPrice, _lastCurrencyState)
           : '',
     );
+    // KAS price — use stored kasPrice if available, otherwise derive from IDR
+    final kasPrice = p?.kasPrice ??
+        (p != null && !isCrypto
+            ? _lastCurrencyState.displayToKas(
+                _lastCurrencyState.idrToDisplay(p.price),
+              )
+            : null);
+    _kasCtrl = TextEditingController(
+      text: kasPrice != null ? _rawKas(kasPrice) : '',
+    );
+
     _descCtrl = TextEditingController(text: p?.description ?? '');
     _additions = List<Addition>.from(p?.additions ?? []);
     final categories = context.read<HomeBloc>().state.categories;
     _selectedCategory =
         widget.defaultCategory ??
         (categories.isNotEmpty ? categories.first : '');
+
+    _priceCtrl.addListener(_onFiatChanged);
+    _kasCtrl.addListener(_onKasChanged);
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _priceCtrl.dispose();
+    _kasCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
+  }
+
+  void _onFiatChanged() {
+    if (_updatingFromKas) return;
+    final fiat = double.tryParse(_priceCtrl.text);
+    if (fiat == null) return;
+    final kasIdr = _lastCurrencyState.exchangeRates['idr'] ?? 0;
+    if (kasIdr <= 0) return;
+    final idr = _lastCurrencyState.displayToIdr(fiat);
+    final kas = idr / kasIdr;
+    _updatingFromFiat = true;
+    _kasCtrl.text = _rawKas(kas);
+    _updatingFromFiat = false;
+  }
+
+  void _onKasChanged() {
+    if (_updatingFromFiat) return;
+    final kas = double.tryParse(_kasCtrl.text);
+    if (kas == null) return;
+    final kasIdr = _lastCurrencyState.exchangeRates['idr'] ?? 0;
+    if (kasIdr <= 0) return;
+    final idr = kas * kasIdr;
+    final fiat = _lastCurrencyState.idrToDisplay(idr);
+    _updatingFromKas = true;
+    _priceCtrl.text = _rawPrice(fiat, _lastCurrencyState);
+    _updatingFromKas = false;
   }
 
   @override
@@ -98,42 +152,92 @@ class _ItemFormPageState extends State<ItemFormPage> {
                     ),
                     const SizedBox(height: 16),
                     BlocConsumer<CurrencyCubit, CurrencyState>(
-                      listenWhen: (prev, curr) =>
-                          prev.selectedCurrency.code !=
-                              curr.selectedCurrency.code ||
-                          prev.exchangeRates != curr.exchangeRates,
+                      listenWhen: (prev, curr) {
+                        // In KAS mode: only react to currency code changes (not rate updates)
+                        if (curr.selectedCurrency.isCrypto) {
+                          return prev.selectedCurrency.code != curr.selectedCurrency.code;
+                        }
+                        return prev.selectedCurrency.code != curr.selectedCurrency.code ||
+                            prev.exchangeRates != curr.exchangeRates;
+                      },
                       listener: (context, currencyState) {
-                        final displayAmount = double.tryParse(_priceCtrl.text);
-                        if (displayAmount != null) {
-                          final idr = _lastCurrencyState.displayToIdr(
-                            displayAmount,
-                          );
-                          _priceCtrl.text = _rawPrice(
-                            currencyState.idrToDisplay(idr),
-                            currencyState,
-                          );
+                        final isCrypto = currencyState.selectedCurrency.isCrypto;
+                        if (isCrypto) {
+                          // Switching to KAS mode: clear fiat field
+                          _priceCtrl.removeListener(_onFiatChanged);
+                          _priceCtrl.text = '';
+                          _priceCtrl.addListener(_onFiatChanged);
+                        } else {
+                          // Fiat mode: re-derive fiat from KAS price if available
+                          final kas = double.tryParse(_kasCtrl.text);
+                          if (kas != null) {
+                            final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
+                            if (kasIdr > 0) {
+                              final idr = kas * kasIdr;
+                              final fiat = currencyState.idrToDisplay(idr);
+                              _updatingFromKas = true;
+                              _priceCtrl.text = _rawPrice(fiat, currencyState);
+                              _updatingFromKas = false;
+                            }
+                          } else {
+                            // Re-convert from old fiat display
+                            final displayAmount = double.tryParse(_priceCtrl.text);
+                            if (displayAmount != null) {
+                              final idr = _lastCurrencyState.displayToIdr(displayAmount);
+                              _priceCtrl.text = _rawPrice(
+                                currencyState.idrToDisplay(idr),
+                                currencyState,
+                              );
+                            }
+                          }
                         }
                         _lastCurrencyState = currencyState;
                       },
                       builder: (context, currencyState) {
-                        return TextFormField(
-                          controller: _priceCtrl,
-                          decoration: InputDecoration(
-                            labelText:
-                                'Price (${currencyState.selectedCurrency.code})',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return context.l10n.itemFormRequired;
-                            }
-                            if (double.tryParse(v) == null) {
-                              return context.l10n.itemFormInvalidNumber;
-                            }
-                            return null;
-                          },
+                        final isCrypto = currencyState.selectedCurrency.isCrypto;
+                        return Column(
+                          children: [
+                            if (!isCrypto) ...[
+                              TextFormField(
+                                controller: _priceCtrl,
+                                decoration: InputDecoration(
+                                  labelText:
+                                      'Price (${currencyState.selectedCurrency.code})',
+                                ),
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) {
+                                    return context.l10n.itemFormRequired;
+                                  }
+                                  if (double.tryParse(v) == null) {
+                                    return context.l10n.itemFormInvalidNumber;
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            TextFormField(
+                              controller: _kasCtrl,
+                              decoration: InputDecoration(
+                                labelText: context.l10n.itemFormKasPrice,
+                              ),
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return context.l10n.itemFormRequired;
+                                }
+                                if (double.tryParse(v) == null) {
+                                  return context.l10n.itemFormInvalidNumber;
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -217,18 +321,64 @@ class _ItemFormPageState extends State<ItemFormPage> {
   Future<void> _showAdditionDialog({int? index}) async {
     final existing = index != null ? _additions[index] : null;
     final currencyState = _lastCurrencyState;
+    final isCrypto = currencyState.selectedCurrency.isCrypto;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    final priceCtrl = TextEditingController(
-      text: existing != null
-          ? _rawPrice(
-              currencyState.idrToDisplay(
-                existing.price,
-                kasPrice: existing.kasPrice,
-              ),
-              currencyState,
-            )
-          : '',
+
+    // Fiat price field
+    final fiatPrice = existing != null && !isCrypto
+        ? _rawPrice(
+            currencyState.idrToDisplay(
+              existing.price,
+              kasPrice: existing.kasPrice,
+            ),
+            currencyState,
+          )
+        : '';
+    final fiatCtrl = TextEditingController(text: fiatPrice);
+
+    // KAS price field
+    final kasValue = existing?.kasPrice ??
+        (existing != null && !isCrypto
+            ? currencyState.displayToKas(
+                currencyState.idrToDisplay(existing.price),
+              )
+            : null);
+    final kasCtrl = TextEditingController(
+      text: kasValue != null ? _rawKas(kasValue) : '',
     );
+
+    bool updatingFromKas = false;
+    bool updatingFromFiat = false;
+
+    void onFiatChanged() {
+      if (updatingFromKas) return;
+      final fiat = double.tryParse(fiatCtrl.text);
+      if (fiat == null) return;
+      final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
+      if (kasIdr <= 0) return;
+      final idr = currencyState.displayToIdr(fiat);
+      final kas = idr / kasIdr;
+      updatingFromFiat = true;
+      kasCtrl.text = _rawKas(kas);
+      updatingFromFiat = false;
+    }
+
+    void onKasChanged() {
+      if (updatingFromFiat) return;
+      final kas = double.tryParse(kasCtrl.text);
+      if (kas == null) return;
+      final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
+      if (kasIdr <= 0) return;
+      final idr = kas * kasIdr;
+      final fiat = currencyState.idrToDisplay(idr);
+      updatingFromKas = true;
+      fiatCtrl.text = _rawPrice(fiat, currencyState);
+      updatingFromKas = false;
+    }
+
+    fiatCtrl.addListener(onFiatChanged);
+    kasCtrl.addListener(onKasChanged);
+
     final formKey = GlobalKey<FormState>();
 
     final result = await showDialog<Addition>(
@@ -248,10 +398,27 @@ class _ItemFormPageState extends State<ItemFormPage> {
                     (v == null || v.trim().isEmpty) ? context.l10n.itemFormRequired : null,
               ),
               const SizedBox(height: 12),
+              if (!isCrypto) ...[
+                TextFormField(
+                  controller: fiatCtrl,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.itemFormAdditionPriceLabel(currencyState.selectedCurrency.code),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return context.l10n.itemFormRequired;
+                    if (double.tryParse(v) == null) return context.l10n.itemFormInvalidNumber;
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
               TextFormField(
-                controller: priceCtrl,
+                controller: kasCtrl,
                 decoration: InputDecoration(
-                  labelText: context.l10n.itemFormAdditionPriceLabel(currencyState.selectedCurrency.code),
+                  labelText: context.l10n.itemFormKasPrice,
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -273,15 +440,19 @@ class _ItemFormPageState extends State<ItemFormPage> {
           TextButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                final enteredPrice = double.parse(priceCtrl.text);
+                final kasPrice = double.parse(kasCtrl.text);
+                final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
+                final idrPrice = isCrypto
+                    ? (kasIdr > 0 ? kasPrice * kasIdr : 0.0)
+                    : currencyState.displayToIdr(double.parse(fiatCtrl.text));
                 Navigator.of(context).pop(
                   Addition(
                     id:
                         existing?.id ??
                         '${nameCtrl.text.trim().replaceAll(' ', '_').toLowerCase()}__${DateTime.now().millisecondsSinceEpoch}',
                     name: nameCtrl.text.trim(),
-                    price: currencyState.displayToIdr(enteredPrice),
-                    kasPrice: currencyState.displayToKas(enteredPrice),
+                    price: idrPrice,
+                    kasPrice: kasPrice,
                   ),
                 );
               }
@@ -291,6 +462,12 @@ class _ItemFormPageState extends State<ItemFormPage> {
         ],
       ),
     );
+
+    fiatCtrl.removeListener(onFiatChanged);
+    kasCtrl.removeListener(onKasChanged);
+    fiatCtrl.dispose();
+    kasCtrl.dispose();
+    nameCtrl.dispose();
 
     if (result != null) {
       setState(() {
@@ -306,9 +483,18 @@ class _ItemFormPageState extends State<ItemFormPage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     final currencyState = context.read<CurrencyCubit>().state;
-    final enteredAmount = double.parse(_priceCtrl.text);
-    final idrPrice = currencyState.displayToIdr(enteredAmount);
-    final kasPrice = currencyState.displayToKas(enteredAmount);
+    final isCrypto = currencyState.selectedCurrency.isCrypto;
+
+    final kasPrice = double.parse(_kasCtrl.text);
+    final kasIdr = currencyState.exchangeRates['idr'] ?? 0;
+
+    final double idrPrice;
+    if (isCrypto) {
+      idrPrice = kasIdr > 0 ? kasPrice * kasIdr : 0.0;
+    } else {
+      idrPrice = currencyState.displayToIdr(double.parse(_priceCtrl.text));
+    }
+
     final product = Product(
       id:
           widget.product?.id ??

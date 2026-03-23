@@ -70,6 +70,8 @@ dependencies:
   presentation_displays: ^1.0.0
   flutter_secure_storage: ^9.2.4
   video_player: ^2.9.2
+  printing: ^5.13.1
+  pdf: ^3.11.1
 
 dev_dependencies:
   flutter_test:

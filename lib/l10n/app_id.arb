@@ -313,6 +313,7 @@
   "itemFormAdditionName": "Nama Tambahan",
   "itemFormAdditionPriceLabel": "Harga Ekstra ({code}, 0 = gratis)",
   "itemFormCancel": "Batal",
+  "itemFormKasPrice": "Harga KAS",
 
   "categoryManageTitle": "Kategori",
   "categoryAddCategory": "Tambah Kategori",
@@ -328,5 +329,38 @@
   "categoryDelete": "Hapus",
   "categoryItemCount": "{count} item{plural}",
 
-  "itemManageCreate": "Buat"
+  "itemManageCreate": "Buat",
+
+  "profileInvoice": "Cetak Faktur",
+
+  "invoiceTitle": "Cetak Faktur",
+  "invoiceBusinessInfoTitle": "Informasi Bisnis",
+  "invoiceBusinessName": "Nama Bisnis",
+  "invoiceBusinessAddress": "Alamat",
+  "invoiceBusinessPhone": "Nomor Telepon",
+  "invoiceFooter": "Footer / Tagline (opsional)",
+  "invoiceSave": "Simpan",
+  "invoiceSaved": "Info bisnis tersimpan",
+  "invoiceRequiredField": "Wajib diisi",
+  "invoicePrintSettings": "Pengaturan Cetak",
+  "invoiceEnablePrint": "Cetak Faktur Setelah Pembayaran",
+  "invoiceEnableRequiresBiz": "Isi informasi bisnis di atas untuk mengaktifkan",
+
+  "invoicePdfDate": "Tanggal",
+  "invoicePdfTable": "Meja",
+  "invoicePdfTxId": "TX",
+  "invoicePdfItem": "Item",
+  "invoicePdfQty": "Jml",
+  "invoicePdfUnit": "Harga Satuan",
+  "invoicePdfTotal": "Total",
+  "invoicePdfGrandTotal": "TOTAL AKHIR",
+  "invoicePdfKasPaid": "KAS Dibayar",
+  "invoicePdfRate": "1 {kasSymbol} = {amount}",
+  "@invoicePdfRate": {
+    "placeholders": {
+      "kasSymbol": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "invoicePdfVerify": "Scan untuk verifikasi di blockchain Kaspa"
 }

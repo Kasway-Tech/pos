@@ -1019,4 +1019,82 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get itemManageCreate => 'Buat';
+
+  @override
+  String get itemFormKasPrice => 'Harga KAS';
+
+  @override
+  String get profileInvoice => 'Cetak Faktur';
+
+  @override
+  String get invoiceTitle => 'Cetak Faktur';
+
+  @override
+  String get invoiceBusinessInfoTitle => 'Informasi Bisnis';
+
+  @override
+  String get invoiceBusinessName => 'Nama Bisnis';
+
+  @override
+  String get invoiceBusinessAddress => 'Alamat';
+
+  @override
+  String get invoiceBusinessPhone => 'Nomor Telepon';
+
+  @override
+  String get invoiceFooter => 'Footer / Tagline (opsional)';
+
+  @override
+  String get invoiceSave => 'Simpan';
+
+  @override
+  String get invoiceSaved => 'Info bisnis tersimpan';
+
+  @override
+  String get invoiceRequiredField => 'Wajib diisi';
+
+  @override
+  String get invoicePrintSettings => 'Pengaturan Cetak';
+
+  @override
+  String get invoiceEnablePrint => 'Cetak Faktur Setelah Pembayaran';
+
+  @override
+  String get invoiceEnableRequiresBiz =>
+      'Isi informasi bisnis di atas untuk mengaktifkan';
+
+  @override
+  String get invoicePdfDate => 'Tanggal';
+
+  @override
+  String get invoicePdfTable => 'Meja';
+
+  @override
+  String get invoicePdfTxId => 'TX';
+
+  @override
+  String get invoicePdfItem => 'Item';
+
+  @override
+  String get invoicePdfQty => 'Jml';
+
+  @override
+  String get invoicePdfUnit => 'Harga Satuan';
+
+  @override
+  String get invoicePdfTotal => 'Total';
+
+  @override
+  String get invoicePdfGrandTotal => 'TOTAL AKHIR';
+
+  @override
+  String get invoicePdfKasPaid => 'KAS Dibayar';
+
+  @override
+  String invoicePdfRate(String kasSymbol, String amount) {
+    return '1 $kasSymbol = $amount';
+  }
+
+  @override
+  String get invoicePdfVerify => 'Scan untuk verifikasi di blockchain Kaspa';
 }
