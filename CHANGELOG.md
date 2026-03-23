@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/Kasway-Tech/pos/compare/kasway-v1.6.0...kasway-v1.6.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* disable macOS code signing via xcconfig in CI ([2c45600](https://github.com/Kasway-Tech/pos/commit/2c456005695fda316678478503963e23ed916528))
+
 ## [1.6.0](https://github.com/Kasway-Tech/pos/compare/kasway-v1.5.0...kasway-v1.6.0) (2026-03-23)
 
 
