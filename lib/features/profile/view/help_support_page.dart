@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class HelpSupportPage extends StatelessWidget {
@@ -11,7 +11,7 @@ class HelpSupportPage extends StatelessWidget {
     final l10n = context.l10n;
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(title: Text(l10n.helpTitle)),
+        appBar: AppBar(title: Text(l10n.helpTitle)),
         body: Center(
           child: ConstrainedBox(
             key: const Key('content_constraint'),
@@ -22,9 +22,7 @@ class HelpSupportPage extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
                     l10n.helpFaqTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 ExpansionTile(
@@ -59,9 +57,7 @@ class HelpSupportPage extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
                     l10n.helpContactUs,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 ListTile(

@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/display/display_cubit.dart';
 import 'package:kasway/app/display/display_state.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 
 class DisplaySettingsPage extends StatelessWidget {
   const DisplaySettingsPage({super.key});
@@ -16,7 +16,7 @@ class DisplaySettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(
+      appBar: AppBar(
         title: Text(context.l10n.displayTitle),
         centerTitle: true,
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/home/bloc/home_state.dart';
@@ -12,7 +12,7 @@ class CategoryManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: Text(context.l10n.categoryManageTitle), centerTitle: true),
+      appBar: AppBar(title: Text(context.l10n.categoryManageTitle), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),

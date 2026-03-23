@@ -11,7 +11,7 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
@@ -93,7 +93,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildNarrow(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(
+        appBar: AppBar(
           title: Text(context.l10n.profileTitle),
           centerTitle: true,
         ),
@@ -126,7 +126,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Expanded(
               flex: 4,
               child: Scaffold(
-                appBar: BlurAppBar(
+                appBar: AppBar(
                   title: Text(context.l10n.profileTitle),
                   centerTitle: true,
                 ),
@@ -518,9 +518,7 @@ class _RevenuePriceDisplay extends StatelessWidget {
     final kasStr = '$kasSymbol ${formatKas(kasBalance)}';
 
     final textTheme = Theme.of(context).textTheme;
-    final boldHeadline = textTheme.headlineSmall?.copyWith(
-      fontWeight: FontWeight.bold,
-    );
+    final boldHeadline = textTheme.headlineSmall;
     final subStyle = textTheme.bodySmall?.copyWith(
       color: Theme.of(context).colorScheme.outline,
     );
@@ -682,9 +680,7 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
           children: [
             Text(
               l10n.profileWithdrawTitle(kasSymbol),
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 20),
             TextFormField(
@@ -695,8 +691,9 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                 border: const OutlineInputBorder(),
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty)
+                if (v == null || v.trim().isEmpty) {
                   return l10n.profileAddressRequired;
+                }
                 if (!v.trim().startsWith('${widget.hrp}:')) {
                   return l10n.profileAddressInvalid(widget.hrp);
                 }
@@ -737,8 +734,9 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                 decimal: true,
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty)
+                if (v == null || v.trim().isEmpty) {
                   return l10n.profileAmountRequired;
+                }
                 final n = double.tryParse(v.trim());
                 if (n == null || n <= 0) return l10n.profileAmountInvalid;
                 return null;

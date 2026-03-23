@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:kasway/app/helpers/format_helpers.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/data/models/withdrawal.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
@@ -34,7 +34,7 @@ class _WithdrawalHistoryPageState extends State<WithdrawalHistoryPage> {
   Widget build(BuildContext context) {
     final kasSymbol = context.watch<NetworkCubit>().state.kasSymbol;
     return Scaffold(
-      appBar: BlurAppBar(
+      appBar: AppBar(
         title: Text(context.l10n.withdrawalHistoryTitle),
         centerTitle: true,
       ),

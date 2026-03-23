@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/currency/currency_state.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/addition.dart';
 import 'package:kasway/data/models/product.dart';
@@ -71,7 +71,7 @@ class _ItemFormPageState extends State<ItemFormPage> {
   Widget build(BuildContext context) {
     final isEditing = widget.product != null;
     return Scaffold(
-      appBar: BlurAppBar(
+      appBar: AppBar(
         title: Text(isEditing ? context.l10n.itemFormEditTitle : context.l10n.itemFormAddTitle),
         centerTitle: true,
         actions: [TextButton(onPressed: _submit, child: Text(context.l10n.itemFormSave))],

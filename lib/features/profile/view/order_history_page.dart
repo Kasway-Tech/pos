@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
@@ -57,7 +57,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: Text(context.l10n.orderHistoryTitle)),
+      appBar: AppBar(title: Text(context.l10n.orderHistoryTitle)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -158,9 +158,7 @@ class _StatColumn extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ],
     );
@@ -186,9 +184,7 @@ class _StatColumnPrice extends StatelessWidget {
         const SizedBox(height: 4),
         PriceText(
           idrAmount,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ],
     );
@@ -256,9 +252,7 @@ class _OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     '#$shortId',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Row(
                     children: [
@@ -298,10 +292,7 @@ class _OrderCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                PriceText(
-                  order.totalIdr,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+                PriceText(order.totalIdr),
                 if (kasStr != null &&
                     !context
                         .read<CurrencyCubit>()
@@ -365,17 +356,9 @@ class _OrderCard extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                context.l10n.orderHistoryTotal,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
+                              child: Text(context.l10n.orderHistoryTotal),
                             ),
-                            PriceText(
-                              order.totalIdr,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            PriceText(order.totalIdr),
                           ],
                         ),
                         if (order.txId.isNotEmpty) ...[

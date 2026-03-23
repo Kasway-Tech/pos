@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/data_service.dart';
@@ -89,7 +89,7 @@ class _DataTransferPageState extends State<DataTransferPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: BlurAppBar(
+      appBar: AppBar(
         title: Text(l10n.dataTitle),
         centerTitle: true,
       ),

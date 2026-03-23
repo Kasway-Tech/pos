@@ -482,10 +482,7 @@ class _AddTableSheet extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 context.l10n.tableLayoutAddTableSheet,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 20),
               Text(
@@ -827,10 +824,7 @@ class _TableInspectorPanelState extends State<_TableInspectorPanel> {
         const SizedBox(width: 4),
         Text(
           widget.table.label,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         Text(
           context.l10n.tableLayoutSeatsSuffix(widget.table.seats),

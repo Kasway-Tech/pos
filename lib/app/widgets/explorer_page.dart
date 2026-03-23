@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 
 class ExplorerPage extends StatefulWidget {
@@ -18,7 +18,7 @@ class _ExplorerPageState extends State<ExplorerPage> {
   Widget build(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(
+        appBar: AppBar(
           title: const Text('Explorer'),
           bottom: _progress < 1.0
               ? PreferredSize(

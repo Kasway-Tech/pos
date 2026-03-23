@@ -17,7 +17,7 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/wallet/wallet_state.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/widgets/line_item_row.dart';
 import 'package:kasway/app/widgets/price_text.dart';
@@ -302,7 +302,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
   Widget build(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-      appBar: BlurAppBar(title: Text(context.l10n.paymentTitle)),
+      appBar: AppBar(title: Text(context.l10n.paymentTitle)),
       body: BlocListener<WalletCubit, WalletState>(
         listenWhen: (prev, curr) => prev.address != curr.address,
         listener: (context, walletState) {
@@ -435,8 +435,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                   // Amount header
                   Text(
                     '$remainingStr $kasSymbol',
-                    style: Theme.of(context).textTheme.headlineMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineMedium,
                     textAlign: TextAlign.center,
                   ),
                   if (!hasPartial && !currencyState.selectedCurrency.isCrypto)
@@ -673,10 +672,7 @@ class _KaspaPaymentPageState extends State<KaspaPaymentPage> {
                                           context.l10n.paymentOrderList,
                                           style: Theme.of(context)
                                               .textTheme
-                                              .titleLarge
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              .titleLarge,
                                         ),
                                       ),
                                       Expanded(

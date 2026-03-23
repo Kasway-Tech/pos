@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/l10n.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/widgets/price_text.dart';
 import 'package:kasway/data/models/product.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -71,7 +71,7 @@ class _ItemManagementPageState extends State<ItemManagementPage>
         _rebuildTabController(categories);
 
         return Scaffold(
-          appBar: BlurAppBar(
+          appBar: AppBar(
             title: Text(context.l10n.itemManageTitle),
             centerTitle: true,
             bottom: categories.isEmpty

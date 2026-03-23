@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/repositories/product_repository.dart';
@@ -31,8 +30,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _completeOnboarding() async {
     await widget.prefs.setBool(PreferenceKeys.onboardingComplete, true);
+    // Let the router's refreshListenable redirect handle navigation.
+    // Calling context.go('/') here while the redirect is already navigating
+    // away can cause a double-navigation that occasionally lands on /auth.
     widget.onboardingNotifier.value = true;
-    if (mounted) context.go('/');
   }
 
   Future<void> _importCatalog() async {

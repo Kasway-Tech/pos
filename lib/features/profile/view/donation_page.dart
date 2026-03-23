@@ -10,7 +10,7 @@ import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +30,7 @@ class _DonationPageState extends State<DonationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: BlurAppBar(title: Text(context.l10n.donateTitle), centerTitle: true),
+      appBar: AppBar(title: Text(context.l10n.donateTitle), centerTitle: true),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -86,9 +86,7 @@ class _OneTimeDonationSection extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       context.l10n.donateSupportDeveloper,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: textTheme.titleMedium,
                     ),
                   ],
                 ),
@@ -300,9 +298,7 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
           children: [
             Text(
               l10n.donateKas,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
@@ -404,9 +400,7 @@ class _AutoDonateSectionState extends State<_AutoDonateSection> {
               children: [
                 Text(
                   context.l10n.donateAutoPerPayment,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -544,9 +538,7 @@ class _DonationHistorySectionState extends State<_DonationHistorySection> {
                 const SizedBox(width: 10),
                 Text(
                   context.l10n.donateHistory,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: textTheme.titleMedium,
                 ),
               ],
             ),
@@ -602,7 +594,8 @@ class _DonationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final kasSymbol = context.read<NetworkCubit>().state.kasSymbol;
+    final networkState = context.read<NetworkCubit>().state;
+    final kasSymbol = networkState.kasSymbol;
     final dateStr = DateFormat('d MMM yyyy, HH:mm').format(record.createdAt);
 
     return Padding(
@@ -618,9 +611,7 @@ class _DonationRow extends StatelessWidget {
                   children: [
                     Text(
                       '${formatKas(record.amountKas)} $kasSymbol',
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: textTheme.bodyMedium,
                     ),
                     if (record.isAuto) ...[
                       const SizedBox(width: 6),
@@ -683,6 +674,19 @@ class _DonationRow extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.open_in_browser_outlined),
+            tooltip: context.l10n.withdrawalHistoryViewOnExplorer,
+            onPressed: () {
+              final url =
+                  '${networkState.explorerBaseUrl}${record.txId}';
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ExplorerPage(url: url),
+                ),
+              );
+            },
           ),
         ],
       ),

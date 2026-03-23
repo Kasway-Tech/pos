@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
+
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
 
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(
+        appBar: AppBar(
           title: Text(l10n.loginTitle),
           centerTitle: true,
         ),

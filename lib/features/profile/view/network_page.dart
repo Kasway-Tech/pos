@@ -5,7 +5,6 @@ import 'package:kasway/app/network/network_cubit.dart';
 import 'package:kasway/app/network/network_state.dart';
 import 'package:kasway/app/network/node_status_cubit.dart';
 import 'package:kasway/app/network/node_status_state.dart';
-import 'package:kasway/app/widgets/blur_app_bar.dart';
 import 'package:kasway/app/widgets/pulse_display.dart';
 
 class NetworkPage extends StatefulWidget {
@@ -97,7 +96,7 @@ class _NetworkPageState extends State<NetworkPage>
         listenWhen: (prev, curr) => prev.daaScore != curr.daaScore,
         listener: (context, _) => _pulseController.forward(from: 0),
         child: Scaffold(
-          appBar: BlurAppBar(
+          appBar: AppBar(
               title: Text(context.l10n.networkTitle), centerTitle: true),
           body: BlocBuilder<NetworkCubit, NetworkState>(
             builder: (context, networkState) {
@@ -204,7 +203,19 @@ class _NetworkPageState extends State<NetworkPage>
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
-                                  const SizedBox(height: 20),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    networkState.activeUrl,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.outline,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 14),
                                   SizedBox(
                                     height: 56,
                                     child: Center(
@@ -217,7 +228,6 @@ class _NetworkPageState extends State<NetworkPage>
                                             fontFeatures: const [
                                               FontFeature.tabularFigures(),
                                             ],
-                                            fontWeight: FontWeight.bold,
                                             color: colorScheme.primary,
                                           ),
                                         ),
