@@ -93,7 +93,10 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildNarrow(BuildContext context) {
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: BlurAppBar(title: Text(context.l10n.profileTitle), centerTitle: true),
+        appBar: BlurAppBar(
+          title: Text(context.l10n.profileTitle),
+          centerTitle: true,
+        ),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -121,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             // Left panel — 4 parts
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Scaffold(
                 appBar: BlurAppBar(
                   title: Text(context.l10n.profileTitle),
@@ -142,7 +145,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const VerticalDivider(width: 1, thickness: 1),
             // Right panel — 6 parts
-            Expanded(flex: 9, child: _buildDetail()),
+            Expanded(flex: 8, child: _buildDetail()),
           ],
         ),
       ),
@@ -692,7 +695,8 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                 border: const OutlineInputBorder(),
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return l10n.profileAddressRequired;
+                if (v == null || v.trim().isEmpty)
+                  return l10n.profileAddressRequired;
                 if (!v.trim().startsWith('${widget.hrp}:')) {
                   return l10n.profileAddressInvalid(widget.hrp);
                 }
@@ -733,7 +737,8 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
                 decimal: true,
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return l10n.profileAmountRequired;
+                if (v == null || v.trim().isEmpty)
+                  return l10n.profileAmountRequired;
                 final n = double.tryParse(v.trim());
                 if (n == null || n <= 0) return l10n.profileAmountInvalid;
                 return null;

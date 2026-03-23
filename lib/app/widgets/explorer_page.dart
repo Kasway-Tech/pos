@@ -16,24 +16,26 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MacOSTitleBar(child: Scaffold(
-      appBar: BlurAppBar(
-        title: const Text('Explorer'),
-        bottom: _progress < 1.0
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(2),
-                child: LinearProgressIndicator(
-                  value: _progress,
-                  minHeight: 2,
-                ),
-              )
-            : null,
+    return MacOSTitleBar(
+      child: Scaffold(
+        appBar: BlurAppBar(
+          title: const Text('Explorer'),
+          bottom: _progress < 1.0
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(2),
+                  child: LinearProgressIndicator(
+                    value: _progress,
+                    minHeight: 2,
+                  ),
+                )
+              : null,
+        ),
+        body: InAppWebView(
+          initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+          onProgressChanged: (_, progress) =>
+              setState(() => _progress = progress / 100),
+        ),
       ),
-      body: InAppWebView(
-        initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-        onProgressChanged: (_, progress) =>
-            setState(() => _progress = progress / 100),
-      ),
-    ));
+    );
   }
 }
