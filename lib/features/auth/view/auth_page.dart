@@ -6,13 +6,10 @@ import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/locale/locale_cubit.dart';
 import 'package:kasway/app/widgets/language_picker_sheet.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
+import 'package:kasway/app/widgets/video_background.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
-
-  void _showLanguagePicker(BuildContext context) {
-    LanguagePickerSheet.show(context);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,77 +20,81 @@ class AuthPage extends StatelessWidget {
 
     return MacOSTitleBar(
       child: Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 32.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            'assets/app_icon.png',
-                            width: 48,
-                            height: 48,
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () => _showLanguagePicker(context),
-                          style: TextButton.styleFrom(
-                            foregroundColor: colorScheme.onSurfaceVariant,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                          ),
-                          icon: ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: CountryFlag.fromCountryCode(
-                              currentLanguage.countryCode,
-                              theme: const ImageTheme(width: 24, height: 16),
+        body: VideoBackground(
+          child: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 32.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              'assets/app_icon.png',
+                              width: 48,
+                              height: 48,
                             ),
                           ),
-                          label: Text(
-                            currentLanguage.code.toUpperCase(),
-                            style: textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurfaceVariant,
+                          TextButton.icon(
+                            onPressed: () =>
+                                LanguagePickerSheet.show(context),
+                            style: TextButton.styleFrom(
+                              foregroundColor: colorScheme.onSurfaceVariant,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                            ),
+                            icon: ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: CountryFlag.fromCountryCode(
+                                currentLanguage.countryCode,
+                                theme:
+                                    const ImageTheme(width: 24, height: 16),
+                              ),
+                            ),
+                            label: Text(
+                              currentLanguage.code.toUpperCase(),
+                              style: textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        l10n.authTagline,
+                        style: textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
                         ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Text(
-                      l10n.authTagline,
-                      style: textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
                       ),
-                    ),
-                    const SizedBox(height: 48.0),
-                    FilledButton(
-                      onPressed: () => context.push('/auth/eula'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
+                      const SizedBox(height: 48.0),
+                      FilledButton(
+                        onPressed: () => context.push('/auth/eula'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                        ),
+                        child: Text(l10n.authCreateAccount),
                       ),
-                      child: Text(l10n.authCreateAccount),
-                    ),
-                    const SizedBox(height: 12.0),
-                    OutlinedButton(
-                      onPressed: () => context.push('/auth/login'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
+                      const SizedBox(height: 12.0),
+                      OutlinedButton(
+                        onPressed: () => context.push('/auth/login'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                        ),
+                        child: Text(l10n.authLoginWithSeedPhrase),
                       ),
-                      child: Text(l10n.authLoginWithSeedPhrase),
-                    ),
-                    const SizedBox(height: 32.0),
-                  ],
+                      const SizedBox(height: 32.0),
+                    ],
+                  ),
                 ),
               ),
             ),

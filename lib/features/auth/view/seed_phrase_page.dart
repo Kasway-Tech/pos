@@ -11,6 +11,7 @@ import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
+import 'package:kasway/app/widgets/video_background.dart';
 
 class SeedPhrasePage extends StatefulWidget {
   const SeedPhrasePage({super.key});
@@ -68,9 +69,14 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
 
     return MacOSTitleBar(
       child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(l10n.seedPhraseTitle),
           centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => context.pop(),
@@ -84,11 +90,12 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
               ),
           ],
         ),
-        body: Center(
+        body: VideoBackground(
+          child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -168,6 +175,7 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
                 ],
               ),
             ),
+          ),
           ),
         ),
       ),

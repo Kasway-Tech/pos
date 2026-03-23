@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
+import 'package:kasway/app/widgets/video_background.dart';
 
 class EulaPage extends StatefulWidget {
   const EulaPage({super.key, this.readOnly = false});
@@ -25,15 +26,24 @@ class _EulaPageState extends State<EulaPage> {
 
     return MacOSTitleBar(
       child: Scaffold(
-        appBar: AppBar(title: Text(l10n.eulaTitle), centerTitle: true),
-        body: Center(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(l10n.eulaTitle),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+        ),
+        body: VideoBackground(
+          child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                    padding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -81,11 +91,8 @@ class _EulaPageState extends State<EulaPage> {
                 ),
                 if (!widget.readOnly)
                   Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      border: Border(
-                        top: BorderSide(color: colorScheme.outlineVariant),
-                      ),
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
                     ),
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                     child: Column(
@@ -130,6 +137,7 @@ class _EulaPageState extends State<EulaPage> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

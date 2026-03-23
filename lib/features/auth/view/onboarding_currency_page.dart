@@ -8,6 +8,7 @@ import 'package:kasway/app/l10n.dart';
 import 'package:kasway/app/currency/currency_cubit.dart';
 import 'package:kasway/app/currency/currency_state.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
+import 'package:kasway/app/widgets/video_background.dart';
 
 class OnboardingCurrencyPage extends StatelessWidget {
   const OnboardingCurrencyPage({super.key});
@@ -20,15 +21,21 @@ class OnboardingCurrencyPage extends StatelessWidget {
 
     return MacOSTitleBar(
       child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(l10n.currencyTitle),
           centerTitle: true,
           automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
         ),
-        body: Column(
+        body: VideoBackground(
+          child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 20, 24, 24),
               child: Column(
                 children: [
                   Text(
@@ -78,12 +85,7 @@ class OnboardingCurrencyPage extends StatelessWidget {
               ),
             ),
             Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                border: Border(
-                  top: BorderSide(color: colorScheme.outlineVariant),
-                ),
-              ),
+              color: Colors.transparent,
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
               child: Center(
                 child: ConstrainedBox(
@@ -99,6 +101,7 @@ class OnboardingCurrencyPage extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

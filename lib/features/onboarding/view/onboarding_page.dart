@@ -9,6 +9,7 @@ import 'package:kasway/features/home/bloc/home_bloc.dart';
 import 'package:kasway/features/home/bloc/home_event.dart';
 import 'package:kasway/features/items/view/item_management_page.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
+import 'package:kasway/app/widgets/video_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -86,7 +87,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
     return MacOSTitleBar(
       child: Scaffold(
-        body: SafeArea(
+        body: VideoBackground(
+          child: SafeArea(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : Center(
@@ -133,6 +135,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ),
                   ),
                 ),
+          ),
         ),
       ),
     );

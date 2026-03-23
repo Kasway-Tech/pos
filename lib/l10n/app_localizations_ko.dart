@@ -15,7 +15,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get authTagline => '당신의 크립토 POS,\n당신이 지킵니다.';
 
   @override
-  String get authCreateAccount => '계정 만들기';
+  String get authCreateAccount => '시작하기';
 
   @override
   String get authLoginWithSeedPhrase => '시드 구문으로 로그인';

@@ -15,7 +15,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authTagline => '您的加密POS，\n由您守护。';
 
   @override
-  String get authCreateAccount => '创建账户';
+  String get authCreateAccount => '立即开始';
 
   @override
   String get authLoginWithSeedPhrase => '使用助记词登录';

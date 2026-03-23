@@ -15,7 +15,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get authTagline => 'POS kripto Anda,\ndikelola oleh Anda.';
 
   @override
-  String get authCreateAccount => 'Buat Akun';
+  String get authCreateAccount => 'Mulai Sekarang';
 
   @override
   String get authLoginWithSeedPhrase => 'Masuk dengan seed phrase';

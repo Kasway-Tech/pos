@@ -7,6 +7,7 @@ import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
+import 'package:kasway/app/widgets/video_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum _LoginError { none, invalidWord, invalidChecksum, invalidWordCount, generic }
@@ -126,15 +127,21 @@ class _LoginPageState extends State<LoginPage> {
 
     return MacOSTitleBar(
       child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(l10n.loginTitle),
           centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
         ),
-        body: Center(
+        body: VideoBackground(
+          child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.fromLTRB(24, kToolbarHeight + 24, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -209,6 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
+          ),
           ),
         ),
       ),

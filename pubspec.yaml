@@ -69,6 +69,7 @@ dependencies:
   lottie: ^3.3.1
   presentation_displays: ^1.0.0
   flutter_secure_storage: ^9.2.4
+  video_player: ^2.9.2
 
 dev_dependencies:
   flutter_test:
@@ -108,6 +109,7 @@ flutter:
     - assets/lottie/
     - assets/splash_icon.png
     - assets/app_icon.png
+    - assets/gradientbg.mp4
 
 flutter_native_splash:
   # Light mode: white background matching the iOS LaunchScreen and Android launch_background

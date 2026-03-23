@@ -121,7 +121,7 @@ abstract class AppLocalizations {
   /// No description provided for @authCreateAccount.
   ///
   /// In en, this message translates to:
-  /// **'Create Account'**
+  /// **'Get Started'**
   String get authCreateAccount;
 
   /// No description provided for @authLoginWithSeedPhrase.

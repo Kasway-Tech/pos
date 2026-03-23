@@ -15,7 +15,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get authTagline => 'あなたのクリプトPOS、\nあなたが守る。';
 
   @override
-  String get authCreateAccount => 'アカウントを作成';
+  String get authCreateAccount => 'はじめる';
 
   @override
   String get authLoginWithSeedPhrase => 'シードフレーズでログイン';
