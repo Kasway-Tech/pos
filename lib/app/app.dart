@@ -21,6 +21,7 @@ import 'package:kasway/data/repositories/product_repository.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/repositories/table_repository.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:go_router/go_router.dart';
@@ -84,8 +85,8 @@ class _AppState extends State<App> {
         ),
         BlocProvider(
           create: (context) => WalletCubit(
-            prefs: widget.prefs,
             networkCubit: context.read<NetworkCubit>(),
+            secureStorage: const FlutterSecureStorage(),
           ),
         ),
       ],

@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 
 import 'package:kasway/app/l10n.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SeedPhrasePage extends StatefulWidget {
   const SeedPhrasePage({super.key});
@@ -43,8 +43,10 @@ class _SeedPhrasePageState extends State<SeedPhrasePage> {
 
   Future<void> _continue() async {
     final mnemonic = _words.join(' ');
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(PreferenceKeys.walletMnemonic, mnemonic);
+    await const FlutterSecureStorage().write(
+      key: PreferenceKeys.walletMnemonic,
+      value: mnemonic,
+    );
     if (!mounted) return;
     // Start derivation in background; user still has currency + onboarding
     // pages ahead so it will be ready long before they reach the home screen.

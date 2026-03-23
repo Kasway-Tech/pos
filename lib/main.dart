@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:presentation_displays/secondary_display.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -9,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app/app.dart';
+import 'app/constants/preference_keys.dart';
 import 'app/simple_bloc_observer.dart';
 
 // ---------------------------------------------------------------------------
@@ -260,6 +262,18 @@ void main() async {
   Bloc.observer = const SimpleBlocObserver();
 
   final prefs = await SharedPreferences.getInstance();
+
+  // One-time migration: move mnemonic from SharedPreferences (plaintext) to
+  // secure storage. Runs only on first launch after upgrading.
+  final legacyMnemonic = prefs.getString(PreferenceKeys.walletMnemonic);
+  if (legacyMnemonic != null && legacyMnemonic.isNotEmpty) {
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.write(
+      key: PreferenceKeys.walletMnemonic,
+      value: legacyMnemonic,
+    );
+    await prefs.remove(PreferenceKeys.walletMnemonic);
+  }
 
   runApp(App(prefs: prefs));
 }

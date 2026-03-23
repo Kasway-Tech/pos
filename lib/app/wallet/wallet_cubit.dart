@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../constants/preference_keys.dart';
 import '../network/network_cubit.dart';
@@ -15,16 +15,16 @@ import 'wallet_state.dart';
 /// Created once in app.dart; pages read from it instead of loading their own.
 class WalletCubit extends Cubit<WalletState> {
   WalletCubit({
-    required SharedPreferences prefs,
     required NetworkCubit networkCubit,
-  })  : _prefs = prefs,
-        _networkCubit = networkCubit,
+    required FlutterSecureStorage secureStorage,
+  })  : _networkCubit = networkCubit,
+        _secureStorage = secureStorage,
         super(const WalletState()) {
     _init();
     _networkSub = networkCubit.stream.listen(_onNetworkChange);
   }
 
-  final SharedPreferences _prefs;
+  final FlutterSecureStorage _secureStorage;
   final NetworkCubit _networkCubit;
   late final StreamSubscription<NetworkState> _networkSub;
 
@@ -40,7 +40,8 @@ class WalletCubit extends Cubit<WalletState> {
   static const _reconnectDelay = Duration(seconds: 3);
 
   Future<void> _init() async {
-    final mnemonic = _prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
+    final mnemonic =
+        await _secureStorage.read(key: PreferenceKeys.walletMnemonic) ?? '';
     if (mnemonic.isEmpty) {
       emit(state.copyWith(mnemonic: '', address: '', addressReady: true));
       return;
@@ -186,11 +187,11 @@ class WalletCubit extends Cubit<WalletState> {
     unawaited(_connect(address));
   }
 
-  /// Clears the mnemonic from SharedPreferences and resets wallet state.
+  /// Clears the mnemonic from secure storage and resets wallet state.
   /// Called on logout.
   Future<void> clearWallet() async {
     await _disconnect();
-    await _prefs.remove(PreferenceKeys.walletMnemonic);
+    await _secureStorage.delete(key: PreferenceKeys.walletMnemonic);
     if (!isClosed) {
       emit(const WalletState(mnemonic: '', address: '', addressReady: true));
     }

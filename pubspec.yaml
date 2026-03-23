@@ -68,6 +68,7 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   lottie: ^3.3.1
   presentation_displays: ^1.0.0
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:

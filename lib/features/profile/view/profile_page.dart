@@ -15,6 +15,7 @@ import 'package:kasway/app/wallet/wallet_state.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/app/widgets/macos_title_bar.dart';
 import 'package:kasway/app/widgets/price_text.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kasway/data/repositories/withdrawal_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
 import 'package:kasway/features/home/bloc/home_bloc.dart';
@@ -586,8 +587,11 @@ class _WithdrawSheetState extends State<_WithdrawSheet> {
     final nav = Navigator.of(context); // capture before any async gap
     final noWalletMsg = context.l10n.profileWithdrawNoWallet;
 
-    final prefs = await SharedPreferences.getInstance();
-    final mnemonic = prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
+    final mnemonic =
+        await const FlutterSecureStorage().read(
+          key: PreferenceKeys.walletMnemonic,
+        ) ??
+        '';
     if (mnemonic.isEmpty) {
       _showError(noWalletMsg);
       return;

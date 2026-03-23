@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/wallet/wallet_cubit.dart';
 
@@ -103,7 +104,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _onValidationSuccess(String phrase) async {
-    await widget.prefs.setString(PreferenceKeys.walletMnemonic, phrase);
+    await const FlutterSecureStorage().write(
+      key: PreferenceKeys.walletMnemonic,
+      value: phrase,
+    );
     await widget.prefs.setBool(PreferenceKeys.onboardingComplete, true);
     if (!mounted) return;
     // Derive address before navigation so no page ever sees an empty address.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:kasway/app/constants/preference_keys.dart';
 import 'package:kasway/app/donation/donation_cubit.dart';
@@ -13,7 +14,6 @@ import 'package:kasway/app/wallet/wallet_cubit.dart';
 import 'package:kasway/app/widgets/explorer_page.dart';
 import 'package:kasway/data/repositories/donation_repository.dart';
 import 'package:kasway/data/services/kaspa_wallet_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class DonationPage extends StatefulWidget {
   const DonationPage({super.key});
@@ -216,8 +216,11 @@ class _OneTimeDonateSheetState extends State<_OneTimeDonateSheet> {
     final donationRepo = context.read<DonationRepository>();
     final noWalletMsg = context.l10n.donateNoWallet;
 
-    final prefs = await SharedPreferences.getInstance();
-    final mnemonic = prefs.getString(PreferenceKeys.walletMnemonic) ?? '';
+    final mnemonic =
+        await const FlutterSecureStorage().read(
+          key: PreferenceKeys.walletMnemonic,
+        ) ??
+        '';
     if (mnemonic.isEmpty) {
       _showError(noWalletMsg);
       return;
